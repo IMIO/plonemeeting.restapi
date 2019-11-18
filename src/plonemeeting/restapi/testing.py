@@ -1,53 +1,27 @@
 # -*- coding: utf-8 -*-
 
-from plone.app.robotframework.testing import REMOTE_LIBRARY_BUNDLE_FIXTURE
-from plone.app.testing import applyProfile
 from plone.app.testing import FunctionalTesting
-from plone.app.testing import IntegrationTesting
-from plone.app.testing import PLONE_FIXTURE
-from plone.app.testing import PloneSandboxLayer
+from Products.PloneMeeting.testing import PMLayer
 from plone.restapi.testing import PLONE_RESTAPI_AT_FUNCTIONAL_TESTING
-from plone.testing import z2
-
 import plonemeeting.restapi
 
 
-class PMRestapiLayer(PloneSandboxLayer):
-
-    defaultBases = (PLONE_FIXTURE,)
-
-    def setUpZope(self, app, configurationContext):
-        # Load any other ZCML that is required for your tests.
-        # The z3c.autoinclude feature is disabled in the Plone fixture base
-        # layer.
-        import plone.app.dexterity
-        self.loadZCML(package=plone.app.dexterity)
-        self.loadZCML(package=plonemeeting.restapi)
-
-    def setUpPloneSite(self, portal):
-        applyProfile(portal, 'plonemeeting.restapi:default')
+class PMRestapiLayer(PMLayer):
+    ''' '''
 
 
-PM_RESTAPI_FIXTURE = PMRestapiLayer()
+PM_REST_TESTING_PROFILE = PMRestapiLayer(
+    zcml_filename="testing.zcml",
+    zcml_package=plonemeeting.restapi,
+    additional_z2_products=('imio.dashboard',
+                            'Products.PloneMeeting',
+                            'Products.CMFPlacefulWorkflow',
+                            'Products.PasswordStrength'),
+    gs_profile_id='plonemeeting.restapi:testing',
+    name="PM_REST_TESTING_PROFILE")
 
 
-PM_RESTAPI_INTEGRATION_TESTING = IntegrationTesting(
-    bases=(PM_RESTAPI_FIXTURE,),
-    name='PMRestapiLayer:IntegrationTesting',
-)
-
-
-PM_RESTAPI_FUNCTIONAL_TESTING = FunctionalTesting(
-    bases=(PM_RESTAPI_FIXTURE, PLONE_RESTAPI_AT_FUNCTIONAL_TESTING),
-    name='PMRestapiLayer:FunctionalTesting',
-)
-
-
-PM_RESTAPI_ACCEPTANCE_TESTING = FunctionalTesting(
-    bases=(
-        PM_RESTAPI_FIXTURE,
-        REMOTE_LIBRARY_BUNDLE_FIXTURE,
-        z2.ZSERVER_FIXTURE,
-    ),
-    name='PMRestapiLayer:AcceptanceTesting',
-)
+PM_REST_TEST_PROFILE_FUNCTIONAL = FunctionalTesting(
+    bases=(PM_REST_TESTING_PROFILE,
+           PLONE_RESTAPI_AT_FUNCTIONAL_TESTING),
+    name="PM_REST_TEST_PROFILE_FUNCTIONAL")

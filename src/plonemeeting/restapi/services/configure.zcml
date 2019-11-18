@@ -7,8 +7,18 @@
     method="GET"
     for="Products.CMFCore.interfaces.ISiteRoot"
     accept="application/json,application/schema+json"
-    name="@get_publishable_meetings"
-    factory=".meeting.GetPublishableMeetings"
+    name="@search_meetings"
+    factory=".meeting.SearchMeetingsGet"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View"
+    />
+
+  <plone:service
+    method="GET"
+    for="Products.CMFCore.interfaces.ISiteRoot"
+    accept="application/json,application/schema+json"
+    name="@search_meeting_items"
+    factory=".meeting.SearchMeetingItemsGet"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View"
     />

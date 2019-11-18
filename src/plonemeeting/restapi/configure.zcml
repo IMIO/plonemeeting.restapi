@@ -6,6 +6,8 @@
     i18n_domain="plonemeeting.restapi">
 
   <include package="plone.restapi" />
+  <include package="Products.PloneMeeting" />
+  <include package=".serializer" />
   <include package=".services" />
 
   <genericsetup:registerProfile
@@ -15,6 +17,14 @@
       description="Installs the plonemeeting.restapi add-on."
       provides="Products.GenericSetup.interfaces.EXTENSION"
       post_handler=".setuphandlers.post_install"
+      />
+
+  <genericsetup:registerProfile
+      name="testing"
+      title="plonemeeting.restapi testing"
+      directory="profiles/testing"
+      description="Installs the plonemeeting.restapi add-on for testing."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
       />
 
 </configure>
