@@ -8,7 +8,7 @@
     for="Products.CMFCore.interfaces.ISiteRoot"
     accept="application/json,application/schema+json"
     name="@get_publishable_meetings"
-    factory=".request_schema.RequestSchemaGet"
+    factory=".meeting.GetPublishableMeetings"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View"
     />
