@@ -39,10 +39,8 @@ setup(
     install_requires=[
         # -*- Extra requirements: -*-
         'setuptools',
-        'z3c.jbot',
-        'plone.restapi',
-        'collective.z3cform.select2',
-        'Products.PloneMeeting'
+        'Products.PloneMeeting',
+        'imio.restapi',
     ],
     extras_require={
         'test': [
