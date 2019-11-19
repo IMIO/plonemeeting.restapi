@@ -2,6 +2,7 @@
 
 from plone import api
 from plone.restapi.services.search.get import SearchGet
+from plonemeeting.restapi.utils import listify
 
 
 class BaseSearchItemGet(SearchGet):
@@ -34,9 +35,8 @@ class BaseSearchItemGet(SearchGet):
         ''' '''
         form = self.request.form
         form['portal_type'] = self.cfg.getItemTypeName()
-        form['metadata_fields'] = form.get('metadata_fields', []) + \
-            self._additional_fields
-        form['fullobjects'] = True
+        additional_metadata_fields = listify(form.get("metadata_fields", []))
+        additional_metadata_fields += self._additional_fields
 
     def reply(self):
         self._set_additional_query_params()

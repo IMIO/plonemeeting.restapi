@@ -9,7 +9,7 @@ import transaction
 class testServicesMeeting(BaseTestCase):
     """ """
 
-    def test_restapi_get_meetings_required_params(self):
+    def test_restapi_search_meetings_required_params(self):
         """@search_meetings"""
         endpoint_url = "{0}/@search_meetings".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
@@ -21,7 +21,7 @@ class testServicesMeeting(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200)
 
-    def test_restapi_get_meetings_endpoint(self):
+    def test_restapi_search_meetings_endpoint(self):
         """@search_meetings"""
         endpoint_url = "{0}/@search_meetings?getConfigId={1}".format(
             self.portal_url, self.meetingConfig.getId())
@@ -48,7 +48,34 @@ class testServicesMeeting(BaseTestCase):
         self.assertEqual(response.json()[u'items_total'], 1)
         self.assertEqual(response.json()[u'items'][0][u'review_state'], u'closed')
 
-    def test_restapi_get_meeting_items_required_params(self):
+    def test_restapi_search_meetings_fullobjects(self):
+        """@search_meetings"""
+        endpoint_url = "{0}/@search_meetings?getConfigId={1}".format(
+            self.portal_url, self.meetingConfig.getId())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200)
+        # nothing found for now
+        self.assertEqual(response.json()[u'items_total'], 0)
+
+        # create 2 meetings
+        self.changeUser('pmManager')
+        meeting = self.create('Meeting', date=DateTime('2019/11/18'))
+        self.assertEqual(meeting.queryState(), 'created')
+        meeting2 = self.create('Meeting', date=DateTime('2019/11/18'))
+        self.closeMeeting(meeting2)
+        self.assertEqual(meeting2.queryState(), 'closed')
+        transaction.commit()
+
+        # found
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.json()[u'items_total'], 2)
+        # may still use additional search parameters
+        endpoint_url += '&review_state=closed'
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.json()[u'items_total'], 1)
+        self.assertEqual(response.json()[u'items'][0][u'review_state'], u'closed')
+
+    def test_restapi_search_meeting_items_required_params(self):
         """@search_meeting_items"""
         # getConfigId is required
         base_endpoint_url = "{0}/@search_meeting_items".format(self.portal_url)
@@ -87,7 +114,7 @@ class testServicesMeeting(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()[u'items_total'], 0)
 
-    def test_restapi_get_meeting_items_endpoint(self):
+    def test_restapi_search_meeting_items_endpoint(self):
         """@search_meeting_items"""
         self.changeUser('pmManager')
         meeting = self._createMeetingWithItems()

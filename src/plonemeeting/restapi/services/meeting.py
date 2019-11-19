@@ -2,6 +2,7 @@
 
 from plone import api
 from plone.restapi.services.search.get import SearchGet
+from plonemeeting.restapi.utils import listify
 
 
 class BaseSearchMeetingGet(SearchGet):
@@ -34,9 +35,10 @@ class BaseSearchMeetingGet(SearchGet):
         ''' '''
         form = self.request.form
         form['portal_type'] = self.cfg.getMeetingTypeName()
-        form['metadata_fields'] = form.get('metadata_fields', []) + \
-            self._additional_fields
-        form['fullobjects'] = True
+
+        additional_metadata_fields = listify(form.get("metadata_fields", []))
+        additional_metadata_fields += self._additional_fields
+        form['metadata_fields'] = additional_metadata_fields
         # avoid batch
         form['b_size'] = 9999
 
