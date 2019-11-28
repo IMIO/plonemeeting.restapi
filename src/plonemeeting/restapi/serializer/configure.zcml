@@ -3,6 +3,7 @@
     xmlns:zcml="http://namespaces.zope.org/zcml"
     i18n_domain="plonemeeting.restapi">
 
+    <adapter factory=".annex.AnnexSerializeToJson" />
     <adapter factory=".item.SerializeToJson" />
     <adapter factory=".meeting.SerializeToJson" />
     <adapter factory=".summary.PMJSONSummarySerializer" />

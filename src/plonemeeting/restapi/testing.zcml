@@ -3,6 +3,7 @@
 
     <include file="configure.zcml"/>
     <include package="Products.PloneMeeting" />
+    <include package="imio.restapi" />
     <include package="plonemeeting.restapi" />
 
 </configure>
