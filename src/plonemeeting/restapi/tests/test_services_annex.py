@@ -21,13 +21,15 @@ class testServicesAnnex(BaseTestCase):
         item = self.create('MeetingItem')
         transaction.commit()
 
-        # found
+        # on MeetingItem without annexes
         item_url = item.absolute_url()
         endpoint_url = "{0}/@annexes".format(item_url)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.json(), [])
+        # add annexes
         self.addAnnex(item)
         self.addAnnex(item)
+        response = self.api_session.get(endpoint_url)
         self.assertEqual(len(response.json()), 2)
         # contains extra attributes managed by collective.iconifiedcategory
         # as attributes and not in the schema
