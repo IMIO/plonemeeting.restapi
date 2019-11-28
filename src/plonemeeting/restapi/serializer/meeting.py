@@ -12,3 +12,13 @@ from zope.interface import Interface
 @adapter(IMeeting, Interface)
 class SerializeToJson(BaseATSerializeToJson):
     ''' '''
+
+    def __call__(self, version=None, include_items=True):
+        ''' '''
+
+        result = super(SerializeToJson, self).__call__(
+            version=version, include_items=include_items)
+
+        # add some formatted values
+        result['formatted_assembly'] = self.context.displayStrikedAssembly()
+        return result

@@ -22,7 +22,7 @@ class testServicesItem(BaseTestCase):
 
     def test_restapi_search_items_endpoint(self):
         """@search_items"""
-        endpoint_url = "{0}/@search_items?getConfigId={1}".format(
+        endpoint_url = "{0}/@search_items?getConfigId={1}&fullobjects=True".format(
             self.portal_url, self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200)
@@ -44,8 +44,16 @@ class testServicesItem(BaseTestCase):
         # may still use additional search parameters
         endpoint_url += '&review_state=validated'
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.json()[u'items_total'], 1)
-        self.assertEqual(response.json()[u'items'][0][u'review_state'], u'validated')
+        resp_json = response.json()
+        self.assertEqual(resp_json[u'items_total'], 1)
+        self.assertEqual(resp_json[u'items'][0][u'review_state'], u'validated')
+
+        # includes every data as well as extra formatted values
+        self.assertTrue('motivation' in resp_json['items'][0])
+        self.assertTrue('decision' in resp_json['items'][0])
+        self.assertTrue('toDiscuss' in resp_json['items'][0])
+        self.assertTrue('formatted_itemAssembly' in resp_json['items'][0])
+        self.assertTrue('formatted_itemNumber' in resp_json['items'][0])
 
 
 def test_suite():

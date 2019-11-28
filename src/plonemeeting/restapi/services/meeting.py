@@ -54,6 +54,7 @@ class SearchMeetingsGet(BaseSearchMeetingGet):
         super(SearchMeetingsGet, self)._set_additional_query_params()
         form = self.request.form
         form['sort_on'] = form.get('sort_on', 'sortable_title')
+        form['sort_order'] = form.get('sort_order', 'reverse')
 
 
 class SearchMeetingItemsGet(BaseSearchMeetingGet):
