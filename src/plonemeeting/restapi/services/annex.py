@@ -23,8 +23,8 @@ class Annexes(object):
         if not expand:
             return result
 
-        # avoid batch
-        self.request.form['b_size'] = 9999
+        # extend batch? DEFAULT_BATCH_SIZE = 25
+        # self.request.form['b_size'] = 50
 
         result = {}
         annexes = get_categorized_elements(self.context, result_type='objects')

@@ -122,18 +122,6 @@ class testServicesMeeting(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()[u'items_total'], 0)
 
-    def test_restapi_search_meeting_items_endpoint(self):
-        """@search_meeting_items"""
-        self.changeUser('pmManager')
-        meeting = self._createMeetingWithItems()
-        endpoint_url = '{0}/@search_meeting_items?getConfigId={1}&linkedMeetingUID={2}'.format(
-            self.portal_url, self.meetingConfig.getId(), meeting.UID())
-        transaction.commit()
-        response = self.api_session.get(endpoint_url)
-        # items are returned sorted
-        self.assertEqual(
-            [elt['UID'] for elt in response.json()[u'items']],
-            [obj.UID() for obj in meeting.getItems(ordered=True)])
 
 
 def test_suite():

@@ -55,6 +55,22 @@ class testServicesItem(BaseTestCase):
         self.assertTrue('formatted_itemAssembly' in resp_json['items'][0])
         self.assertTrue('formatted_itemNumber' in resp_json['items'][0])
 
+    def test_restapi_search_items_in_meeting(self):
+        """@search_items using the linkedMeetingUID attribute"""
+        self.changeUser('pmManager')
+        meeting = self._createMeetingWithItems()
+        endpoint_url = '{0}/@search_items?getConfigId={1}&linkedMeetingUID={2}' \
+            '&sort_on=getItemNumber'.format(
+                self.portal_url,
+                self.meetingConfig.getId(),
+                meeting.UID())
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        # items are returned sorted
+        self.assertEqual(
+            [elt['UID'] for elt in response.json()[u'items']],
+            [obj.UID() for obj in meeting.getItems(ordered=True)])
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
