@@ -38,6 +38,7 @@ class testServicesAnnex(BaseTestCase):
         self.assertTrue('preview_status' in annex1_infos)
         self.assertTrue('signed_activated' in annex1_infos)
         self.assertTrue('signed' in annex1_infos)
+        self.assertTrue('publishable_activated' in annex1_infos)
         self.assertTrue('publishable' in annex1_infos)
         self.assertTrue('to_print' in annex1_infos)
 

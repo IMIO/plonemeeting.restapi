@@ -83,46 +83,6 @@ class testServicesMeeting(BaseTestCase):
         self.assertTrue('notes' in resp_json['items'][0])
         self.assertTrue('formatted_assembly' in resp_json['items'][0])
 
-    def test_restapi_search_meeting_items_required_params(self):
-        """@search_meeting_items"""
-        # getConfigId is required
-        base_endpoint_url = "{0}/@search_meeting_items".format(self.portal_url)
-        response = self.api_session.get(base_endpoint_url)
-        self.assertEqual(response.status_code, 500)
-        self.assertEqual(
-            response.json(),
-            {u'message':
-                u'The "getConfigId" parameter must be given',
-             u'type':
-                u'Exception'})
-        # getConfigId must be a valid MeetingConfig id
-        endpoint_url = base_endpoint_url + '?getConfigId=unknown_id'
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
-        self.assertEqual(
-            response.json(),
-            {u'message':
-                u'The given "getConfigId" named "unknown_id" was not found',
-             u'type':
-                u'Exception'})
-        # linkedMeetingUID is also a required parameter
-        endpoint_url = base_endpoint_url + '?getConfigId={0}'.format(
-            self.meetingConfig.getId())
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
-        self.assertEqual(
-            response.json(),
-            {u'message': u'The "linkedMeetingUID" parameter must be given',
-             u'type': u'Exception'})
-        # every parameters provided
-        endpoint_url = base_endpoint_url + \
-            '?getConfigId={0}&linkedMeetingUID='.format(
-                self.meetingConfig.getId())
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()[u'items_total'], 0)
-
-
 
 def test_suite():
     from unittest import TestSuite, makeSuite
