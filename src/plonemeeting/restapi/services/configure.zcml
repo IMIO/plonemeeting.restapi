@@ -23,6 +23,18 @@
     permission="zope2.View"
     />
 
+  <adapter factory=".item.ItemDeliberationInfos" name="deliberation" />
+
+  <plone:service
+    method="GET"
+    for="zope.interface.Interface"
+    accept="application/json,application/schema+json"
+    name="@deliberation"
+    factory=".item.ItemDeliberationInfosGet"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View"
+    />
+
   <adapter factory=".annex.Annexes" name="annex" />
 
   <plone:service

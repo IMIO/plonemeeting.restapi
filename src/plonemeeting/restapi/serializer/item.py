@@ -13,12 +13,6 @@ from zope.interface import Interface
 class SerializeToJson(BaseATSerializeToJson):
     ''' '''
 
-    def _get_public_deliberation(self):
-        ''' '''
-        view = self.context.restrictedTraverse('document-generation')
-        helper = view.get_generation_context_helper()
-        return helper.print_public_deliberation()
-
     def __call__(self, version=None, include_items=True):
         ''' '''
 
@@ -28,6 +22,15 @@ class SerializeToJson(BaseATSerializeToJson):
         # add some formatted values
         result['formatted_itemAssembly'] = self.context.displayStrikedItemAssembly()
         result['formatted_itemNumber'] = self.context.getItemNumber(for_display=True)
-        result['formatted_deliberation'] = self._get_deliberation()
-        result['formatted_public_deliberation'] = self._get_public_deliberation()
+
+        return result
+
+    def deliberation(self):
+        ''' '''
+        # make the @@document-generation helper view available on self
+        view = self.context.restrictedTraverse('document-generation')
+        helper = view.get_generation_context_helper()
+
+        # the method helper.output_for_restapi manage what is returned by this endpoint
+        result = helper.output_for_restapi()
         return result
