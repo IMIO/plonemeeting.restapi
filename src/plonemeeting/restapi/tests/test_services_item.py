@@ -34,6 +34,8 @@ class testServicesItem(BaseTestCase):
         item1 = self.create('MeetingItem')
         self.assertEqual(item1.queryState(), 'itemcreated')
         item2 = self.create('MeetingItem')
+        item2.setMotivation('<p>Motivation</p>')
+        item2.setDecision(self.decisionText)
         self.validateItem(item2)
         self.assertEqual(item2.queryState(), 'validated')
         transaction.commit()
@@ -54,6 +56,10 @@ class testServicesItem(BaseTestCase):
         self.assertTrue('toDiscuss' in resp_json['items'][0])
         self.assertTrue('formatted_itemAssembly' in resp_json['items'][0])
         self.assertTrue('formatted_itemNumber' in resp_json['items'][0])
+        self.assertEqual(resp_json['items'][0]['formatted_deliberation'],
+                         u'<p>Motivation</p><p>Some decision.</p>')
+        self.assertEqual(resp_json['items'][0]['formatted_public_deliberation'],
+                         u'<p>Motivation</p><p>Some decision.</p>')
 
     def test_restapi_search_items_in_meeting(self):
         """@search_items using the linkedMeetingUID attribute"""
