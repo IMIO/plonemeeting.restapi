@@ -71,27 +71,46 @@ class testServicesItem(BaseTestCase):
             [elt['UID'] for elt in response.json()[u'items']],
             [obj.UID() for obj in meeting.getItems(ordered=True)])
 
-    def test_restapi_deliberation_endpoint(self):
-        """@deliberation"""
-        endpoint_url = "{0}/@deliberation".format(self.portal_url)
-        response = self.api_session.get(endpoint_url)
-        # only available on IMeetingItem
-        self.assertEqual(response.status_code, 500)
-
-        # create item with annexes
+    def test_restapi_search_items_extra_include(self):
+        """@search_items may receive an extra_include parameter"""
         self.changeUser('pmManager')
-        item = self.create('MeetingItem')
+        self.meetingConfig.setUseGroupsAsCategories(False)
+        meeting = self._createMeetingWithItems()
+        item = meeting.getItems(ordered=True)[0]
         item.setMotivation('<p>Motivation</p>')
         item.setDecision(self.decisionText)
+        endpoint_url = '{0}/@search_items?getConfigId={1}&linkedMeetingUID={2}' \
+            '&sort_on=getItemNumber'.format(
+                self.portal_url,
+                self.meetingConfig.getId(),
+                meeting.UID())
         transaction.commit()
-
-        # on MeetingItem without annexes
-        item_url = item.absolute_url()
-        endpoint_url = "{0}/@deliberation".format(item_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.json(),
-                         {u'public_deliberation': u'<p>Motivation</p><p>Some decision.</p>',
-                          u'deliberation': u'<p>Motivation</p><p>Some decision.</p>'})
+        # by default no extra include
+        self.assertFalse('proposingGroup_extra' in response.json()['items'][0])
+        # does not work if fullobjects is not used
+        endpoint_url = endpoint_url + '&extra_include=proposingGroup'
+        response = self.api_session.get(endpoint_url)
+        self.assertFalse('proposingGroup_extra' in response.json()['items'][0])
+        # now with fullobjects
+        endpoint_url = endpoint_url + '&fullobjects'
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertTrue('proposingGroup_extra' in json['items'][0])
+        self.assertFalse('category_extra' in json['items'][0])
+        # extra_include proposingGroup and category
+        endpoint_url = endpoint_url + '&extra_include=category'
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['items'][0]['proposingGroup_extra']['id'], u'developers')
+        self.assertEqual(json['items'][0]['category_extra']['id'], u'development')
+        # extra_include deliberation
+        endpoint_url = endpoint_url + '&extra_include=deliberation'
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(
+            response.json()['items'][0]['deliberation_extra'],
+            {u'public_deliberation': u'<p>Motivation</p><p>Some decision.</p>',
+             u'deliberation': u'<p>Motivation</p><p>Some decision.</p>'})
 
 
 def test_suite():
