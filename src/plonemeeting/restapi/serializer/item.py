@@ -54,5 +54,8 @@ class SerializeToJson(BaseATSerializeToJson):
         # add some formatted values
         result['formatted_itemAssembly'] = self.context.displayStrikedItemAssembly()
         result['formatted_itemNumber'] = self.context.getItemNumber(for_display=True)
+        # values including computed values
+        result['all_copyGroups'] = self.context.getAllCopyGroups(auto_real_plone_group_ids=True)
+        result['all_groupsInCharge'] = self.context.getGroupsInCharge(includeAuto=True)
 
         return result

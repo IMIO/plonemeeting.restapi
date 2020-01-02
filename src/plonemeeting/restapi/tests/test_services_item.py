@@ -54,6 +54,8 @@ class testServicesItem(BaseTestCase):
         self.assertTrue('toDiscuss' in resp_json['items'][0])
         self.assertTrue('formatted_itemAssembly' in resp_json['items'][0])
         self.assertTrue('formatted_itemNumber' in resp_json['items'][0])
+        self.assertTrue('all_copyGroups' in resp_json['items'][0])
+        self.assertTrue('all_groupsInCharge' in resp_json['items'][0])
 
     def test_restapi_search_items_in_meeting(self):
         """@search_items using the linkedMeetingUID attribute"""
