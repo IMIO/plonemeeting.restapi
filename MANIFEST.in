@@ -4,3 +4,6 @@ include LICENSE.GPL
 include requirements.txt
 global-exclude *.pyc
 global-exclude *.pyo
+include *.md
+include *.sh
+include Makefile
