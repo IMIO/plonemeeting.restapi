@@ -1,6 +1,7 @@
 [report]
 include =
-    src/plonemeeting/*
+    src/plonemeeting/restapi/*
 omit =
-    */test*
-    */upgrades/*
+    src/plonemeeting/restapi/*/__init__.py
+    src/plonemeeting/restapi/tests/*
+    src/plonemeeting/restapi/upgrades/*
