@@ -32,8 +32,8 @@ pipeline {
             steps {
                 script {
                     def zServerPort = new Random().nextInt(10000) + 30000
-                    sh "env ZSERVER_PORT=${zServerPort}  bin/coverage run bin/test"
-                    sh 'bin/python bin/coverage xml -i'
+                    sh "env ZSERVER_PORT=${zServerPort}  bin/coverage run --source=plonemeeting.restapi bin/test"
+                    sh 'bin/coverage xml -i'
                     cobertura(
                         coberturaReportFile: '**/coverage.xml',
                         conditionalCoverageTargets: '70, 0, 0',
