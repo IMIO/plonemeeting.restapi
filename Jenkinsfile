@@ -36,6 +36,7 @@ pipeline {
                     sh 'bin/coverage xml -i'
                     cobertura(
                         coberturaReportFile: '**/coverage.xml',
+			autoUpdateStability: false,
                         conditionalCoverageTargets: '70, 0, 0',
                         lineCoverageTargets: '80, 0, 0',
                         maxNumberOfBuilds: 0,
