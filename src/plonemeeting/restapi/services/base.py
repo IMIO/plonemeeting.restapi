@@ -2,6 +2,8 @@
 
 from plone import api
 from plone.restapi.services.search.get import SearchGet
+from plone.restapi.search.handler import SearchHandler
+from plone.restapi.search.utils import unflatten_dotted_dict
 from plonemeeting.restapi.utils import listify
 
 
@@ -44,4 +46,11 @@ class BaseSearchGet(SearchGet):
 
     def reply(self):
         self._set_additional_query_params()
-        return super(BaseSearchGet, self).reply()
+        query = self.request.form.copy()
+        query = unflatten_dotted_dict(query)
+        # remove extra_include so we avoid a warning
+        # WARNING plone.restapi.search.query No such index: 'extra_include'
+        if "extra_include" in query:
+            query.pop('extra_include')
+
+        return SearchHandler(self.context, self.request).search(query)
