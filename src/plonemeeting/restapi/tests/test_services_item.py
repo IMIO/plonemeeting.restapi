@@ -112,7 +112,8 @@ class testServicesItem(BaseTestCase):
         self.assertEqual(
             response.json()['items'][0]['deliberation_extra'],
             {u'public_deliberation': u'<p>Motivation</p><p>Some decision.</p>',
-             u'deliberation': u'<p>Motivation</p><p>Some decision.</p>'})
+             u'deliberation': u'<p>Motivation</p><p>Some decision.</p>',
+             u'public_deliberation_decided': u'<p>Motivation</p><p>Some decision.</p>'})
 
 
 def test_suite():
