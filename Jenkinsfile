@@ -37,10 +37,10 @@ pipeline {
                     cobertura(
                         coberturaReportFile: '**/coverage.xml',
 			autoUpdateStability: false,
-                        conditionalCoverageTargets: '70, 0, 0',
-                        lineCoverageTargets: '80, 0, 0',
+                        conditionalCoverageTargets: '70, 50, 20',
+                        lineCoverageTargets: '80, 50, 20',
                         maxNumberOfBuilds: 0,
-                        methodCoverageTargets: '80, 0, 0',
+                        methodCoverageTargets: '80, 50, 20',
                         onlyStable: false,
                         sourceEncoding: 'ASCII'
                     )
