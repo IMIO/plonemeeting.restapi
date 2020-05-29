@@ -8,6 +8,11 @@ Changelog
   annex `content_category` that is restricted to `MeetingManagers` using
   `content_category.only_for_meeting_managers` is rendered the same way.
   [gbastien]
+- Try to build a more easy api :
+
+  - Turned `@search_items` into `@search` and `@search_meetings` into `@search?type=meeting`;
+  - Parameter `getConfigId` may now be passed as `config_id`.
+  [gbastien]
 
 1.0a1 (2020-01-10)
 ------------------

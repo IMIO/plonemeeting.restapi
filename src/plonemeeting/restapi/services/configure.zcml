@@ -7,21 +7,10 @@
     method="GET"
     for="Products.CMFCore.interfaces.ISiteRoot"
     accept="application/json,application/schema+json"
-    name="@search_meetings"
-    factory=".meeting.SearchMeetingsGet"
+    name="@search"
+    factory=".search.PMSearchGet"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-    permission="zope2.View"
-    />
-
-  <plone:service
-    method="GET"
-    for="Products.CMFCore.interfaces.ISiteRoot"
-    accept="application/json,application/schema+json"
-    name="@search_items"
-    factory=".item.SearchItemsGet"
-    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-    permission="zope2.View"
-    />
+    permission="zope2.View" />
 
   <adapter factory=".annex.Annexes" name="annex" />
 
@@ -32,7 +21,6 @@
     name="@annexes"
     factory=".annex.AnnexesGet"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-    permission="zope2.View"
-    />
+    permission="zope2.View" />
 
 </configure>
