@@ -17,7 +17,7 @@ class PMSearchGet(SearchGet):
         self.cfg = self.tool.get(config_id, None)
         if not self.cfg:
             raise Exception(
-                "The given \"getConfigId\" named \"{0}\" was not found".format(
+                "The given \"config_id\" named \"{0}\" was not found".format(
                     config_id)
             )
 

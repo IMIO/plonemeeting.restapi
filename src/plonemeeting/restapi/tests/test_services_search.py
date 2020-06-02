@@ -28,7 +28,7 @@ class testServicesSearch(BaseTestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(
             response.json(),
-            {u'message': u'The given "getConfigId" named "unknown" was not found',
+            {u'message': u'The given "config_id" named "unknown" was not found',
              u'type': u'Exception'})
 
     def test_restapi_search_items_endpoint(self):
