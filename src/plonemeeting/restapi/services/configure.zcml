@@ -23,4 +23,11 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
+  <plone:service
+    method="POST"
+    for="Products.CMFCore.interfaces.IFolderish"
+    factory=".add.PMFolderPost"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
 </configure>

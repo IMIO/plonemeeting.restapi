@@ -5,6 +5,8 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="plonemeeting.restapi">
 
+  <i18n:registerTranslations directory="locales" />
+
   <include package="plone.restapi" />
   <include package="Products.PloneMeeting" />
   <include package=".serializer" />
