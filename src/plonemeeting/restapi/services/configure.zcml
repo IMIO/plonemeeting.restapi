@@ -12,6 +12,22 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
+  <plone:service
+    method="POST"
+    for="Products.CMFCore.interfaces.IFolderish"
+    factory=".add.ItemPost"
+    name="@item"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
+  <plone:service
+    method="POST"
+    for="Products.CMFCore.interfaces.IFolderish"
+    factory=".add.MeetingPost"
+    name="@meeting"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
   <adapter factory=".annex.Annexes" name="annex" />
 
   <plone:service
@@ -20,13 +36,6 @@
     accept="application/json,application/schema+json"
     name="@annexes"
     factory=".annex.AnnexesGet"
-    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-    permission="zope2.View" />
-
-  <plone:service
-    method="POST"
-    for="Products.CMFCore.interfaces.IFolderish"
-    factory=".add.PMFolderPost"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
