@@ -5,11 +5,11 @@ all: buildout
 
 .PHONY: cleanall
 cleanall:
-	rm -rf bin develop-eggs include lib local parts/instance1 parts/zeoserver parts/test share .installed.cfg .mr.developper.cfg
+	rm -rf bin develop-eggs include lib local parts/instance1 parts share .installed.cfg .mr.developper.cfg
 
 .PHONY: bootstrap
 bootstrap:cleanall
-	virtualenv-2.7 --clear .
+	virtualenv --clear .
 	bin/pip install -r requirements.txt
 
 .PHONY: buildout
