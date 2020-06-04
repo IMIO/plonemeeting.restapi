@@ -6,7 +6,7 @@ from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWO
 import transaction
 
 
-class testServicesAnnex(BaseTestCase):
+class testServiceAnnexes(BaseTestCase):
     """ """
 
     def test_restapi_annexes_endpoint(self):
@@ -72,5 +72,5 @@ def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     # add a prefix to avoid every PM tests to be executed
-    suite.addTest(makeSuite(testServicesAnnex, prefix='test_restapi_'))
+    suite.addTest(makeSuite(testServiceAnnexes, prefix='test_restapi_'))
     return suite

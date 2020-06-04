@@ -13,6 +13,8 @@ Changelog
   - Turned `@search_items` into `@search` and `@search_meetings` into `@search?type=meeting`;
   - Parameter `getConfigId` is renamed to `config_id`.
   [gbastien]
+- Added `@item` POST endpoint to be able to create item with or without annexes.
+  [gbastien]
 
 1.0a1 (2020-01-10)
 ------------------

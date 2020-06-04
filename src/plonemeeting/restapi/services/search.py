@@ -4,6 +4,8 @@ from plone import api
 from plone.restapi.services.search.get import SearchGet
 from plone.restapi.search.handler import SearchHandler
 from plone.restapi.search.utils import unflatten_dotted_dict
+from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
+from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.utils import listify
 
 
@@ -16,10 +18,7 @@ class PMSearchGet(SearchGet):
         self.type = self._type
         self.cfg = self.tool.get(config_id, None)
         if not self.cfg:
-            raise Exception(
-                "The given \"config_id\" named \"{0}\" was not found".format(
-                    config_id)
-            )
+            raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
 
     @property
     def _additional_fields(self):
@@ -29,9 +28,7 @@ class PMSearchGet(SearchGet):
     @property
     def _config_id(self):
         if 'config_id' not in self.request.form:
-            raise Exception(
-                "The \"config_id\" parameter must be given"
-            )
+            raise Exception(CONFIG_ID_ERROR)
         return self.request.form.get('config_id')
 
     @property

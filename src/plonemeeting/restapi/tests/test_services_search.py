@@ -6,7 +6,7 @@ from plonemeeting.restapi.tests.base import BaseTestCase
 import transaction
 
 
-class testServicesSearch(BaseTestCase):
+class testServiceSearch(BaseTestCase):
     """@search without 'type' is the same as @search?type=item"""
 
     def test_restapi_search_items_required_params(self):
@@ -205,5 +205,5 @@ def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     # add a prefix to avoid every PM tests to be executed
-    suite.addTest(makeSuite(testServicesSearch, prefix='test_restapi_'))
+    suite.addTest(makeSuite(testServiceSearch, prefix='test_restapi_'))
     return suite

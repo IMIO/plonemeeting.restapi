@@ -6,7 +6,10 @@ from Products.PloneMeeting.utils import add_wf_history_action
 from imio.restapi.services.add import FolderPost
 from plone import api
 from plone.restapi.deserializer import json_body
+from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
+from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
 from Products.PloneMeeting.utils import org_id_to_uid
+from Products.PloneMeeting.utils import fplog
 from zExceptions import BadRequest
 
 OPTIONAL_FIELD_ERROR = "The optional field \"%s\" is not activated in this configuration!"
@@ -23,10 +26,7 @@ class BasePost(FolderPost):
         config_id = self._prepare_data_config_id(data)
         self.cfg = self.tool.get(config_id, None)
         if not self.cfg:
-            raise Exception(
-                "The given \"config_id\" named \"{0}\" was not found".format(
-                    config_id)
-            )
+            raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
         # type
         self.type = self._prepare_data_type(data)
 
@@ -54,9 +54,7 @@ class BasePost(FolderPost):
 
     def _prepare_data_config_id(self, data):
         if 'config_id' not in data and 'config_id' not in self.parent_data:
-            raise Exception(
-                "The \"config_id\" parameter must be given"
-            )
+            raise Exception(CONFIG_ID_ERROR)
         return data.get('config_id', self.parent_data.get('config_id'))
 
     def _prepare_data_type(self, data):
@@ -132,8 +130,6 @@ class BasePost(FolderPost):
         cleaned_data.pop('config_id', None)
         cleaned_data.pop('in_name_of', None)
         cleaned_data.pop('wf_transitions', None)
-        # file data
-        cleaned_data.pop('encoding', None)
         return cleaned_data
 
     def _after_reply_hook(self, serialized_obj):
@@ -145,6 +141,9 @@ class BasePost(FolderPost):
         add_wf_history_action(obj,
                               action_name=action_name,
                               action_label=action_label)
+        # fingerpointing
+        extras = 'object={0}'.format(repr(self.context.get(serialized_obj['id'])))
+        fplog('create_by_ws_rest', extras=extras)
 
     def _check_unknown_data(self, serialized_obj):
         diff = set(self.cleaned_data.keys()).difference(serialized_obj.keys())
