@@ -9,40 +9,69 @@ from plone.restapi.deserializer import json_body
 from Products.PloneMeeting.utils import org_id_to_uid
 from zExceptions import BadRequest
 
-import json
-
 OPTIONAL_FIELD_ERROR = "The optional field \"%s\" is not activated in this configuration!"
+CATEGORY_ID_ERROR = "Given category_id \"%s\" was not found!"
 
 
 class BasePost(FolderPost):
 
-    def __init__(self, context, request):
-        super(BasePost, self).__init__(context, request)
-        # some variables
+    def prepare_data(self, data):
+        data = super(BasePost, self).prepare_data(data)
+
+        # config_id
         self.tool = api.portal.get_tool('portal_plonemeeting')
-        self.data = self._data
-        config_id = self._config_id
+        config_id = self._prepare_data_config_id(data)
         self.cfg = self.tool.get(config_id, None)
         if not self.cfg:
             raise Exception(
                 "The given \"config_id\" named \"{0}\" was not found".format(
                     config_id)
             )
-        self.type = self._type
-        self.warnings = []
+        # type
+        self.type = self._prepare_data_type(data)
 
-    def _reply(self):
-        serialized_obj = super(BasePost, self).reply()
+        # main checks
+        if data['@type'].startswith('Meeting'):
+            # check that given values are useable, will raise if not
+            data = self._check_optional_fields(data)
+            # turn ids to UIDs
+            data = self._turn_ids_into_uids(data)
+        elif data['@type'].startswith('annex'):
+            # reinject data from parent: config_id and in_name_of
+            data['config_id'] = self.cfg.getId()
+            if not data.get('in_name_of', None) and self.parent_data.get('in_name_of', None):
+                data['in_name_of'] = self.parent_data['in_name_of']
+            if data['@type'] == 'annex':
+                # turn annex_type into content_category
+                category_id = data['category_id']
+                annex_type = self.cfg.annexes_types.item_annexes.get(category_id)
+                if not annex_type:
+                    raise BadRequest(CATEGORY_ID_ERROR % category_id)
+                annex_type_value = calculate_category_id(annex_type)
+                data['content_category'] = annex_type_value
+
+        return data
+
+    def _prepare_data_config_id(self, data):
+        if 'config_id' not in data and 'config_id' not in self.parent_data:
+            raise Exception(
+                "The \"config_id\" parameter must be given"
+            )
+        return data.get('config_id', self.parent_data.get('config_id'))
+
+    def _prepare_data_type(self, data):
+        if '@type' not in data or '@type' == 'item':
+            data['@type'] = self.cfg.getItemTypeName()
+        elif '@type' == 'meeting':
+            data['@type'] = self.cfg.getMeetingTypeName()
+        return data.get('@type')
+
+    def _process_reply(self):
+        serialized_obj = super(BasePost, self)._reply()
         self._check_unknown_data(serialized_obj)
-        serialized_obj['@warnings'] = self.warnings
         return serialized_obj
 
-    def reply(self):
-        self.cleaned_data = self.clean_data()
-
-        # set new BODY with cleaned data
-        self.request.set('BODY', json.dumps(self.cleaned_data))
-
+    def _reply(self):
         in_name_of = self.data.get('in_name_of', None)
         # change context, the view is called on portal, when need
         # the set context to place where element will be added
@@ -50,31 +79,12 @@ class BasePost(FolderPost):
         if self.context.portal_type == 'Plone Site':
             self.context = self.tool.getPloneMeetingFolder(self.cfg.getId(), userId=in_name_of)
         if in_name_of:
-            self._check_in_name_of()
+            if not bool(self.tool.isManager(self.context)):
+                raise Unauthorized
             with api.env.adopt_user(username=in_name_of):
-                return self._reply()
+                return self._process_reply()
         else:
-            return self._reply()
-
-    def _check_in_name_of(self):
-        if not bool(self.tool.isManager(self.context)):
-            raise Unauthorized
-
-    @property
-    def _config_id(self):
-        if 'config_id' not in self.data:
-            raise Exception(
-                "The \"config_id\" parameter must be given"
-            )
-        return self.data.get('config_id')
-
-    @property
-    def _type(self):
-        if '@type' not in self.data or '@type' == 'item':
-            self.data['@type'] = self.cfg.getItemTypeName()
-        elif '@type' == 'meeting':
-            self.data['@type'] = self.cfg.getMeetingTypeName()
-        return self.data.get('@type')
+            return self._process_reply()
 
     @property
     def _data(self):
@@ -88,58 +98,42 @@ class BasePost(FolderPost):
     def _active_fields(self):
         return []
 
-    def _check_optional_fields(self):
+    def _check_optional_fields(self, data):
         optional_fields = self._optional_fields
         active_fields = self._active_fields
-        for field_name, field_value in self.data.items():
+        for field_name, field_value in data.items():
             # if the field is an optional field that is not used
             # and that has a value (contains data), we raise
             if field_name in optional_fields and \
                field_name not in active_fields and \
                field_value:
                 raise BadRequest(OPTIONAL_FIELD_ERROR % field_name)
+        return data
 
     @property
     def _turn_ids_into_uids_fieldnames(self):
         return []
 
-    def _turn_ids_into_uids(self):
+    def _turn_ids_into_uids(self, data):
         for field_name in self._turn_ids_into_uids_fieldnames:
-            field_value = self.data.get(field_name)
+            field_value = data.get(field_name)
             if field_value:
                 if hasattr(field_value, '__iter__'):
-                    self.data[field_name] = [org_id_to_uid(v, raise_on_error=False) or v
-                                             for v in field_value if v]
+                    data[field_name] = [org_id_to_uid(v, raise_on_error=False) or v
+                                        for v in field_value if v]
                 else:
-                    self.data[field_name] = \
+                    data[field_name] = \
                         org_id_to_uid(field_value, raise_on_error=False) or field_value
-
-    def _prepare_data(self, data):
-        if data['@type'].startswith('Meeting'):
-            # check that given values are useable, will raise if not
-            self._check_optional_fields()
-            # turn ids to UIDs
-            self._turn_ids_into_uids()
-            data = self.data.copy()
-        elif data['@type'].startswith('annex'):
-            # reinject data from parent: config_id and in_name_of
-            data['config_id'] = self.cfg.getId()
-            if not data.get('in_name_of', None) and self.data.get('in_name_of', None):
-                data['in_name_of'] = self.data['in_name_of']
-            if data['@type'] == 'annex':
-                # turn annex_type into content_category
-                category_id = data['category_id']
-                annex_type = self.cfg.annexes_types.item_annexes.get(category_id)
-                annex_type_value = calculate_category_id(annex_type)
-                data['content_category'] = annex_type_value
         return data
 
-    def clean_data(self):
+    def clean_data(self, data):
         """Remove parameters that are not attributes."""
-        cleaned_data = self.data.copy()
+        cleaned_data = super(BasePost, self).clean_data(data)
         cleaned_data.pop('config_id', None)
         cleaned_data.pop('in_name_of', None)
         cleaned_data.pop('wf_transitions', None)
+        # file data
+        cleaned_data.pop('encoding', None)
         return cleaned_data
 
     def _after_reply_hook(self, serialized_obj):
