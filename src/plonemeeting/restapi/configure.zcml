@@ -9,6 +9,7 @@
 
   <include package="plone.restapi" />
   <include package="Products.PloneMeeting" />
+  <include package=".deserializer" />
   <include package=".serializer" />
   <include package=".services" />
 

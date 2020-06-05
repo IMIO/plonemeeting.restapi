@@ -13,7 +13,7 @@ from Products.PloneMeeting.utils import fplog
 from zExceptions import BadRequest
 
 OPTIONAL_FIELD_ERROR = "The optional field \"%s\" is not activated in this configuration!"
-CATEGORY_ID_ERROR = "Given category_id \"%s\" was not found!"
+ANNEX_CONTENT_CATEGORY_ERROR = "Given content_category \"%s\" was not found!"
 
 
 class BasePost(FolderPost):
@@ -43,10 +43,10 @@ class BasePost(FolderPost):
                 data['in_name_of'] = self.parent_data['in_name_of']
             if data['@type'] == 'annex':
                 # turn annex_type into content_category
-                category_id = data['category_id']
-                annex_type = self.cfg.annexes_types.item_annexes.get(category_id)
+                content_category = data['content_category']
+                annex_type = self.cfg.annexes_types.item_annexes.get(content_category)
                 if not annex_type:
-                    raise BadRequest(CATEGORY_ID_ERROR % category_id)
+                    raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
                 annex_type_value = calculate_category_id(annex_type)
                 data['content_category'] = annex_type_value
 

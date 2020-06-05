@@ -13,7 +13,13 @@ Changelog
   - Turned `@search_items` into `@search` and `@search_meetings` into `@search?type=meeting`;
   - Parameter `getConfigId` is renamed to `config_id`.
   [gbastien]
-- Added `@item` POST endpoint to be able to create item with or without annexes.
+- Added `@item` POST endpoint to be able to create item with or without annexes :
+
+  - Need to define new AT fields `deserializer` to apply WF before settings field values;
+  - Manage optional fields (can not use when not enabled);
+  - Manage creation of annexes as `__children__` of item;
+  - Ease use by being able to define `config_id` only at first level (so not for annexes);
+  - Ease use by being able to use organizations `ids` instead `UIDs` in creation data.
   [gbastien]
 
 1.0a1 (2020-01-10)
