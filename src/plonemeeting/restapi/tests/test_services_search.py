@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from DateTime import DateTime
+from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
+from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
 
 import transaction
@@ -9,13 +11,16 @@ import transaction
 class testServiceSearch(BaseTestCase):
     """@search without 'type' is the same as @search?type=item"""
 
+    def tearDown(self):
+        self.api_session.close()
+
     def test_restapi_search_items_required_params(self):
         """ """
         endpoint_url = "{0}/@search".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.json(),
-                         {u'message': u'The "config_id" parameter must be given',
+                         {u'message': CONFIG_ID_ERROR,
                           u'type': u'Exception'})
         endpoint_url += '?config_id={0}'.format(self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
@@ -28,7 +33,7 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(
             response.json(),
-            {u'message': u'The given "config_id" named "unknown" was not found',
+            {u'message': CONFIG_ID_NOT_FOUND_ERROR % "unknown",
              u'type': u'Exception'})
 
     def test_restapi_search_items_endpoint(self):
@@ -67,6 +72,7 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue('formatted_itemNumber' in resp_json['items'][0])
         self.assertTrue('all_copyGroups' in resp_json['items'][0])
         self.assertTrue('all_groupsInCharge' in resp_json['items'][0])
+        transaction.abort()
 
     def test_restapi_search_items_in_meeting(self):
         """@search using the linkedMeetingUID attribute"""
@@ -83,15 +89,20 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(
             [elt['UID'] for elt in response.json()[u'items']],
             [obj.UID() for obj in meeting.getItems(ordered=True)])
+        transaction.abort()
 
     def test_restapi_search_items_extra_include(self):
         """@search may receive an extra_include parameter"""
+        transaction.begin()
+        cfg = self.meetingConfig
         self.changeUser('pmManager')
-        self.meetingConfig.setUseGroupsAsCategories(False)
-        meeting = self._createMeetingWithItems()
-        item = meeting.getItems(ordered=True)[0]
+        cfg.setUseGroupsAsCategories(False)
+        self.getMeetingFolder()
+        meeting = self.create('Meeting', date=DateTime('2020/06/08'))
+        item = self.create('MeetingItem')
         item.setMotivation('<p>Motivation</p>')
         item.setDecision(self.decisionText)
+        self.presentItem(item)
         endpoint_url = '{0}/@search?config_id={1}&linkedMeetingUID={2}' \
             '&sort_on=getItemNumber'.format(
                 self.portal_url,
@@ -113,6 +124,7 @@ class testServiceSearch(BaseTestCase):
         self.assertFalse('category_extra' in json['items'][0])
         # extra_include proposingGroup and category
         endpoint_url = endpoint_url + '&extra_include=category'
+        transaction.begin()
         response = self.api_session.get(endpoint_url)
         json = response.json()
         self.assertEqual(json['items'][0]['proposingGroup_extra']['id'], u'developers')
@@ -125,6 +137,7 @@ class testServiceSearch(BaseTestCase):
             {u'public_deliberation': u'<p>Motivation</p><p>Some decision.</p>',
              u'deliberation': u'<p>Motivation</p><p>Some decision.</p>',
              u'public_deliberation_decided': u'<p>Motivation</p><p>Some decision.</p>'})
+        transaction.abort()
 
     def test_restapi_search_meetings_required_params(self):
         """@search?type=meeting"""
@@ -132,7 +145,7 @@ class testServiceSearch(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.json(),
-                         {u'message': u'The "config_id" parameter must be given',
+                         {u'message': CONFIG_ID_ERROR,
                           u'type': u'Exception'})
         endpoint_url += '&config_id={0}'.format(self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
@@ -169,6 +182,7 @@ class testServiceSearch(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.json()[u'items_total'], 1)
         self.assertEqual(response.json()[u'items'][0][u'review_state'], u'closed')
+        transaction.abort()
 
     def test_restapi_search_meetings_fullobjects(self):
         """ """
@@ -199,6 +213,7 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue('startDate' in resp_json['items'][0])
         self.assertTrue('notes' in resp_json['items'][0])
         self.assertTrue('formatted_assembly' in resp_json['items'][0])
+        transaction.abort()
 
 
 def test_suite():

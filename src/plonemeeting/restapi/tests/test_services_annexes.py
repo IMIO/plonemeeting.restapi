@@ -9,6 +9,9 @@ import transaction
 class testServiceAnnexes(BaseTestCase):
     """ """
 
+    def tearDown(self):
+        self.api_session.close()
+
     def test_restapi_annexes_endpoint(self):
         """@annexes"""
         endpoint_url = "{0}/@annexes".format(self.portal_url)
