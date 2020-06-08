@@ -93,8 +93,5 @@ pipeline {
                       color: "#ff0000",
                       message: "Failed ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
         }
-        cleanup{
-            deleteDir()
-        }
     }
 }
