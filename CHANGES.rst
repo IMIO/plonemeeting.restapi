@@ -21,6 +21,9 @@ Changelog
   - Ease use by being able to define `config_id` only at first level (so not for annexes);
   - Ease use by being able to use organizations `ids` instead `UIDs` in creation data.
   [gbastien]
+- Added `@wf-infos` endpoint that will return informations about `WS versions`
+  and `currently connected user`.
+  [gbastien]
 
 1.0a1 (2020-01-10)
 ------------------
