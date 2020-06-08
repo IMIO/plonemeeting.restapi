@@ -34,12 +34,17 @@ pipeline {
                     def zServerPort = new Random().nextInt(10000) + 30000
                     sh "env ZSERVER_PORT=${zServerPort}  bin/coverage run bin/test"
                     sh 'bin/coverage xml -i'
-                    cobertura(
+                }
+            }
+        }
+        stage('Publish Coverage') {
+            steps {
+                catchError(buildResult: null, stageResult: 'FAILURE') {
+                    cobertura (
                         coberturaReportFile: '**/coverage.xml',
-			autoUpdateStability: false,
                         conditionalCoverageTargets: '70, 50, 20',
                         lineCoverageTargets: '80, 50, 20',
-                        maxNumberOfBuilds: 0,
+                        maxNumberOfBuilds: 1,
                         methodCoverageTargets: '80, 50, 20',
                         onlyStable: false,
                         sourceEncoding: 'ASCII'
