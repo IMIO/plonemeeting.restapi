@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     def zServerPort = new Random().nextInt(10000) + 30000
-                    sh "env ZSERVER_PORT=${zServerPort}  bin/coverage run bin/test"
+                    sh "env ZSERVER_PORT=${zServerPort} bin/python bin/coverage run bin/test"
                     sh 'bin/coverage xml -i'
                 }
             }
