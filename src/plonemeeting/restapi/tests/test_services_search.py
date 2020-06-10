@@ -3,7 +3,9 @@
 from DateTime import DateTime
 from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.services.add import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.tests.base import BaseTestCase
+from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
 
@@ -240,6 +242,37 @@ class testServiceSearch(BaseTestCase):
         endpoint_url += '&meetings_accepting_items=True'
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.json()[u'items_total'], 1)
+
+    def test_restapi_search_in_name_of(self):
+        """ """
+        cfg = self.meetingConfig
+        endpoint_url_pattern = "{0}/@search?config_id={1}&in_name_of=%s".format(
+            self.portal_url, cfg.getId())
+        # must be (Meeting)Manager to use in_name_of
+        self.api_session.auth = ('pmCreator1', DEFAULT_USER_PASSWORD)
+        response = self.api_session.get(endpoint_url_pattern % "pmCreator2")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(),
+                         {u'message': IN_NAME_OF_UNAUTHORIZED % "pmCreator2",
+                          u'type': u'Unauthorized'})
+        # create 2 items, one for developers, one for vendors
+        self.api_session.auth = ('pmManager', DEFAULT_USER_PASSWORD)
+        self._addPrincipalToGroup('pmManager', self.vendors_creators)
+        self.changeUser('pmManager')
+        item1 = self.create('MeetingItem', proposingGroup=self.developers_uid)
+        item2 = self.create('MeetingItem', proposingGroup=self.vendors_uid)
+        transaction.commit()
+        # both found by default
+        response = self.api_session.get(endpoint_url_pattern % "")
+        self.assertEqual(response.json()[u'items_total'], 2)
+        # as pmCreator1, only item1 found
+        response = self.api_session.get(endpoint_url_pattern % "pmCreator1")
+        self.assertEqual(response.json()[u'items_total'], 1)
+        self.assertEqual(response.json()['items'][0][u'UID'], item1.UID())
+        # as pmCreator2, only item2 found
+        response = self.api_session.get(endpoint_url_pattern % "pmCreator2")
+        self.assertEqual(response.json()[u'items_total'], 1)
+        self.assertEqual(response.json()['items'][0][u'UID'], item2.UID())
 
 
 def test_suite():

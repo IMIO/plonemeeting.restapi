@@ -12,7 +12,9 @@ Changelog
 
   - Turned `@search_items` into `@search` and `@search_meetings` into
     `@search?type=meeting`;
-  - Parameter `getConfigId` is renamed to `config_id`.
+  - Parameter `getConfigId` is renamed to `config_id`;
+  - Added `in_name_of` parameter making it possible to use endpoint as another
+    user if original user is `(Meeting)Manager`.
   [gbastien]
 - Added `@item` POST endpoint to be able to create item with/without annexes:
 
@@ -23,7 +25,8 @@ Changelog
   - Ease use by being able to define `config_id` only at first level
     (so not for annexes);
   - Ease use by being able to use organizations `ids` instead `UIDs`
-    in creation data.
+    in creation data;
+  - Manage `in_name_of` parameter.
   [gbastien]
 - Added `@wf-infos` endpoint that will return informations about `WS versions`
   and `currently connected user`.

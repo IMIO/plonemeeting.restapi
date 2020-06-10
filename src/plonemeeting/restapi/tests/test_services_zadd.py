@@ -3,10 +3,12 @@
 from collective.iconifiedcategory.utils import calculate_category_id
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import OPTIONAL_FIELD_ERROR
+from plonemeeting.restapi.services.add import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.tests.config import base64_pdf_data
+from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.utils import get_annexes
 
 import transaction
@@ -267,6 +269,29 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(annex2.file.size, 6475)
         self.assertEqual(annex2.file.contentType, 'application/pdf')
         transaction.abort()
+
+    def test_restapi_add_item_in_name_of(self):
+        """Test while using 'n_name_of' parameter"""
+        cfg = self.meetingConfig
+        self.changeUser('pmCreator1')
+        self.api_session.auth = ('pmCreator1', DEFAULT_USER_PASSWORD)
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {"config_id": cfg.getId(),
+                "proposingGroup": self.vendors_uid,
+                "title": "My item",
+                "in_name_of": "pmCreator2"}
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(),
+                         {u'message': IN_NAME_OF_UNAUTHORIZED % "pmCreator2",
+                          u'type': u'Unauthorized'})
+        self.api_session.auth = ('pmManager', DEFAULT_USER_PASSWORD)
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201)
+        # item was created in the pmCreator2 folder
+        response_json = response.json()
+        self.assertEqual(response_json['creators'], [u'pmCreator2'])
+        self.assertTrue('Members/pmCreator2/mymeetings' in response_json['@id'])
 
 
 def test_suite():

@@ -8,6 +8,7 @@ from plone import api
 from plone.restapi.deserializer import json_body
 from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.services.config import IN_NAME_OF_UNAUTHORIZED
 from Products.PloneMeeting.utils import org_id_to_uid
 from Products.PloneMeeting.utils import fplog
 from zExceptions import BadRequest
@@ -65,20 +66,20 @@ class BasePost(FolderPost):
         return data.get('@type')
 
     def _process_reply(self):
+        # change context, the view is called on portal, when need
+        # the set context to place where element will be added
+        # if we have something else, probably we are adding an annex into an item or meeting
+        if self.context.portal_type == 'Plone Site':
+            self.context = self.tool.getPloneMeetingFolder(self.cfg.getId())
         serialized_obj = super(BasePost, self)._reply()
         self._check_unknown_data(serialized_obj)
         return serialized_obj
 
     def _reply(self):
         in_name_of = self.data.get('in_name_of', None)
-        # change context, the view is called on portal, when need
-        # the set context to place where element will be added
-        # if we have something else, probably we are adding an annex into an item or meeting
-        if self.context.portal_type == 'Plone Site':
-            self.context = self.tool.getPloneMeetingFolder(self.cfg.getId(), userId=in_name_of)
         if in_name_of:
-            if not bool(self.tool.isManager(self.context)):
-                raise Unauthorized
+            if not bool(self.tool.isManager(self.cfg)):
+                raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
             with api.env.adopt_user(username=in_name_of):
                 return self._process_reply()
         else:

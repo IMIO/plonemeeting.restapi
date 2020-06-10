@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from AccessControl import Unauthorized
 from plone import api
 from plone.restapi.deserializer import boolean_value
 from plone.restapi.services.search.get import SearchGet
@@ -7,6 +8,7 @@ from plone.restapi.search.handler import SearchHandler
 from plone.restapi.search.utils import unflatten_dotted_dict
 from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.services.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import listify
 
 
@@ -70,7 +72,7 @@ class PMSearchGet(SearchGet):
         query.pop('extra_include', None)
         query.pop('meetings_accepting_items', None)
 
-    def reply(self):
+    def _process_reply(self):
         query = {}
         if self.type == 'meeting':
             meetings_accepting_items = self.request.form.get('meetings_accepting_items', False)
@@ -81,3 +83,13 @@ class PMSearchGet(SearchGet):
         self._clean_query(query)
         query = unflatten_dotted_dict(query)
         return SearchHandler(self.context, self.request).search(query)
+
+    def reply(self):
+        in_name_of = self.request.form.get('in_name_of', None)
+        if in_name_of:
+            if not bool(self.tool.isManager(self.cfg)):
+                raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
+            with api.env.adopt_user(username=in_name_of):
+                return self._process_reply()
+        else:
+            return self._process_reply()
