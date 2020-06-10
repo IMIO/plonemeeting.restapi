@@ -5,6 +5,7 @@ from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.tests.base import BaseTestCase
+from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
@@ -255,6 +256,12 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(response.json(),
                          {u'message': IN_NAME_OF_UNAUTHORIZED % "pmCreator2",
                           u'type': u'Unauthorized'})
+        # user must exist
+        self.api_session.auth = ('pmManager', DEFAULT_USER_PASSWORD)
+        response = self.api_session.get(endpoint_url_pattern % "unknown")
+        self.assertEqual(response.json(),
+                         {u'message': IN_NAME_OF_USER_NOT_FOUND % "unknown",
+                          u'type': u'BadRequest'})
         # create 2 items, one for developers, one for vendors
         self.api_session.auth = ('pmManager', DEFAULT_USER_PASSWORD)
         self._addPrincipalToGroup('pmManager', self.vendors_creators)
