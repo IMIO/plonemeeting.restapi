@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from DateTime import DateTime
-from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
-from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.services.add import IN_NAME_OF_UNAUTHORIZED
+from plonemeeting.restapi.config import CONFIG_ID_ERROR
+from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.tests.base import BaseTestCase
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 

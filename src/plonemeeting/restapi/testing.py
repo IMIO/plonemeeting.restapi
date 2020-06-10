@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from plone.app.testing import FunctionalTesting
-from Products.PloneMeeting.testing import PMLayer
 from plone.restapi.testing import PLONE_RESTAPI_AT_FUNCTIONAL_TESTING
+from Products.PloneMeeting.testing import PMLayer
+
 import plonemeeting.restapi
 
 

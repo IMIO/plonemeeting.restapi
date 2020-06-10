@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from AccessControl import Unauthorized
 from plone import api
 from plone.restapi.deserializer import boolean_value
-from plone.restapi.services.search.get import SearchGet
 from plone.restapi.search.handler import SearchHandler
 from plone.restapi.search.utils import unflatten_dotted_dict
-from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
-from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.services.config import IN_NAME_OF_UNAUTHORIZED
+from plone.restapi.services.search.get import SearchGet
+from plonemeeting.restapi.config import CONFIG_ID_ERROR
+from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.utils import check_in_name_of
 from plonemeeting.restapi.utils import listify
 
 
@@ -68,9 +67,10 @@ class PMSearchGet(SearchGet):
         """Remove parameters that are not indexes names to avoid warnings like :
            WARNING plone.restapi.search.query No such index: 'extra_include'"""
         query.pop('config_id', None)
-        query.pop('type', None)
         query.pop('extra_include', None)
+        query.pop('in_name_of', None)
         query.pop('meetings_accepting_items', None)
+        query.pop('type', None)
 
     def _process_reply(self):
         query = {}
@@ -85,10 +85,8 @@ class PMSearchGet(SearchGet):
         return SearchHandler(self.context, self.request).search(query)
 
     def reply(self):
-        in_name_of = self.request.form.get('in_name_of', None)
+        in_name_of = check_in_name_of(self, self.request.form)
         if in_name_of:
-            if not bool(self.tool.isManager(self.cfg)):
-                raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
             with api.env.adopt_user(username=in_name_of):
                 return self._process_reply()
         else:

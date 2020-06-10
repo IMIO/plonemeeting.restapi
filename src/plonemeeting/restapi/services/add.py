@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from AccessControl import Unauthorized
 from collective.iconifiedcategory.utils import calculate_category_id
-from Products.PloneMeeting.utils import add_wf_history_action
 from imio.restapi.services.add import FolderPost
 from plone import api
 from plone.restapi.deserializer import json_body
-from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
-from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.services.config import IN_NAME_OF_UNAUTHORIZED
-from Products.PloneMeeting.utils import org_id_to_uid
+from plonemeeting.restapi.config import CONFIG_ID_ERROR
+from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.utils import check_in_name_of
+from Products.PloneMeeting.utils import add_wf_history_action
 from Products.PloneMeeting.utils import fplog
+from Products.PloneMeeting.utils import org_id_to_uid
 from zExceptions import BadRequest
+
 
 OPTIONAL_FIELD_ERROR = "The optional field \"%s\" is not activated in this configuration!"
 ANNEX_CONTENT_CATEGORY_ERROR = "Given content_category \"%s\" was not found!"
@@ -76,10 +76,8 @@ class BasePost(FolderPost):
         return serialized_obj
 
     def _reply(self):
-        in_name_of = self.data.get('in_name_of', None)
+        in_name_of = check_in_name_of(self, self.data)
         if in_name_of:
-            if not bool(self.tool.isManager(self.cfg)):
-                raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
             with api.env.adopt_user(username=in_name_of):
                 return self._process_reply()
         else:

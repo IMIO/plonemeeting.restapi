@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from collective.iconifiedcategory.utils import calculate_category_id
+from plonemeeting.restapi.config import CONFIG_ID_ERROR
+from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import OPTIONAL_FIELD_ERROR
-from plonemeeting.restapi.services.add import IN_NAME_OF_UNAUTHORIZED
-from plonemeeting.restapi.services.config import CONFIG_ID_ERROR
-from plonemeeting.restapi.services.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.tests.config import base64_pdf_data
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
@@ -271,9 +271,9 @@ class testServiceAddItem(BaseTestCase):
         transaction.abort()
 
     def test_restapi_add_item_in_name_of(self):
-        """Test while using 'n_name_of' parameter"""
+        """Test while using 'in_name_of' parameter"""
         cfg = self.meetingConfig
-        self.changeUser('pmCreator1')
+        # must be (Meeting)Manager to use in_name_of
         self.api_session.auth = ('pmCreator1', DEFAULT_USER_PASSWORD)
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {"config_id": cfg.getId(),
@@ -285,6 +285,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(response.json(),
                          {u'message': IN_NAME_OF_UNAUTHORIZED % "pmCreator2",
                           u'type': u'Unauthorized'})
+        # now as MeetingManager
         self.api_session.auth = ('pmManager', DEFAULT_USER_PASSWORD)
         response = self.api_session.post(endpoint_url, json=json)
         self.assertEqual(response.status_code, 201)
