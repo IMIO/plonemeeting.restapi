@@ -215,6 +215,32 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue('formatted_assembly' in resp_json['items'][0])
         transaction.abort()
 
+    def test_restapi_search_meetings_accepting_items(self):
+        """ """
+        cfg = self.meetingConfig
+        endpoint_url = "{0}/@search?config_id={1}&type=meeting".format(
+            self.portal_url, cfg.getId())
+
+        # create 2 meetings
+        self.changeUser('pmManager')
+        meeting = self.create('Meeting', date=DateTime('2020/05/10'))
+        self.assertEqual(meeting.queryState(), 'created')
+        meeting2 = self.create('Meeting', date=DateTime('2020/05/17'))
+        self.closeMeeting(meeting2)
+        self.assertEqual(meeting2.queryState(), 'closed')
+        transaction.commit()
+        # only meeting is accepting items
+        self.assertEqual(
+            [meeting.UID()],
+            [brain.UID for brain in cfg.getMeetingsAcceptingItems()])
+
+        # both found by default
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.json()[u'items_total'], 2)
+        endpoint_url += '&meetings_accepting_items=True'
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.json()[u'items_total'], 1)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from plone import api
+from plone.restapi.deserializer import boolean_value
 from plone.restapi.services.search.get import SearchGet
 from plone.restapi.search.handler import SearchHandler
 from plone.restapi.search.utils import unflatten_dotted_dict
@@ -67,11 +68,16 @@ class PMSearchGet(SearchGet):
         query.pop('config_id', None)
         query.pop('type', None)
         query.pop('extra_include', None)
+        query.pop('meetings_accepting_items', None)
 
     def reply(self):
+        query = {}
+        if self.type == 'meeting':
+            meetings_accepting_items = self.request.form.get('meetings_accepting_items', False)
+            if boolean_value(meetings_accepting_items):
+                query = self.cfg._getMeetingsAcceptingItemsQuery()
         self._set_additional_query_params()
-        query = self.request.form.copy()
+        query.update(self.request.form.copy())
         self._clean_query(query)
         query = unflatten_dotted_dict(query)
-
         return SearchHandler(self.context, self.request).search(query)
