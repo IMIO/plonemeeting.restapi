@@ -7,7 +7,7 @@
 
   <i18n:registerTranslations directory="locales" />
 
-  <include package="plone.restapi" />
+  <include package="imio.restapi" />
   <include package="Products.PloneMeeting" />
   <include package=".deserializer" />
   <include package=".serializer" />

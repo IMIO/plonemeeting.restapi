@@ -168,7 +168,7 @@ class testServiceAddItem(BaseTestCase):
                                  "filename": "file.pdf"},
                     }, ],
                 }
-        transaction.commit()
+        transaction.begin()
         response = self.api_session.post(endpoint_url, json=json)
         self.assertEqual(response.status_code, 201)
         transaction.commit()
@@ -178,7 +178,6 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(annex.file.filename, json['__children__'][0]['file']['filename'])
         self.assertEqual(annex.file.size, 6475)
         self.assertEqual(annex.file.contentType, 'application/pdf')
-        transaction.abort()
 
     def test_restapi_add_item_with_annexes_content_category(self):
         """When creating an item, we may add annexes as __children__,

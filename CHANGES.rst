@@ -35,6 +35,10 @@ Changelog
   when `type=meeting`, this will query only meetings accepting items but query
   may still be completed with other arbitrary indexes.
   [gbastien]
+- Added `@config` endpoint that will return a given `config_id` `MeetingConfig`
+  informations. Parameters `include_categories`, `include_pod_templates` and
+  `include_searches` are available.
+  [gbastien]
 
 1.0a1 (2020-01-10)
 ------------------

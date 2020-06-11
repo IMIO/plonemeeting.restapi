@@ -14,6 +14,25 @@ from zope.interface import Interface
 class BaseATSerializeToJson(ATSerializeFolderToJson):
     """ """
 
+    def _extra_include(self, result):
+        ''' '''
+        return result
+
+    def _additional_values(self, result):
+        ''' '''
+        return result
+
+    def __call__(self, version=None, include_items=True):
+        ''' '''
+
+        result = super(BaseATSerializeToJson, self).__call__(
+            version=version, include_items=include_items)
+
+        result = self._extra_include(result)
+        result = self._additional_values(result)
+
+        return result
+
 
 @implementer(ISerializeToJson)
 @adapter(Interface, Interface)

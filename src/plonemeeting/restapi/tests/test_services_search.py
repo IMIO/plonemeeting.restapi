@@ -114,29 +114,29 @@ class testServiceSearch(BaseTestCase):
         transaction.commit()
         response = self.api_session.get(endpoint_url)
         # by default no extra include
-        self.assertFalse('proposingGroup_extra' in response.json()['items'][0])
+        self.assertFalse('extra_include_proposingGroup' in response.json()['items'][0])
         # does not work if fullobjects is not used
         endpoint_url = endpoint_url + '&extra_include=proposingGroup'
         response = self.api_session.get(endpoint_url)
-        self.assertFalse('proposingGroup_extra' in response.json()['items'][0])
+        self.assertFalse('extra_include_proposingGroup' in response.json()['items'][0])
         # now with fullobjects
         endpoint_url = endpoint_url + '&fullobjects'
         response = self.api_session.get(endpoint_url)
         json = response.json()
-        self.assertTrue('proposingGroup_extra' in json['items'][0])
-        self.assertFalse('category_extra' in json['items'][0])
+        self.assertTrue('extra_include_proposingGroup' in json['items'][0])
+        self.assertFalse('extra_include_category' in json['items'][0])
         # extra_include proposingGroup and category
         endpoint_url = endpoint_url + '&extra_include=category'
         transaction.begin()
         response = self.api_session.get(endpoint_url)
         json = response.json()
-        self.assertEqual(json['items'][0]['proposingGroup_extra']['id'], u'developers')
-        self.assertEqual(json['items'][0]['category_extra']['id'], u'development')
+        self.assertEqual(json['items'][0]['extra_include_proposingGroup']['id'], u'developers')
+        self.assertEqual(json['items'][0]['extra_include_category']['id'], u'development')
         # extra_include deliberation
         endpoint_url = endpoint_url + '&extra_include=deliberation'
         response = self.api_session.get(endpoint_url)
         self.assertEqual(
-            response.json()['items'][0]['deliberation_extra'],
+            response.json()['items'][0]['extra_include_deliberation'],
             {u'public_deliberation': u'<p>Motivation</p><p>Some decision.</p>',
              u'deliberation': u'<p>Motivation</p><p>Some decision.</p>',
              u'public_deliberation_decided': u'<p>Motivation</p><p>Some decision.</p>'})

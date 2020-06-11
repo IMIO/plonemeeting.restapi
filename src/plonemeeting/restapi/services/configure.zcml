@@ -43,6 +43,15 @@
     method="GET"
     for="zope.interface.Interface"
     accept="application/json,application/schema+json"
+    name="@config"
+    factory=".meetingconfig.ConfigGet"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
+  <plone:service
+    method="GET"
+    for="zope.interface.Interface"
+    accept="application/json,application/schema+json"
     name="@ws-infos"
     factory=".info.WSInfosGet"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
