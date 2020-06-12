@@ -10,7 +10,7 @@ from zope.interface import Interface
 class SerializeDashboardCollectionToJson(SerializeCollectionToJson):
     def __call__(self, version=None, include_items=True):
         # until parameter include_items=False is taken into account, we override this
-        collection_metadata = super(SerializeDashboardCollectionToJson, self).__call__(
+        collection_metadata = super(SerializeCollectionToJson, self).__call__(
             version=version
         )
         results = collection_metadata

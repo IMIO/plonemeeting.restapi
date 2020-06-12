@@ -6,6 +6,7 @@ from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import OPTIONAL_FIELD_ERROR
+from plonemeeting.restapi.testing import PM_REST_TEST_ADD_PROFILE_FUNCTIONAL
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.tests.config import base64_pdf_data
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
@@ -19,6 +20,8 @@ class testServiceAddItem(BaseTestCase):
     """@item POST endpoint
        File is called test_services_zadd.py to be sure tests are executed
        last to avoid test isolation problems."""
+
+    layer = PM_REST_TEST_ADD_PROFILE_FUNCTIONAL
 
     def tearDown(self):
         self.api_session.close()

@@ -15,6 +15,12 @@ from zope.interface import Interface
 class SerializeToJson(BaseATSerializeToJson):
     ''' '''
 
+    def __call__(self, version=None, include_items=False):
+        '''Change include_items=False by default.'''
+        result = super(SerializeToJson, self).__call__(
+            version=version, include_items=include_items)
+        return result
+
     def _extra_include(self, result):
         ''' '''
         extra_include = listify(self.request.form.get('extra_include', []))

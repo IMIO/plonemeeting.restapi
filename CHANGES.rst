@@ -39,6 +39,10 @@ Changelog
   informations. Parameters `include_categories`, `include_pod_templates` and
   `include_searches` are available.
   [gbastien]
+- Added `@get` endpoint that receives an `UID` and returns the object found.
+  A convenience endpoint `@item` do the same but just check that returned element
+  is a MeetingItem.
+  [gbastien]
 
 1.0a1 (2020-01-10)
 ------------------
