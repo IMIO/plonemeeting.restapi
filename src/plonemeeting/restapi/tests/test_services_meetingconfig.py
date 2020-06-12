@@ -64,7 +64,12 @@ class testServiceConfig(BaseTestCase):
         categories = json['extra_include_categories']
         self.assertEqual(categories[0]['id'], u'development')
         self.assertEqual(categories[0]['@type'], u'MeetingCategory')
-        # pod_templates
+
+    def test_restapi_config_extra_include_pod_templates(self):
+        """@config"""
+        cfg = self.meetingConfig
+        cfgId = cfg.getId()
+        endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
         endpoint_url = endpoint_url_pattern.format(
             self.portal_url, cfgId, "pod_templates")
         response = self.api_session.get(endpoint_url)
@@ -75,7 +80,12 @@ class testServiceConfig(BaseTestCase):
         self.assertEqual(pod_templates[0]['@type'], u'StyleTemplate')
         self.assertEqual(pod_templates[4]['id'], u'itemTemplate')
         self.assertEqual(pod_templates[4]['@type'], u'ConfigurablePODTemplate')
-        # searches
+
+    def test_restapi_config_extra_include_searches(self):
+        """@config extra_include=searches"""
+        cfg = self.meetingConfig
+        cfgId = cfg.getId()
+        endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
         endpoint_url = endpoint_url_pattern.format(
             self.portal_url, cfgId, "searches")
         response = self.api_session.get(endpoint_url)
