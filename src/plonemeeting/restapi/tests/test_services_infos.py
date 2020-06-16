@@ -3,15 +3,15 @@
 from plonemeeting.restapi.tests.base import BaseTestCase
 
 
-class testServiceWSInfos(BaseTestCase):
+class testServiceInfos(BaseTestCase):
     """ """
 
     def tearDown(self):
         self.api_session.close()
 
-    def test_restapi_ws_infos_endpoint(self):
-        """@ws-infos"""
-        endpoint_url = "{0}/@ws-infos".format(self.portal_url)
+    def test_restapi_infos_endpoint(self):
+        """@infos"""
+        endpoint_url = "{0}/@infos".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200)
         json = response.json()
@@ -36,5 +36,5 @@ def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     # add a prefix to avoid every PM tests to be executed
-    suite.addTest(makeSuite(testServiceWSInfos, prefix='test_restapi_'))
+    suite.addTest(makeSuite(testServiceInfos, prefix='test_restapi_'))
     return suite

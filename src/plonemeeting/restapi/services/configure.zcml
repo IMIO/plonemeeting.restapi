@@ -71,13 +71,13 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
-  <!-- get WS infos -->
+  <!-- get infos -->
   <plone:service
     method="GET"
     for="zope.interface.Interface"
     accept="application/json,application/schema+json"
-    name="@ws-infos"
-    factory=".info.WSInfosGet"
+    name="@infos"
+    factory=".infos.InfosGet"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
