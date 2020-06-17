@@ -16,19 +16,20 @@ class testServicePMInfos(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         json = response.json()
         # return versions and connected_user
-        self.assertTrue(u'Products.PloneMeeting' in json)
-        self.assertTrue(u'plonemeeting.restapi' in json)
-        self.assertTrue(u'imio.restapi' in json)
+        self.assertTrue(u"Products.PloneMeeting" in json["packages"])
+        self.assertTrue(u"plonemeeting.restapi" in json["packages"])
+        self.assertTrue(u"imio.restapi" in json["packages"])
         self.assertEqual(json['connected_user'], u'pmManager')
+
         # when not connected
         self.api_session.auth = None
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200)
         json = response.json()
         # return versions and connected_user
-        self.assertTrue(u'Products.PloneMeeting' in json)
-        self.assertTrue(u'plonemeeting.restapi' in json)
-        self.assertTrue(u'imio.restapi' in json)
+        self.assertTrue(u"Products.PloneMeeting" in json["packages"])
+        self.assertTrue(u"plonemeeting.restapi" in json["packages"])
+        self.assertTrue(u"imio.restapi" in json["packages"])
         self.assertEqual(json['connected_user'], None)
 
 
