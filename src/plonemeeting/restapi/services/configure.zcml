@@ -77,7 +77,7 @@
     for="zope.interface.Interface"
     accept="application/json,application/schema+json"
     name="@infos"
-    factory=".infos.InfosGet"
+    factory=".infos.PMInfosGet"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 

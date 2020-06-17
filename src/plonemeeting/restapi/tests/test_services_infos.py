@@ -3,7 +3,7 @@
 from plonemeeting.restapi.tests.base import BaseTestCase
 
 
-class testServiceInfos(BaseTestCase):
+class testServicePMInfos(BaseTestCase):
     """ """
 
     def tearDown(self):
@@ -36,5 +36,5 @@ def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     # add a prefix to avoid every PM tests to be executed
-    suite.addTest(makeSuite(testServiceInfos, prefix='test_restapi_'))
+    suite.addTest(makeSuite(testServicePMInfos, prefix='test_restapi_'))
     return suite

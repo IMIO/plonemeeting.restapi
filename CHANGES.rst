@@ -28,9 +28,7 @@ Changelog
     in creation data;
   - Manage `in_name_of` parameter.
   [gbastien]
-- Added `@infos` endpoint that will return informations about `WS versions`
-  and `currently connected user`.  When `extra_include=stats` is given, it
-  returns statistics about number of elements and database size.
+- Override `@infos` endpoint from imio.restapi to add our own informations.
   [gbastien]
 - Added parameter `meetings_accepting_items=True` to `@search`
   when `type=meeting`, this will query only meetings accepting items but query

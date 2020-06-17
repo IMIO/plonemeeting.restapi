@@ -25,18 +25,3 @@ def listify(value):
     if not hasattr(value, '__iter__'):
         value = [value]
     return value
-
-
-def sizeof_fmt(num, suffix='o'):
-    """Readable file size
-    :param num: Bytes value
-    :type num: int
-    :param suffix: Unit suffix (optionnal) default = o
-    :type suffix: str
-    :rtype: str
-    """
-    for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']:
-        if abs(num) < 1024.0:
-            return "%3.1f %s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
