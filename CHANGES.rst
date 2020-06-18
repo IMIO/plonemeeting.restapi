@@ -42,6 +42,9 @@ Changelog
   A convenience endpoint `@item` do the same but just check that returned element
   is a MeetingItem.
   [gbastien]
+- Added parameter `base_search_uid=collection_uid` to `@search`,
+  this makes it possible to use the `query` defined on a `DashboardCollection`.
+  [gbastien]
 
 1.0a1 (2020-01-10)
 ------------------

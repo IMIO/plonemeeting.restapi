@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from imio.helpers.content import uuidsToObjects
 from plone import api
+from plone.app.querystring.queryparser import parseFormquery
 from plone.restapi.deserializer import boolean_value
 from plone.restapi.search.handler import SearchHandler
 from plone.restapi.search.utils import unflatten_dotted_dict
@@ -38,51 +40,77 @@ class PMSearchGet(SearchGet):
             self.request.form["type"] = "item"
         return self.request.form.get("type")
 
-    def _set_additional_query_params(self):
+    def _set_query_base_search(self):
         """ """
+        query = {}
+        form = self.request.form
+        base_search_uid = form.get("base_search_uid", "").strip()
+        if base_search_uid:
+            collection = uuidsToObjects(uuids=base_search_uid)
+            if collection:
+                collection = collection[0]
+                query = parseFormquery(collection, collection.query)
+        return query
+
+    def _set_query_meetings_accepting_items(self):
+        """ """
+        query = {}
+        form = self.request.form
+        if self.type == "meeting" and boolean_value(form.get("meetings_accepting_items", False)):
+            query.update(self.cfg._getMeetingsAcceptingItemsQuery())
+        return query
+
+    def _set_query_additional_params(self):
+        """ """
+        query = {}
         form = self.request.form
 
         # config_id is actually the getConfigId index
-        form["getConfigId"] = form["config_id"]
-
-        # manage metadata_fields
-        additional_metadata_fields = listify(form.get("metadata_fields", []))
-        additional_metadata_fields += self._additional_fields
-        form["metadata_fields"] = additional_metadata_fields
+        query["getConfigId"] = form["config_id"]
 
         # extend batch? DEFAULT_BATCH_SIZE = 25
         # self.request.form['b_size'] = 50
 
         # setup portal_type based on received 'type' parameter
         if self.type == "item":
-            form["portal_type"] = self.cfg.getItemTypeName()
-            form["sort_on"] = form.get("sort_on", "sortable_title")
+            query["portal_type"] = self.cfg.getItemTypeName()
+            query["sort_on"] = form.get("sort_on", "sortable_title")
         elif self.type == "meeting":
-            form["portal_type"] = self.cfg.getMeetingTypeName()
-            form["sort_on"] = form.get("sort_on", "sortable_title")
-            form["sort_order"] = form.get("sort_order", "reverse")
+            query["portal_type"] = self.cfg.getMeetingTypeName()
+            query["sort_on"] = form.get("sort_on", "sortable_title")
+            query["sort_order"] = form.get("sort_order", "reverse")
+        return query
 
     def _clean_query(self, query):
         """Remove parameters that are not indexes names to avoid warnings like :
            WARNING plone.restapi.search.query No such index: 'extra_include'"""
+        query.pop("base_search_uid", None)
         query.pop("config_id", None)
         query.pop("extra_include", None)
         query.pop("in_name_of", None)
         query.pop("meetings_accepting_items", None)
         query.pop("type", None)
 
+    def _set_metadata_fields(self):
+        """Must be set in request.form."""
+        form = self.request.form
+        # manage metadata_fields
+        additional_metadata_fields = listify(form.get("metadata_fields", []))
+        additional_metadata_fields += self._additional_fields
+        form["metadata_fields"] = additional_metadata_fields
+
     def _process_reply(self):
         query = {}
-        if self.type == "meeting":
-            meetings_accepting_items = self.request.form.get(
-                "meetings_accepting_items", False
-            )
-            if boolean_value(meetings_accepting_items):
-                query = self.cfg._getMeetingsAcceptingItemsQuery()
-        self._set_additional_query_params()
+
+        query.update(self._set_query_meetings_accepting_items())
+        query.update(self._set_query_base_search())
+        query.update(self._set_query_additional_params())
         query.update(self.request.form.copy())
         self._clean_query(query)
         query = unflatten_dotted_dict(query)
+
+        self._set_metadata_fields()
+
         return SearchHandler(self.context, self.request).search(query)
 
     def reply(self):

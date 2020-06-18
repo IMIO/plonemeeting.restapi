@@ -93,6 +93,8 @@ class testServiceConfig(BaseTestCase):
         searches = json["extra_include_searches"]
         self.assertEqual(searches[0]["id"], u"searchmyitems")
         self.assertEqual(searches[0]["@type"], u"DashboardCollection")
+        # include_items is set to False specifically
+        self.assertFalse("items" in searches[0])
 
 
 def test_suite():
