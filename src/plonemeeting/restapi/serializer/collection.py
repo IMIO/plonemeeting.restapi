@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from collective.eeafaceted.collectionwidget.content.dashboardcollection import IDashboardCollection
+from collective.eeafaceted.collectionwidget.content.dashboardcollection import (
+    IDashboardCollection,
+)
 from plone.restapi.serializer.collection import SerializeCollectionToJson
 from zope.component import adapter
 from zope.interface import Interface

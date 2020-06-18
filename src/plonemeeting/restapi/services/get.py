@@ -5,11 +5,15 @@ from plone import api
 from plone.restapi.services.content.get import ContentGet
 from zExceptions import BadRequest
 
-UID_REQUIRED_ERROR = "The \"UID or uid\" parameter must be given!"
-UID_NOT_FOUND_ERROR = "No element found with UID \"%s\"!"
-UID_NOT_ACCESSIBLE_ERROR = "Element with UID \"%s\" was found but user \"%s\" can not access it!"
-UID_WRONG_TYPE_ERROR = "The element UID does not correspond to the type managed by this endpoint! " \
+UID_REQUIRED_ERROR = 'The "UID or uid" parameter must be given!'
+UID_NOT_FOUND_ERROR = 'No element found with UID "%s"!'
+UID_NOT_ACCESSIBLE_ERROR = (
+    'Element with UID "%s" was found but user "%s" can not access it!'
+)
+UID_WRONG_TYPE_ERROR = (
+    "The element UID does not correspond to the type managed by this endpoint! "
     "Consider using @get endpoint or another specific endpoint!"
+)
 
 
 class UidGet(ContentGet):
@@ -21,10 +25,9 @@ class UidGet(ContentGet):
 
     @property
     def _uid(self):
-        if 'UID' not in self.request.form and \
-           'uid' not in self.request.form:
+        if "UID" not in self.request.form and "uid" not in self.request.form:
             raise Exception(UID_REQUIRED_ERROR)
-        return self.request.form.get('UID') or self.request.form.get('uid')
+        return self.request.form.get("UID") or self.request.form.get("uid")
 
     def _check_obj(self):
         """ """
@@ -37,16 +40,18 @@ class UidGet(ContentGet):
             # try to get it unrestricted
             objs = uuidsToObjects(uuids=self.uid, unrestricted=True)
             if objs:
-                raise BadRequest(UID_NOT_ACCESSIBLE_ERROR % (
-                    self.uid, api.user.get_current().getId()))
+                raise BadRequest(
+                    UID_NOT_ACCESSIBLE_ERROR
+                    % (self.uid, api.user.get_current().getId())
+                )
             else:
                 raise BadRequest(UID_NOT_FOUND_ERROR % self.uid)
 
         self.context = objs[0]
         self._check_obj()
         # set include_items=False by default in request
-        if not self.request.form.get('include_items', None):
-            self.request.form['include_items'] = False
+        if not self.request.form.get("include_items", None):
+            self.request.form["include_items"] = False
         return super(UidGet, self).reply()
 
 
@@ -55,5 +60,5 @@ class ItemGet(UidGet):
 
     def _check_obj(self):
         """ """
-        if not self.context.meta_type == 'MeetingItem':
+        if not self.context.meta_type == "MeetingItem":
             raise BadRequest(UID_WRONG_TYPE_ERROR)

@@ -19,7 +19,7 @@ class testServicePMInfos(BaseTestCase):
         self.assertTrue(u"Products.PloneMeeting" in json["packages"])
         self.assertTrue(u"plonemeeting.restapi" in json["packages"])
         self.assertTrue(u"imio.restapi" in json["packages"])
-        self.assertEqual(json['connected_user'], u'pmManager')
+        self.assertEqual(json["connected_user"], u"pmManager")
 
         # when not connected
         self.api_session.auth = None
@@ -30,12 +30,13 @@ class testServicePMInfos(BaseTestCase):
         self.assertTrue(u"Products.PloneMeeting" in json["packages"])
         self.assertTrue(u"plonemeeting.restapi" in json["packages"])
         self.assertTrue(u"imio.restapi" in json["packages"])
-        self.assertEqual(json['connected_user'], None)
+        self.assertEqual(json["connected_user"], None)
 
 
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     # add a prefix to avoid every PM tests to be executed
-    suite.addTest(makeSuite(testServicePMInfos, prefix='test_restapi_'))
+    suite.addTest(makeSuite(testServicePMInfos, prefix="test_restapi_"))
     return suite

@@ -5,12 +5,12 @@ from plone import api
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from zExceptions import BadRequest
 
-IN_NAME_OF_USER_NOT_FOUND = "The in_name_of user \"%s\" was not found!"
+IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
 
 
 def check_in_name_of(instance, data):
     """ """
-    in_name_of = data.get('in_name_of', None)
+    in_name_of = data.get("in_name_of", None)
     if in_name_of:
         if not bool(instance.tool.isManager(instance.cfg)):
             raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
@@ -21,7 +21,7 @@ def check_in_name_of(instance, data):
 
 
 def listify(value):
-    ''' '''
-    if not hasattr(value, '__iter__'):
+    """ """
+    if not hasattr(value, "__iter__"):
         value = [value]
     return value

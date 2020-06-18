@@ -11,10 +11,10 @@ from zope.interface import Interface
 @implementer(ISerializeToJson)
 @adapter(IMeeting, Interface)
 class SerializeToJson(BaseATSerializeToJson):
-    ''' '''
+    """ """
 
     def _additional_values(self, result):
-        ''' '''
+        """ """
         # add some formatted values
-        result['formatted_assembly'] = self.context.displayStrikedAssembly()
+        result["formatted_assembly"] = self.context.displayStrikedAssembly()
         return result

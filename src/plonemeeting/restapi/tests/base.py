@@ -7,7 +7,7 @@ from Products.PloneMeeting.tests.PloneMeetingTestCase import PloneMeetingTestCas
 
 
 class BaseTestCase(PloneMeetingTestCase):
-    '''Base class for defining PM restapi test cases.'''
+    """Base class for defining PM restapi test cases."""
 
     layer = PM_REST_TEST_PROFILE_FUNCTIONAL
 
@@ -18,4 +18,4 @@ class BaseTestCase(PloneMeetingTestCase):
 
         self.api_session = RelativeSession(self.portal_url)
         self.api_session.headers.update({"Accept": "application/json"})
-        self.api_session.auth = ('pmManager', DEFAULT_USER_PASSWORD)
+        self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)

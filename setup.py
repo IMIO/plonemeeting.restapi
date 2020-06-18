@@ -5,15 +5,12 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-long_description = '\n\n'.join([
-    open('README.rst').read(),
-    open('CHANGES.rst').read(),
-])
+long_description = "\n\n".join([open("README.rst").read(), open("CHANGES.rst").read(),])
 
 
 setup(
-    name='plonemeeting.restapi',
-    version='1.0a2.dev0',
+    name="plonemeeting.restapi",
+    version="1.0a2.dev0",
     description="Extended rest api service for Products.PloneMeeting usecases",
     long_description=long_description,
     # Get more from https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -26,27 +23,23 @@ setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     ],
-    keywords='Python Plone',
-    author='Gauthier Bastien',
-    author_email='gauthier@imio.be',
-    url='https://pypi.python.org/pypi/plonemeeting.restapi',
-    license='GPL version 2',
-    packages=find_packages('src', exclude=['ez_setup']),
-    namespace_packages=['plonemeeting'],
-    package_dir={'': 'src'},
+    keywords="Python Plone",
+    author="Gauthier Bastien",
+    author_email="gauthier@imio.be",
+    url="https://pypi.python.org/pypi/plonemeeting.restapi",
+    license="GPL version 2",
+    packages=find_packages("src", exclude=["ez_setup"]),
+    namespace_packages=["plonemeeting"],
+    package_dir={"": "src"},
     include_package_data=True,
     zip_safe=False,
     install_requires=[
         # -*- Extra requirements: -*-
-        'setuptools',
-        'Products.PloneMeeting',
-        'imio.restapi',
+        "setuptools",
+        "Products.PloneMeeting",
+        "imio.restapi",
     ],
-    extras_require={
-        'test': [
-            'plone.restapi[test]',
-        ],
-    },
+    extras_require={"test": ["plone.restapi[test]",],},
     entry_points="""
     [z3c.autoinclude.plugin]
     target = plone
