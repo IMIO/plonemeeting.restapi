@@ -302,6 +302,57 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(response.json()[u"items_total"], 1)
         self.assertEqual(response.json()["items"][0][u"UID"], item2.UID())
 
+    def test_restapi_search_base_search_uid(self):
+        """A collection UID may be given as base search."""
+        cfg = self.meetingConfig
+        # use the searchdecideditems collection
+        base_search_uid = self.meetingConfig.searches.searches_items.searchmyitems.UID()
+        endpoint_url = "{0}/@search?config_id={1}&base_search_uid={2}".format(
+            self.portal_url, cfg.getId(), base_search_uid)
+        response = self.api_session.get(endpoint_url)
+        # nothing found for now
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[u"items_total"], 0)
+        # create one item for developers and one for vendors as pmManager
+        # and one item as pmCreator1
+        self.changeUser("pmCreator1")
+        item_dev1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
+        item_dev1_uid = item_dev1.UID()
+        self._addPrincipalToGroup("pmManager", self.vendors_creators)
+        self.changeUser("pmManager")
+        item_dev2 = self.create("MeetingItem", proposingGroup=self.developers_uid)
+        item_dev2_uid = item_dev2.UID()
+        item_ven1 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
+        item_ven1_uid = item_ven1.UID()
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        # only 2 items found
+        self.assertEqual(json[u'items_total'], 2)
+        self.assertEqual(json[u'items'][0]['UID'], item_dev2_uid)
+        self.assertEqual(json[u'items'][1]['UID'], item_ven1_uid)
+        # possible to complete the query with arbitray parameters
+        # restrict only developers_uid
+        endpoint_url += "&getProposingGroup={0}".format(self.developers_uid)
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        # only 1 item found
+        self.assertEqual(json[u'items_total'], 1)
+        self.assertEqual(json[u'items'][0]['UID'], item_dev2_uid)
+        # override Creator, use pmCreator1
+        endpoint_url += "&Creator=pmCreator1"
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json[u'items_total'], 1)
+        self.assertEqual(json[u'items'][0]['UID'], item_dev1_uid)
+        # get items from pmManager and pmCreator1
+        endpoint_url += "&Creator=pmManager"
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json[u'items_total'], 2)
+        self.assertEqual(json[u'items'][0]['UID'], item_dev1_uid)
+        self.assertEqual(json[u'items'][1]['UID'], item_dev2_uid)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
