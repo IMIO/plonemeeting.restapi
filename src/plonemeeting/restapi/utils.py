@@ -18,10 +18,3 @@ def check_in_name_of(instance, data):
         if not user:
             raise BadRequest(IN_NAME_OF_USER_NOT_FOUND % in_name_of)
     return in_name_of
-
-
-def listify(value):
-    """ """
-    if not hasattr(value, "__iter__"):
-        value = [value]
-    return value

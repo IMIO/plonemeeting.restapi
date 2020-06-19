@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from imio.helpers.content import uuidsToObjects
+from imio.restapi.services.search import SearchGet
 from plone import api
-from plone.app.querystring.queryparser import parseFormquery
 from plone.restapi.deserializer import boolean_value
-from plone.restapi.search.handler import SearchHandler
-from plone.restapi.search.utils import unflatten_dotted_dict
-from plone.restapi.services.search.get import SearchGet
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.utils import check_in_name_of
-from plonemeeting.restapi.utils import listify
 
 
 class PMSearchGet(SearchGet):
+
     def __init__(self, context, request):
         super(PMSearchGet, self).__init__(context, request)
         self.tool = api.portal.get_tool("portal_plonemeeting")
@@ -40,17 +36,8 @@ class PMSearchGet(SearchGet):
             self.request.form["type"] = "item"
         return self.request.form.get("type")
 
-    def _set_query_base_search(self):
-        """ """
-        query = {}
-        form = self.request.form
-        base_search_uid = form.get("base_search_uid", "").strip()
-        if base_search_uid:
-            collection = uuidsToObjects(uuids=base_search_uid)
-            if collection:
-                collection = collection[0]
-                query = parseFormquery(collection, collection.query)
-        return query
+    def _set_query_before_hook(self):
+        return self._set_query_meetings_accepting_items()
 
     def _set_query_meetings_accepting_items(self):
         """ """
@@ -91,29 +78,8 @@ class PMSearchGet(SearchGet):
         query.pop("meetings_accepting_items", None)
         query.pop("type", None)
 
-    def _set_metadata_fields(self):
-        """Must be set in request.form."""
-        form = self.request.form
-        # manage metadata_fields
-        additional_metadata_fields = listify(form.get("metadata_fields", []))
-        additional_metadata_fields += self._additional_fields
-        form["metadata_fields"] = additional_metadata_fields
-
-    def _process_reply(self):
-        query = {}
-
-        query.update(self._set_query_meetings_accepting_items())
-        query.update(self._set_query_base_search())
-        query.update(self._set_query_additional_params())
-        query.update(self.request.form.copy())
-        self._clean_query(query)
-        query = unflatten_dotted_dict(query)
-
-        self._set_metadata_fields()
-
-        return SearchHandler(self.context, self.request).search(query)
-
     def reply(self):
+        """Override to handle in_name_of."""
         in_name_of = check_in_name_of(self, self.request.form)
         if in_name_of:
             with api.env.adopt_user(username=in_name_of):

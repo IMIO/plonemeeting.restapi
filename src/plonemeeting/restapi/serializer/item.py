@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
 from plonemeeting.restapi.serializer.base import BaseATSerializeToJson
-from plonemeeting.restapi.utils import listify
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
 from zope.component import queryMultiAdapter
