@@ -26,7 +26,7 @@ class SerializeToJson(BaseATSerializeToJson):
         """ """
         extra_include = listify(self.request.form.get("extra_include", []))
         if "categories" in extra_include:
-            categories = self.context.getCategories()
+            categories = self.context.getCategories(onlySelectable=False)
             result["extra_include_categories"] = []
             for category in categories:
                 serializer = queryMultiAdapter(
@@ -34,9 +34,8 @@ class SerializeToJson(BaseATSerializeToJson):
                 )
                 result["extra_include_categories"].append(serializer())
         if "pod_templates" in extra_include:
-            pod_templates = self.context.podtemplates.getFolderContents(
-                full_objects=True
-            )
+            pod_templates = [obj for obj in self.context.podtemplates.objectValues()
+                             if getattr(obj, 'enabled', False)]
             result["extra_include_pod_templates"] = []
             for pod_template in pod_templates:
                 serializer = queryMultiAdapter(
@@ -44,9 +43,8 @@ class SerializeToJson(BaseATSerializeToJson):
                 )
                 result["extra_include_pod_templates"].append(serializer())
         if "searches" in extra_include:
-            collections = self.context.searches.searches_items.getFolderContents(
-                full_objects=True
-            )
+            collections = [obj for obj in self.context.searches.searches_items.objectValues()
+                           if (obj.portal_type == 'DashboardCollection' and obj.enabled)]
             result["extra_include_searches"] = []
             for collection in collections:
                 serializer = queryMultiAdapter(

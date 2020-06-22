@@ -35,8 +35,9 @@ Changelog
   may still be completed with other arbitrary indexes.
   [gbastien]
 - Added `@config` endpoint that will return a given `config_id` `MeetingConfig`
-  informations. Parameters `include_categories`, `include_pod_templates` and
-  `include_searches` are available.
+  informations. Parameters `include_categories` (return enabled/disabled
+  categories), `include_pod_templates` (return enabled POD template) and
+  `include_searches` (return enabled DashboardCollections) are available.
   [gbastien]
 - Added `@get` endpoint that receives an `UID` and returns the object found.
   A convenience endpoint `@item` do the same but just check that returned element

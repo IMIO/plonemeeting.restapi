@@ -50,7 +50,8 @@ class testServiceConfig(BaseTestCase):
 
     def test_restapi_config_extra_include_categories(self):
         """@config"""
-        cfg = self.meetingConfig
+        # cfg2 uses disabled categories
+        cfg = self.meetingConfig2
         cfg.setUseGroupsAsCategories(False)
         cfgId = cfg.getId()
         transaction.commit()
@@ -61,8 +62,13 @@ class testServiceConfig(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         json = response.json()
         categories = json["extra_include_categories"]
-        self.assertEqual(categories[0]["id"], u"development")
+        self.assertEqual(categories[0]["id"], u"deployment")
         self.assertEqual(categories[0]["@type"], u"MeetingCategory")
+        self.assertEqual(categories[0]["review_state"], u"active")
+        # disabled categories are also returned
+        self.assertEqual(categories[-2]["id"], u"marketing")
+        self.assertEqual(categories[-2]["@type"], u"MeetingCategory")
+        self.assertEqual(categories[-2]["review_state"], u"inactive")
 
     def test_restapi_config_extra_include_pod_templates(self):
         """@config"""
@@ -80,6 +86,20 @@ class testServiceConfig(BaseTestCase):
         self.assertEqual(pod_templates[0]["@type"], u"StyleTemplate")
         self.assertEqual(pod_templates[4]["id"], u"itemTemplate")
         self.assertEqual(pod_templates[4]["@type"], u"ConfigurablePODTemplate")
+        itemTemplate = cfg.podtemplates.itemTemplate
+        self.assertEqual(len(pod_templates), 7)
+        self.assertTrue(itemTemplate.Title() in [template['title'] for template in pod_templates])
+        # only enabled POD templates are returned
+        transaction.begin()
+        itemTemplate.enabled = False
+        itemTemplate.reindexObject()
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200)
+        json = response.json()
+        pod_templates = json["extra_include_pod_templates"]
+        self.assertEqual(len(pod_templates), 6)
+        self.assertFalse(itemTemplate.Title() in [template['title'] for template in pod_templates])
 
     def test_restapi_config_extra_include_searches(self):
         """@config extra_include=searches"""
@@ -95,6 +115,21 @@ class testServiceConfig(BaseTestCase):
         self.assertEqual(searches[0]["@type"], u"DashboardCollection")
         # include_items is set to False specifically
         self.assertFalse("items" in searches[0])
+        searchmyitems = cfg.searches.searches_items.searchmyitems
+        self.assertTrue(searchmyitems.Title() in [search['title'] for search in searches])
+
+        # only enabled DashboardCollections are returned
+        transaction.begin()
+        searchmyitems.enabled = False
+        searchmyitems.reindexObject()
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200)
+        json = response.json()
+        searches = json["extra_include_searches"]
+        self.assertNotEqual(searches[0]["id"], u"searchmyitems")
+        self.assertEqual(searches[0]["@type"], u"DashboardCollection")
+        self.assertFalse(searchmyitems.Title() in [search['title'] for search in searches])
 
 
 def test_suite():
