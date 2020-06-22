@@ -3,6 +3,16 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     xmlns:zcml="http://namespaces.zope.org/zcml">
 
+  <!-- get UID -->
+  <plone:service
+    method="GET"
+    for="Products.CMFCore.interfaces.IFolderish"
+    factory=".get.UidGet"
+    name="@get"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
+  <!-- search -->
   <plone:service
     method="GET"
     for="Products.CMFCore.interfaces.ISiteRoot"
@@ -12,14 +22,62 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
+  <!-- POST item -->
+  <plone:service
+    method="POST"
+    for="Products.CMFCore.interfaces.IFolderish"
+    factory=".add.ItemPost"
+    name="@item"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
+  <!-- get UID item -->
+  <plone:service
+    method="GET"
+    for="Products.CMFCore.interfaces.IFolderish"
+    factory=".get.ItemGet"
+    name="@item"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
+  <!-- POST meeting -->
+  <plone:service
+    method="POST"
+    for="Products.CMFCore.interfaces.IFolderish"
+    factory=".add.MeetingPost"
+    name="@meeting"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
   <adapter factory=".annex.Annexes" name="annex" />
 
+  <!-- annexes -->
   <plone:service
     method="GET"
     for="zope.interface.Interface"
     accept="application/json,application/schema+json"
     name="@annexes"
     factory=".annex.AnnexesGet"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
+  <!-- get config -->
+  <plone:service
+    method="GET"
+    for="zope.interface.Interface"
+    accept="application/json,application/schema+json"
+    name="@config"
+    factory=".meetingconfig.ConfigGet"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
+  <!-- get infos -->
+  <plone:service
+    method="GET"
+    for="zope.interface.Interface"
+    accept="application/json,application/schema+json"
+    name="@infos"
+    factory=".infos.PMInfosGet"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 

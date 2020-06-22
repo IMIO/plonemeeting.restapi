@@ -32,8 +32,8 @@ pipeline {
             steps {
                 script {
                     def zServerPort = new Random().nextInt(10000) + 30000
-                    sh "env ZSERVER_PORT=${zServerPort}  bin/coverage run bin/test"
-                    sh 'bin/coverage xml -i'
+                    sh "env ZSERVER_PORT=${zServerPort} bin/python bin/coverage run bin/test"
+                    sh 'bin/python bin/coverage xml -i'
                 }
             }
         }
@@ -92,9 +92,6 @@ pipeline {
             slackSend channel: "#jenkins",
                       color: "#ff0000",
                       message: "Failed ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-        }
-        cleanup{
-            deleteDir()
         }
     }
 }

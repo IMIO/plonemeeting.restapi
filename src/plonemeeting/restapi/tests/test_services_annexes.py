@@ -6,8 +6,11 @@ from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWO
 import transaction
 
 
-class testServicesAnnex(BaseTestCase):
+class testServiceAnnexes(BaseTestCase):
     """ """
+
+    def tearDown(self):
+        self.api_session.close()
 
     def test_restapi_annexes_endpoint(self):
         """@annexes"""
@@ -18,8 +21,8 @@ class testServicesAnnex(BaseTestCase):
         self.assertEqual(response.json(), [])
 
         # create item with annexes
-        self.changeUser('pmManager')
-        item = self.create('MeetingItem')
+        self.changeUser("pmManager")
+        item = self.create("MeetingItem")
         transaction.commit()
 
         # on MeetingItem without annexes
@@ -35,42 +38,46 @@ class testServicesAnnex(BaseTestCase):
         # contains extra attributes managed by collective.iconifiedcategory
         # as attributes and not in the schema
         annex1_infos = response.json()[0]
-        self.assertTrue('category_uid' in annex1_infos)
-        self.assertTrue('preview_status' in annex1_infos)
-        self.assertTrue('signed_activated' in annex1_infos)
-        self.assertTrue('signed' in annex1_infos)
-        self.assertTrue('publishable_activated' in annex1_infos)
-        self.assertTrue('publishable' in annex1_infos)
-        self.assertTrue('to_print' in annex1_infos)
+        self.assertTrue("category_uid" in annex1_infos)
+        self.assertTrue("preview_status" in annex1_infos)
+        self.assertTrue("signed_activated" in annex1_infos)
+        self.assertTrue("signed" in annex1_infos)
+        self.assertTrue("publishable_activated" in annex1_infos)
+        self.assertTrue("publishable" in annex1_infos)
+        self.assertTrue("to_print" in annex1_infos)
 
     def test_restapi_annex_type_only_for_meeting_managers(self):
         """Make sure when a content_category is restricted to MeetingManagers,
            the same information is available in @annexes endpoint."""
         # make 'overhead-analysis' only_for_meeting_managers
         cfg = self.meetingConfig
-        financial_analysis = cfg.annexes_types.item_annexes.get('financial-analysis')
+        financial_analysis = cfg.annexes_types.item_annexes.get("financial-analysis")
         financial_analysis.only_for_meeting_managers = True
         # create item with annexes
-        self.changeUser('pmManager')
-        item = self.create('MeetingItem')
+        self.changeUser("pmManager")
+        item = self.create("MeetingItem")
         item_url = item.absolute_url()
         endpoint_url = "{0}/@annexes".format(item_url)
         annex = self.addAnnex(item)
         transaction.commit()
         self.assertEqual(
             annex.content_category,
-            'plonemeeting-assembly-annexes_types_-_item_annexes_-_financial-analysis')
+            "plonemeeting-assembly-annexes_types_-_item_annexes_-_financial-analysis",
+        )
         response_pmManager = self.api_session.get(endpoint_url).json()[0]
-        self.changeUser('pmCreator1')
-        self.api_session.auth = ('pmCreator1', DEFAULT_USER_PASSWORD)
+        self.changeUser("pmCreator1")
+        self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
         response_pmCreator1 = self.api_session.get(endpoint_url).json()[0]
-        self.assertEqual(response_pmManager['content_category'],
-                         response_pmCreator1['content_category'])
+        self.assertEqual(
+            response_pmManager["content_category"],
+            response_pmCreator1["content_category"],
+        )
 
 
 def test_suite():
     from unittest import TestSuite, makeSuite
+
     suite = TestSuite()
     # add a prefix to avoid every PM tests to be executed
-    suite.addTest(makeSuite(testServicesAnnex, prefix='test_restapi_'))
+    suite.addTest(makeSuite(testServiceAnnexes, prefix="test_restapi_"))
     return suite

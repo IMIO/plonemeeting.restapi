@@ -5,8 +5,11 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="plonemeeting.restapi">
 
-  <include package="plone.restapi" />
+  <i18n:registerTranslations directory="locales" />
+
   <include package="Products.PloneMeeting" />
+  <include package="imio.restapi" />
+  <include package=".deserializer" />
   <include package=".serializer" />
   <include package=".services" />
 

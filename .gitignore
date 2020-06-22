@@ -23,4 +23,5 @@ parts/
 dist/
 var/
 pip-selfcheck.json
-
+src/*
+!src/plonemeeting

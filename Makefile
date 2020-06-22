@@ -10,7 +10,7 @@ cleanall:
 .PHONY: bootstrap
 bootstrap:cleanall
 	virtualenv --clear .
-	bin/pip install -r requirements.txt
+	bin/python bin/pip install -r requirements.txt
 
 .PHONY: buildout
 buildout:bootstrap

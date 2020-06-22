@@ -26,14 +26,14 @@ class Annexes(object):
         # extend batch? DEFAULT_BATCH_SIZE = 25
         # self.request.form['b_size'] = 50
 
-        result = {}
-        annexes = get_categorized_elements(self.context, result_type='objects')
-        result["annexes"] = []
+        annexes = get_categorized_elements(self.context, result_type="objects")
+        result = []
         for annex in annexes:
             serialized_annex = getMultiAdapter(
-                (annex, self.request), ISerializeToJson)()
-            result["annexes"].append(serialized_annex)
-        return result["annexes"]
+                (annex, self.request), ISerializeToJson
+            )()
+            result.append(serialized_annex)
+        return result
 
 
 class AnnexesGet(Service):
