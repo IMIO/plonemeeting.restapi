@@ -15,6 +15,7 @@ pipeline {
             steps {
                 cache(maxCacheSize: 850, caches: [[$class: 'ArbitraryFileCache', excludes: '', path: "${WORKSPACE}/eggs"]]){
                     script {
+			sh "rm -rf src/"
                         sh "make buildout buildout_file=jenkins.cfg"
                     }
                 }
