@@ -15,7 +15,6 @@ pipeline {
             steps {
                 cache(maxCacheSize: 850, caches: [[$class: 'ArbitraryFileCache', excludes: '', path: "${WORKSPACE}/eggs"]]){
                     script {
-			sh "rm -rf src/"
                         sh "make buildout buildout_file=jenkins.cfg"
                     }
                 }
@@ -57,6 +56,7 @@ pipeline {
     post{
         always{
             chuckNorris()
+	    sh "rm -rf src/"
         }
         aborted{
             mail to: 'pm-interne@imio.be',
