@@ -9,7 +9,6 @@ from plonemeeting.restapi.utils import check_in_name_of
 
 
 class PMSearchGet(SearchGet):
-
     def __init__(self, context, request):
         super(PMSearchGet, self).__init__(context, request)
         self.tool = api.portal.get_tool("portal_plonemeeting")
@@ -43,7 +42,9 @@ class PMSearchGet(SearchGet):
         """ """
         query = {}
         form = self.request.form
-        if self.type == "meeting" and boolean_value(form.get("meetings_accepting_items", False)):
+        if self.type == "meeting" and boolean_value(
+            form.get("meetings_accepting_items", False)
+        ):
             query.update(self.cfg._getMeetingsAcceptingItemsQuery())
         return query
 
