@@ -15,6 +15,7 @@ Changelog
   - Parameter `getConfigId` is renamed to `config_id`;
   - Added `in_name_of` parameter making it possible to use endpoint as another
     user if original user is `(Meeting)Manager`.
+
   [gbastien]
 - Added `@item` POST endpoint to be able to create item with/without annexes:
 
@@ -27,6 +28,7 @@ Changelog
   - Ease use by being able to use organizations `ids` instead `UIDs`
     in creation data;
   - Manage `in_name_of` parameter.
+
   [gbastien]
 - Override `@infos` endpoint from imio.restapi to add our own informations.
   [gbastien]
