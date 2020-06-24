@@ -10,7 +10,7 @@ long_description = "\n\n".join([open("README.rst").read(), open("CHANGES.rst").r
 
 setup(
     name="plonemeeting.restapi",
-    version="1.0a2",
+    version="1.0a3.dev0",
     description="Extended rest api service for Products.PloneMeeting usecases",
     long_description=long_description,
     # Get more from https://pypi.python.org/pypi?%3Aaction=list_classifiers
