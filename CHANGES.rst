@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0a2 (unreleased)
+1.0a2 (2020-06-24)
 ------------------
 
 - Added test `test_restapi_annex_type_only_for_meeting_managers`, make sure an
