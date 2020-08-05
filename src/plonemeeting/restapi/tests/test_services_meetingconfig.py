@@ -63,12 +63,14 @@ class testServiceConfig(BaseTestCase):
         json = response.json()
         categories = json["extra_include_categories"]
         self.assertEqual(categories[0]["id"], u"deployment")
-        self.assertEqual(categories[0]["@type"], u"MeetingCategory")
-        self.assertEqual(categories[0]["review_state"], u"active")
+        self.assertEqual(categories[0]["@type"], u"meetingcategory")
+        self.assertEqual(categories[0]["enabled"], True)
+        self.assertEqual(categories[0]["review_state"], None)
         # disabled categories are also returned
         self.assertEqual(categories[-2]["id"], u"marketing")
-        self.assertEqual(categories[-2]["@type"], u"MeetingCategory")
-        self.assertEqual(categories[-2]["review_state"], u"inactive")
+        self.assertEqual(categories[-2]["@type"], u"meetingcategory")
+        self.assertEqual(categories[-2]["enabled"], False)
+        self.assertEqual(categories[-2]["review_state"], None)
 
     def test_restapi_config_extra_include_pod_templates(self):
         """@config"""

@@ -4,8 +4,10 @@ Changelog
 1.0a3 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fixed `test_restapi_config_extra_include_categories` as former
+  `AT MeetingCategory` are now `DX meetingcategory` that use field `enabled`
+  instead workflow `review_state` `active`.
+  [gbastien]
 
 1.0a2 (2020-06-24)
 ------------------
