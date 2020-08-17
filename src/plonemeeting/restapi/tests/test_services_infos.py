@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from plone import api
+from plone.app.testing import login
+from plone.app.testing import logout
+from plone.app.testing import TEST_USER_NAME
+from plone.app.testing import TEST_USER_PASSWORD
 from plonemeeting.restapi.tests.base import BaseTestCase
+
+import requests
+import transaction
 
 
 class testServicePMInfos(BaseTestCase):
@@ -31,6 +39,28 @@ class testServicePMInfos(BaseTestCase):
         self.assertTrue(u"plonemeeting.restapi" in json["packages"])
         self.assertTrue(u"imio.restapi" in json["packages"])
         self.assertEqual(json["connected_user"], None)
+
+    def test_restapi_infos_stats(self):
+        """@infos stats"""
+        endpoint_url = "{0}/@infos?include_stats=1".format(self.portal_url)
+        # only available to Manager
+        api.user.grant_roles(TEST_USER_NAME, roles=["Manager"])
+        logout()
+        login(self.portal, TEST_USER_NAME)
+        transaction.commit()
+        # stats contains various data
+        response = requests.get(
+            endpoint_url,
+            headers={"Accept": "application/json"},
+            auth=(TEST_USER_NAME, TEST_USER_PASSWORD),
+        )
+        self.assertEqual(response.status_code, 200)
+        json = response.json()
+        self.assertTrue(u"Meeting" in json["stats"][u"types"])
+        self.assertTrue(u"MeetingItem" in json["stats"][u"types"])
+        self.assertTrue(u"annex" in json["stats"][u"types"])
+        self.assertTrue(u"annexDecision" in json["stats"][u"types"])
+        self.assertEqual(json["stats"][u"types"]["MeetingConfig"], 2)
 
 
 def test_suite():
