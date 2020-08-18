@@ -15,7 +15,7 @@ class testServiceConfig(BaseTestCase):
 
     def test_restapi_config_required_params(self):
         """ """
-        endpoint_url = "{0}/@search".format(self.portal_url)
+        endpoint_url = "{0}/@config".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(
@@ -27,7 +27,7 @@ class testServiceConfig(BaseTestCase):
 
     def test_restapi_config_config_id_not_found(self):
         """ """
-        endpoint_url = "{0}/@search?config_id=unknown".format(self.portal_url)
+        endpoint_url = "{0}/@config?config_id=unknown".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(
