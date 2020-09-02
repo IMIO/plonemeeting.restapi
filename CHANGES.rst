@@ -8,6 +8,9 @@ Changelog
   `AT MeetingCategory` are now `DX meetingcategory` that use field `enabled`
   instead workflow `review_state` `active`.
   [gbastien]
+- Added `test_restapi_add_item_wf_transitions` that was broken
+  with `imio.restapi<1.0a11`.
+  [gbastien]
 
 1.0a2 (2020-06-24)
 ------------------

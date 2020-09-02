@@ -316,6 +316,25 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(annex2.file.contentType, "application/pdf")
         transaction.abort()
 
+    def test_restapi_add_item_wf_transitions(self):
+        """When creating an item, we may define "wf_transitions"."""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            "wf_transitions": ["propose", "validate"]
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201)
+        transaction.begin()
+        pmFolder = self.getMeetingFolder()
+        item = pmFolder.objectValues()[-1]
+        self.assertEqual(item.queryState(), "validated")
+        transaction.abort()
+
     def test_restapi_add_item_in_name_of(self):
         """Test while using 'in_name_of' parameter"""
         cfg = self.meetingConfig
