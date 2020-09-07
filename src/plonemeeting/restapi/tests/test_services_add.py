@@ -78,6 +78,7 @@ class testServiceAddItem(BaseTestCase):
             "notes": u"<p>My notes</p>",
         }
         response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
@@ -259,7 +260,9 @@ class testServiceAddItem(BaseTestCase):
                 },
             ],
         }
+        transaction.begin()
         response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
@@ -268,6 +271,7 @@ class testServiceAddItem(BaseTestCase):
                 u"type": u"BadRequest",
             },
         )
+        transaction.abort()
 
     def test_restapi_add_item_with_several_annexes(self):
         """When creating an item, we may add annexes as __children__,
@@ -298,9 +302,10 @@ class testServiceAddItem(BaseTestCase):
                 },
             ],
         }
-        response = self.api_session.post(endpoint_url, json=json)
-        self.assertEqual(response.status_code, 201)
         transaction.begin()
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         annex1 = get_annexes(item)[0]
@@ -342,6 +347,7 @@ class testServiceAddItem(BaseTestCase):
         cfg = self.meetingConfig
         self.changeUser("pmManager")
         # meeting in the future
+        transaction.begin()
         meeting = self.create("Meeting", date=DateTime() + 1)
         transaction.commit()
         endpoint_url = "{0}/@item".format(self.portal_url)
@@ -353,7 +359,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         self.assertEqual(response.status_code, 201)
-        transaction.begin()
+        transaction.commit()
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.queryState(), "presented")
@@ -372,6 +378,7 @@ class testServiceAddItem(BaseTestCase):
             "title": "My item",
             "in_name_of": "pmCreator2",
         }
+        transaction.begin()
         response = self.api_session.post(endpoint_url, json=json)
         self.assertEqual(response.status_code, 401)
         self.assertEqual(
@@ -384,6 +391,7 @@ class testServiceAddItem(BaseTestCase):
         # user must exist
         self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
         json["in_name_of"] = "unknown"
+        transaction.commit()
         response = self.api_session.post(endpoint_url, json=json)
         self.assertEqual(
             response.json(),
@@ -397,6 +405,7 @@ class testServiceAddItem(BaseTestCase):
         response_json = response.json()
         self.assertEqual(response_json["creators"], [u"pmCreator2"])
         self.assertTrue("Members/pmCreator2/mymeetings" in response_json["@id"])
+        transaction.abort()
 
 
 def test_suite():
