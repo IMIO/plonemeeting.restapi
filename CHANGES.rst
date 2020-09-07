@@ -11,6 +11,9 @@ Changelog
 - Added `test_restapi_add_item_wf_transitions` that was broken
   with `imio.restapi<1.0a11`.
   [gbastien]
+- When adding an new item, insert the event `create_element_using_ws_rest`
+  in the workflow_history at the beginning, just after the `itemcreated` event.
+  [gbastien]
 
 1.0a2 (2020-06-24)
 ------------------

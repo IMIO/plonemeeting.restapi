@@ -144,7 +144,12 @@ class BasePost(FolderPost):
         # add a record to the item workflow_history to specify that item was created thru SOAP WS
         action_name = "create_element_using_ws_rest"
         action_label = action_name + "_comments"
-        add_wf_history_action(obj, action_name=action_name, action_label=action_label)
+        # there may be several actions in the workflow_history, especially when
+        # wf_transitions are used so we insert our event just after event 0
+        add_wf_history_action(obj,
+                              action_name=action_name,
+                              action_label=action_label,
+                              insert_index=0)
         # fingerpointing
         extras = "object={0}".format(repr(self.context.get(serialized_obj["id"])))
         fplog("create_by_ws_rest", extras=extras)

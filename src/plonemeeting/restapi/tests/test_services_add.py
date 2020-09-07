@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collective.iconifiedcategory.utils import calculate_category_id
+from DateTime import DateTime
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
@@ -333,6 +334,30 @@ class testServiceAddItem(BaseTestCase):
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.queryState(), "validated")
+        transaction.abort()
+
+    def test_restapi_add_item_wf_transitions_present(self):
+        """When creating an item, we may define "wf_transitions"
+           until "present", in this case, item is "presented" in next meeting."""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        # meeting in the future
+        meeting = self.create("Meeting", date=DateTime() + 1)
+        transaction.commit()
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            "wf_transitions": ["propose", "validate", "present"]
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201)
+        transaction.begin()
+        pmFolder = self.getMeetingFolder()
+        item = pmFolder.objectValues()[-1]
+        self.assertEqual(item.queryState(), "presented")
+        self.assertEqual(item.getMeeting(), meeting)
         transaction.abort()
 
     def test_restapi_add_item_in_name_of(self):
