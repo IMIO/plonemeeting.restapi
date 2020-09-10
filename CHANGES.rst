@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0a3 (unreleased)
+1.0a3 (2020-09-10)
 ------------------
 
 - Fixed `test_restapi_config_extra_include_categories` as former
