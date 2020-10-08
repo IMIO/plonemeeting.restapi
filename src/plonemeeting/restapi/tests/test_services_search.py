@@ -104,7 +104,7 @@ class testServiceSearch(BaseTestCase):
         self.changeUser("pmManager")
         cfg.setUseGroupsAsCategories(False)
         self.getMeetingFolder()
-        meeting = self.create("Meeting", date=DateTime("2020/06/08"))
+        meeting = self.create("Meeting", date=DateTime("2020/06/08 08:00"))
         item = self.create("MeetingItem")
         item.setMotivation("<p>Motivation</p>")
         item.setDecision(self.decisionText)
@@ -150,6 +150,25 @@ class testServiceSearch(BaseTestCase):
                 u"deliberation": u"<p>Motivation</p><p>Some decision.</p>",
                 u"public_deliberation_decided": u"<p>Motivation</p><p>Some decision.</p>",
             },
+        )
+        # extra_include meeting
+        endpoint_url = endpoint_url + "&extra_include=meeting"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(
+            response.json()["items"][0]["extra_include_meeting"]["UID"],
+            meeting.UID()
+        )
+        self.assertEqual(
+            response.json()["items"][0]["extra_include_meeting"]["formatted_date"],
+            u'08/06/2020 (08:00)'
+        )
+        self.assertEqual(
+            response.json()["items"][0]["extra_include_meeting"]["formatted_date_short"],
+            u'08/06/2020'
+        )
+        self.assertEqual(
+            response.json()["items"][0]["extra_include_meeting"]["formatted_date_long"],
+            u'08 june 2020 (08:00)'
         )
         transaction.abort()
 

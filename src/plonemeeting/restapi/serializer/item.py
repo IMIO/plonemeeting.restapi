@@ -34,6 +34,14 @@ class SerializeToJson(BaseATSerializeToJson):
                     (proposingGroup, self.request), ISerializeToJson
                 )
                 result["extra_include_proposingGroup"] = serializer()
+        if "meeting" in extra_include:
+            meeting = self.context.getMeeting()
+            result["extra_include_meeting"] = {}
+            if meeting:
+                serializer = queryMultiAdapter(
+                    (meeting, self.request), ISerializeToJson
+                )
+                result["extra_include_meeting"] = serializer(include_items=False)
         if "deliberation" in extra_include:
             # make the @@document-generation helper view available on self
             view = self.context.restrictedTraverse("document-generation")
