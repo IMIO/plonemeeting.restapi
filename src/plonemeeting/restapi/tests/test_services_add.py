@@ -132,6 +132,7 @@ class testServiceAddItem(BaseTestCase):
             item.getAssociatedGroups(), (self.vendors_uid, self.developers_uid)
         )
         self.assertEqual(item.getOptionalAdvisers(), (self.vendors_uid,))
+        self.assertTrue(self.vendors_uid in item.adviceIndex)
         transaction.abort()
 
     def test_restapi_add_item_with_annexes(self):

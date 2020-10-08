@@ -5,7 +5,8 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-long_description = "\n\n".join([open("README.rst").read(), open("CHANGES.rst").read(),])
+long_description = "\n\n".join(
+    [open("README.rst").read(), open("CHANGES.rst").read(), ])
 
 
 setup(
@@ -39,7 +40,10 @@ setup(
         "Products.PloneMeeting",
         "imio.restapi>1.0a10",
     ],
-    extras_require={"test": ["plone.restapi[test]",],},
+    extras_require={
+        "test": ["plone.restapi[test]",
+                 "Products.PloneMeeting[test]",
+                 ], },
     entry_points="""
     [z3c.autoinclude.plugin]
     target = plone

@@ -4,8 +4,9 @@ Changelog
 1.0a4 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Completed test showing that `MeetingItem.adviceIndex` was not correctly
+  initialized upon item creation.
+  [gbastien]
 
 1.0a3 (2020-09-10)
 ------------------
