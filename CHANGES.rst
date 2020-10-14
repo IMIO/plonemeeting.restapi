@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0a4 (unreleased)
+1.0a4 (2020-10-14)
 ------------------
 
 - Completed test showing that `MeetingItem.adviceIndex` was not correctly
