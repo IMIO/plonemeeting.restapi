@@ -10,7 +10,7 @@ Changelog
 - Added parameter `extra_include_meeting` to `IMeetingItem` serializer.
   [gbastien]
 - Completed `IMeeting` serializer `_additional_values` with `formatted_date`,
- `formatted_date_short` and `formatted_date_long`.
+  `formatted_date_short` and `formatted_date_long`.
   [gbastien]
 
 1.0a3 (2020-09-10)
