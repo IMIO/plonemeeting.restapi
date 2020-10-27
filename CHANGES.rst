@@ -8,6 +8,9 @@ Changelog
   `extra_include_groups_in_charge` and `extra_include_associated_groups`
   to `@config GET` endpoint.
   [gbastien]
+- By default, restrict access to endpoints to role `Member`,
+  was given to role `Anonymous` by default by `plone.restapi`.
+  [gbastien]
 
 1.0a4 (2020-10-14)
 ------------------
