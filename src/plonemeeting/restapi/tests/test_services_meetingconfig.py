@@ -133,6 +133,47 @@ class testServiceConfig(BaseTestCase):
         self.assertEqual(searches[0]["@type"], u"DashboardCollection")
         self.assertFalse(searchmyitems.Title() in [search['title'] for search in searches])
 
+    def test_restapi_config_extra_include_proposing_groups(self):
+        """@config extra_include=proposing_groups"""
+        cfg = self.meetingConfig
+        cfgId = cfg.getId()
+        endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
+        endpoint_url = endpoint_url_pattern.format(self.portal_url, cfgId, "proposing_groups")
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200)
+        json = response.json()
+        orgs = json["extra_include_proposing_groups"]
+        self.assertEqual(orgs[0]['UID'], self.developers_uid)
+        self.assertEqual(orgs[1]['UID'], self.vendors_uid)
+
+    def test_restapi_config_extra_include_associated_groups(self):
+        """@config extra_include=associated_groups"""
+        cfg = self.meetingConfig
+        cfgId = cfg.getId()
+        endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
+        endpoint_url = endpoint_url_pattern.format(self.portal_url, cfgId, "associated_groups")
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200)
+        json = response.json()
+        orgs = json["extra_include_associated_groups"]
+        self.assertEqual(orgs[0]['UID'], self.developers_uid)
+        self.assertEqual(orgs[1]['UID'], self.vendors_uid)
+
+    def test_restapi_config_extra_include_groups_in_charge(self):
+        """@config extra_include=groups_in_charge"""
+        cfg = self.meetingConfig
+        cfgId = cfg.getId()
+        self._enableField('groupsInCharge')
+        transaction.commit()
+        endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
+        endpoint_url = endpoint_url_pattern.format(self.portal_url, cfgId, "groups_in_charge")
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200)
+        json = response.json()
+        orgs = json["extra_include_groups_in_charge"]
+        self.assertEqual(orgs[0]['UID'], self.developers_uid)
+        self.assertEqual(orgs[1]['UID'], self.vendors_uid)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

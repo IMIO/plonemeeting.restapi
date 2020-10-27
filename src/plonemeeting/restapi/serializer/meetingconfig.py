@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from imio.helpers.content import get_vocab
 from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
 from plonemeeting.restapi.serializer.base import BaseATSerializeToJson
@@ -51,4 +52,45 @@ class SerializeToJson(BaseATSerializeToJson):
                     (collection, self.request), ISerializeToJson
                 )
                 result["extra_include_searches"].append(serializer(include_items=False))
+        if "proposing_groups" in extra_include:
+            orgs = self.context.getUsingGroups(theObjects=True)
+            result["extra_include_proposing_groups"] = []
+            for org in orgs:
+                serializer = queryMultiAdapter(
+                    (org, self.request), ISerializeToJson
+                )
+                result["extra_include_proposing_groups"].append(serializer(include_items=False))
+        if "proposing_groups" in extra_include:
+            orgs = self.context.getUsingGroups(theObjects=True)
+            result["extra_include_proposing_groups"] = []
+            for org in orgs:
+                serializer = queryMultiAdapter(
+                    (org, self.request), ISerializeToJson
+                )
+                result["extra_include_proposing_groups"].append(serializer(include_items=False))
+        if "associated_groups" in extra_include:
+            vocab = get_vocab(
+                self.context,
+                'Products.PloneMeeting.vocabularies.associatedgroupsvocabulary',
+                the_objects=True)
+            orgs = [term.value for term in vocab._terms]
+            result["extra_include_associated_groups"] = []
+            for org in orgs:
+                serializer = queryMultiAdapter(
+                    (org, self.request), ISerializeToJson
+                )
+                result["extra_include_associated_groups"].append(serializer(include_items=False))
+        if "groups_in_charge" in extra_include:
+            vocab = get_vocab(
+                self.context,
+                'Products.PloneMeeting.vocabularies.groupsinchargevocabulary',
+                the_objects=True)
+            orgs = [term.value for term in vocab._terms]
+            result["extra_include_groups_in_charge"] = []
+            for org in orgs:
+                serializer = queryMultiAdapter(
+                    (org, self.request), ISerializeToJson
+                )
+                result["extra_include_groups_in_charge"].append(serializer(include_items=False))
+
         return result
