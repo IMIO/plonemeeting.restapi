@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0a5 (unreleased)
+1.0a5 (2020-12-07)
 ------------------
 
 - Added parameters `extra_include_proposing_groups`,
