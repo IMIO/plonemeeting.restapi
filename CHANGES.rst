@@ -4,8 +4,9 @@ Changelog
 1.0a6 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- `Products.PloneMeeting.utils.fplog` was moved to
+  `imio.helpers.security.fplog`, adapted code accordingly.
+  [gbastien]
 
 1.0a5 (2020-12-07)
 ------------------

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collective.iconifiedcategory.utils import calculate_category_id
+from imio.helpers.security import fplog
 from imio.restapi.services.add import FolderPost
 from plone import api
 from plone.restapi.deserializer import json_body
@@ -8,7 +9,6 @@ from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.utils import check_in_name_of
 from Products.PloneMeeting.utils import add_wf_history_action
-from Products.PloneMeeting.utils import fplog
 from Products.PloneMeeting.utils import org_id_to_uid
 from zExceptions import BadRequest
 
