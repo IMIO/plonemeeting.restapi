@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0a6 (unreleased)
+1.0a6 (2021-01-06)
 ------------------
 
 - `Products.PloneMeeting.utils.fplog` was moved to
