@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from DateTime import DateTime
+from datetime import datetime
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
@@ -52,10 +52,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 items
         self.changeUser("pmManager")
         item1 = self.create("MeetingItem")
-        self.assertEqual(item1.queryState(), "itemcreated")
+        self.assertEqual(item1.query_state(), "itemcreated")
         item2 = self.create("MeetingItem")
         self.validateItem(item2)
-        self.assertEqual(item2.queryState(), "validated")
+        self.assertEqual(item2.query_state(), "validated")
         transaction.commit()
 
         # found
@@ -93,7 +93,7 @@ class testServiceSearch(BaseTestCase):
         # items are returned sorted
         self.assertEqual(
             [elt["UID"] for elt in response.json()[u"items"]],
-            [obj.UID() for obj in meeting.getItems(ordered=True)],
+            [obj.UID() for obj in meeting.get_items(ordered=True)],
         )
         transaction.abort()
 
@@ -104,7 +104,7 @@ class testServiceSearch(BaseTestCase):
         self.changeUser("pmManager")
         cfg.setUseGroupsAsCategories(False)
         self.getMeetingFolder()
-        meeting = self.create("Meeting", date=DateTime("2020/06/08 08:00"))
+        meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
         item = self.create("MeetingItem")
         item.setMotivation("<p>Motivation</p>")
         item.setDecision(self.decisionText)
@@ -196,11 +196,11 @@ class testServiceSearch(BaseTestCase):
 
         # create 2 meetings
         self.changeUser("pmManager")
-        meeting = self.create("Meeting", date=DateTime("2018/11/18"))
-        self.assertEqual(meeting.queryState(), "created")
-        meeting2 = self.create("Meeting", date=DateTime("2019/11/18"))
+        meeting = self.create("Meeting", date=datetime(2018, 11, 18))
+        self.assertEqual(meeting.query_state(), "created")
+        meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.queryState(), "closed")
+        self.assertEqual(meeting2.query_state(), "closed")
         transaction.commit()
 
         # found
@@ -227,11 +227,11 @@ class testServiceSearch(BaseTestCase):
 
         # create 2 meetings
         self.changeUser("pmManager")
-        meeting = self.create("Meeting", date=DateTime("2019/11/18"))
-        self.assertEqual(meeting.queryState(), "created")
-        meeting2 = self.create("Meeting", date=DateTime("2019/11/18"))
+        meeting = self.create("Meeting", date=datetime(2019, 11, 18))
+        self.assertEqual(meeting.query_state(), "created")
+        meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.queryState(), "closed")
+        self.assertEqual(meeting2.query_state(), "closed")
         transaction.commit()
 
         # found
@@ -246,7 +246,7 @@ class testServiceSearch(BaseTestCase):
 
         # includes every data as well as extra formatted values
         self.assertTrue("date" in resp_json["items"][0])
-        self.assertTrue("startDate" in resp_json["items"][0])
+        self.assertTrue("start_date" in resp_json["items"][0])
         self.assertTrue("notes" in resp_json["items"][0])
         self.assertTrue("formatted_assembly" in resp_json["items"][0])
         transaction.abort()
@@ -260,11 +260,11 @@ class testServiceSearch(BaseTestCase):
 
         # create 2 meetings
         self.changeUser("pmManager")
-        meeting = self.create("Meeting", date=DateTime("2020/05/10"))
-        self.assertEqual(meeting.queryState(), "created")
-        meeting2 = self.create("Meeting", date=DateTime("2020/05/17"))
+        meeting = self.create("Meeting", date=datetime(2020, 5, 10))
+        self.assertEqual(meeting.query_state(), "created")
+        meeting2 = self.create("Meeting", date=datetime(2020, 5, 17))
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.queryState(), "closed")
+        self.assertEqual(meeting2.query_state(), "closed")
         transaction.commit()
         # only meeting is accepting items
         self.assertEqual(

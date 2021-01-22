@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from collective.iconifiedcategory.utils import calculate_category_id
-from DateTime import DateTime
+from datetime import datetime
+from datetime import timedelta
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
@@ -344,7 +345,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(response.status_code, 201)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(item.queryState(), "validated")
+        self.assertEqual(item.query_state(), "validated")
         transaction.abort()
 
     def test_restapi_add_item_wf_transitions_present(self):
@@ -353,7 +354,7 @@ class testServiceAddItem(BaseTestCase):
         cfg = self.meetingConfig
         self.changeUser("pmManager")
         # meeting in the future
-        meeting = self.create("Meeting", date=DateTime() + 1)
+        meeting = self.create("Meeting", date=datetime.now() + timedelta(days=1))
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
             "config_id": cfg.getId(),
@@ -367,7 +368,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(response.status_code, 201)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(item.queryState(), "presented")
+        self.assertEqual(item.query_state(), "presented")
         self.assertEqual(item.getMeeting(), meeting)
         transaction.abort()
 

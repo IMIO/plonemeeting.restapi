@@ -4,8 +4,8 @@ Changelog
 1.0a7 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Adapted code and tests now that `Meeting` was moved from `AT` to `DX`.
+  [gbastien]
 
 1.0a6 (2021-01-06)
 ------------------

@@ -5,6 +5,8 @@ from plonemeeting.restapi.testing import PM_REST_TEST_PROFILE_FUNCTIONAL
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import PloneMeetingTestCase
 
+import transaction
+
 
 class BaseTestCase(PloneMeetingTestCase):
     """Base class for defining PM restapi test cases."""
@@ -19,3 +21,6 @@ class BaseTestCase(PloneMeetingTestCase):
         self.api_session = RelativeSession(self.portal_url)
         self.api_session.headers.update({"Accept": "application/json"})
         self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
+        self.changeUser("siteadmin")
+        self.getMeetingFolder(userId="pmManager")
+        transaction.commit()
