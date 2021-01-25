@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
@@ -27,7 +28,7 @@ class testServiceSearch(BaseTestCase):
         )
         endpoint_url += "?config_id={0}".format(self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
 
     def test_restapi_search_config_id_not_found(self):
         """ """
@@ -45,7 +46,7 @@ class testServiceSearch(BaseTestCase):
             self.portal_url, self.meetingConfig.getId()
         )
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         # nothing found for now
         self.assertEqual(response.json()[u"items_total"], 0)
 
@@ -182,7 +183,7 @@ class testServiceSearch(BaseTestCase):
         )
         endpoint_url += "&config_id={0}".format(self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
 
     def test_restapi_search_meetings_endpoint(self):
         """ """
@@ -190,7 +191,7 @@ class testServiceSearch(BaseTestCase):
             self.portal_url, self.meetingConfig.getId()
         )
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         # nothing found for now
         self.assertEqual(response.json()[u"items_total"], 0)
 
@@ -230,6 +231,7 @@ class testServiceSearch(BaseTestCase):
         meeting = self.create("Meeting", date=datetime(2019, 11, 18))
         self.assertEqual(meeting.query_state(), "created")
         meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
+        meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
         self.closeMeeting(meeting2)
         self.assertEqual(meeting2.query_state(), "closed")
         transaction.commit()
@@ -248,7 +250,9 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue("date" in resp_json["items"][0])
         self.assertTrue("start_date" in resp_json["items"][0])
         self.assertTrue("notes" in resp_json["items"][0])
-        self.assertTrue("formatted_assembly" in resp_json["items"][0])
+        self.assertEqual(
+            resp_json["items"][0]["formatted_assembly"],
+            u'<p>Mr Present, <strike>Mr Absent</strike>, Mr Present2</p>')
         transaction.abort()
 
     def test_restapi_search_meetings_accepting_items(self):
@@ -331,7 +335,7 @@ class testServiceSearch(BaseTestCase):
         )
         response = self.api_session.get(endpoint_url)
         # nothing found for now
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 0)
         # create one item for developers and one for vendors as pmManager
         # and one item as pmCreator1

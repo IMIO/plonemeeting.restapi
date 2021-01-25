@@ -55,7 +55,7 @@ class SerializeToJson(BaseATSerializeToJson):
     def _additional_values(self, result):
         """ """
         # add some formatted values
-        result["formatted_itemAssembly"] = self.context.displayStrikedItemAssembly()
+        result["formatted_itemAssembly"] = self.context.getItemAssembly(striked=True)
         result["formatted_itemNumber"] = self.context.getItemNumber(for_display=True)
         # values including computed values
         result["all_copyGroups"] = self.context.getAllCopyGroups(

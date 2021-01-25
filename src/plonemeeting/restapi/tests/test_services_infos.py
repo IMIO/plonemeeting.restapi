@@ -21,7 +21,7 @@ class testServicePMInfos(BaseTestCase):
         """@infos"""
         endpoint_url = "{0}/@infos".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         # return versions and connected_user
         self.assertTrue(u"Products.PloneMeeting" in json["packages"])
@@ -32,7 +32,7 @@ class testServicePMInfos(BaseTestCase):
         # when not connected
         self.api_session.auth = None
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         # return versions and connected_user
         self.assertTrue(u"Products.PloneMeeting" in json["packages"])
@@ -54,7 +54,7 @@ class testServicePMInfos(BaseTestCase):
             headers={"Accept": "application/json"},
             auth=(TEST_USER_NAME, TEST_USER_PASSWORD),
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertTrue(u"Meeting" in json["stats"][u"types"])
         self.assertTrue(u"MeetingItem" in json["stats"][u"types"])

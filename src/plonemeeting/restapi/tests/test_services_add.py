@@ -61,7 +61,7 @@ class testServiceAddItem(BaseTestCase):
             },
         )
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         self.assertEqual(len(pmFolder.objectIds("MeetingItem")), 1)
         item = pmFolder.get("my-item")
@@ -92,7 +92,7 @@ class testServiceAddItem(BaseTestCase):
         transaction.commit()
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.Title(), json["title"])
@@ -120,7 +120,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.Title(), json["title"])
@@ -160,7 +160,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.Title(), json["title"])
@@ -198,7 +198,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         annex = get_annexes(item)[0]
@@ -234,7 +234,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
             {
@@ -312,7 +312,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         annex1 = get_annexes(item)[0]
@@ -342,7 +342,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.query_state(), "validated")
@@ -365,7 +365,7 @@ class testServiceAddItem(BaseTestCase):
         transaction.commit()
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.query_state(), "presented")
@@ -407,7 +407,7 @@ class testServiceAddItem(BaseTestCase):
         json["in_name_of"] = "pmCreator2"
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         # item was created in the pmCreator2 folder
         response_json = response.json()
         self.assertEqual(response_json["creators"], [u"pmCreator2"])
