@@ -4,8 +4,14 @@ Changelog
 1.0a7 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Override default `PMBrainJSONSummarySerializer` for `ICatalogBrain` from
+  `imio.restapi` (that already overrides the one from `plone.restapi`) to
+  include metadata `enabled` by default.
+  Define also `PMJSONSummarySerializer` for object (not brain) to have a
+  summary representation of any objects. This makes it possible to get summary
+  serializers for a `MeetingConfig` and it's associated groups while using
+  `@config?extra_include=associated_groups`.
+  [gbastien]
 
 1.0a6 (2021-01-06)
 ------------------
