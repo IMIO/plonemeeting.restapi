@@ -431,6 +431,9 @@ class testServiceAddItem(BaseTestCase):
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.externalIdentifier, "my_external_id_123")
+        brains = self.catalog(externalIdentifier="my_external_id_123")
+        self.assertEqual(len(brains), 1)
+        self.assertEqual(brains[0].UID, item.UID())
         transaction.abort()
 
 
