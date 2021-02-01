@@ -413,6 +413,26 @@ class testServiceAddItem(BaseTestCase):
         self.assertTrue("Members/pmCreator2/mymeetings" in response_json["@id"])
         transaction.abort()
 
+    def test_restapi_add_item_external_identifier(self):
+        """When creating an item, we may receive an externalIdentifier",
+           in this case it is stored on the created item."""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            "externalIdentifier": "my_external_id_123"
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201)
+        pmFolder = self.getMeetingFolder()
+        item = pmFolder.objectValues()[-1]
+        self.assertEqual(item.externalIdentifier, "my_external_id_123")
+        transaction.abort()
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
