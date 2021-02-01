@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from imio.helpers.content import get_vocab
+from imio.helpers.content import uuidsToCatalogBrains
+from imio.helpers.content import uuidsToObjects
 from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
@@ -64,9 +66,12 @@ class SerializeConfigToJsonBase(object):
             if "associated_groups" in extra_include:
                 vocab = get_vocab(
                     self.context,
-                    'Products.PloneMeeting.vocabularies.associatedgroupsvocabulary',
-                    the_objects=True)
-                orgs = [term.value for term in vocab._terms]
+                    'Products.PloneMeeting.vocabularies.associatedgroupsvocabulary')
+                org_uids = [term.value for term in vocab._terms]
+                if self.extra_include_fullobjects:
+                    orgs = uuidsToObjects(org_uids, ordered=True)
+                else:
+                    orgs = uuidsToCatalogBrains(org_uids, ordered=True)
                 result["extra_include_associated_groups"] = []
                 for org in orgs:
                     serializer = queryMultiAdapter(
@@ -77,9 +82,12 @@ class SerializeConfigToJsonBase(object):
             if "groups_in_charge" in extra_include:
                 vocab = get_vocab(
                     self.context,
-                    'Products.PloneMeeting.vocabularies.groupsinchargevocabulary',
-                    the_objects=True)
-                orgs = [term.value for term in vocab._terms]
+                    'Products.PloneMeeting.vocabularies.groupsinchargevocabulary')
+                org_uids = [term.value for term in vocab._terms]
+                if self.extra_include_fullobjects:
+                    orgs = uuidsToObjects(org_uids, ordered=True)
+                else:
+                    orgs = uuidsToCatalogBrains(org_uids, ordered=True)
                 result["extra_include_groups_in_charge"] = []
                 for org in orgs:
                     serializer = queryMultiAdapter(
