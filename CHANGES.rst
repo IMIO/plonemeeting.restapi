@@ -12,6 +12,13 @@ Changelog
   serializers for a `MeetingConfig` and it's associated groups while using
   `@config?extra_include=associated_groups`.
   [gbastien]
+- Changed behavior of our overrided `@search` : before, it was overriding the
+  default `@search` and was requiring a `config_id` to work, now `config_id` is
+  optional, when given, it will ease searching for items or meetings, but if
+  not given, then the endpoint will have the default `@search` behavior.
+  Nevertheless, if parameter `type` is given, then `config_id`
+  must be given as well.
+  [gbastien]
 
 1.0a6 (2021-01-06)
 ------------------

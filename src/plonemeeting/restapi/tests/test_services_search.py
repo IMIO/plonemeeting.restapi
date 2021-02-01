@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from DateTime import DateTime
-from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from plonemeeting.restapi.config import TYPE_WITHOUT_CONFIG_ID_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
@@ -16,18 +16,6 @@ class testServiceSearch(BaseTestCase):
 
     def tearDown(self):
         self.api_session.close()
-
-    def test_restapi_search_items_required_params(self):
-        """ """
-        endpoint_url = "{0}/@search".format(self.portal_url)
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
-        self.assertEqual(
-            response.json(), {u"message": CONFIG_ID_ERROR, u"type": u"Exception"}
-        )
-        endpoint_url += "?config_id={0}".format(self.meetingConfig.getId())
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
 
     def test_restapi_search_config_id_not_found(self):
         """ """
@@ -173,12 +161,15 @@ class testServiceSearch(BaseTestCase):
         transaction.abort()
 
     def test_restapi_search_meetings_required_params(self):
-        """@search?type=meeting"""
+        """@search?type=meeting, when using parameter "type",
+           then "config_id" must be given as well."""
         endpoint_url = "{0}/@search?type=meeting".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(
-            response.json(), {u"message": CONFIG_ID_ERROR, u"type": u"Exception"}
+            response.json(),
+            {u"message": TYPE_WITHOUT_CONFIG_ID_ERROR % "meeting",
+             u"type": u"Exception"}
         )
         endpoint_url += "&config_id={0}".format(self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
@@ -372,6 +363,21 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(json[u"items_total"], 2)
         self.assertEqual(json[u"items"][0]["UID"], item_dev1_uid)
         self.assertEqual(json[u"items"][1]["UID"], item_dev2_uid)
+
+    def test_restapi_search_without_config_id(self):
+        """@search parameter config_id will ease searching but
+           when not provided, then default @search functionnality is available."""
+        self.changeUser("pmManager")
+        endpoint_url = (
+            "{0}/@search?portal_type=organization".format(self.portal_url)
+        )
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        # organizations are returned
+        json = response.json()
+        for result in json[u"items"]:
+            self.assertEqual(result[u'@type'], 'organization')
+        transaction.abort()
 
 
 def test_suite():
