@@ -4,8 +4,21 @@ Changelog
 1.0a7 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Override default `PMBrainJSONSummarySerializer` for `ICatalogBrain` from
+  `imio.restapi` (that already overrides the one from `plone.restapi`) to
+  include metadata `enabled` by default.
+  Define also `PMJSONSummarySerializer` for object (not brain) to have a
+  summary representation of any objects. This makes it possible to get summary
+  serializers for a `MeetingConfig` and it's associated groups while using
+  `@config?extra_include=associated_groups`.
+  [gbastien]
+- Changed behavior of our overrided `@search` : before, it was overriding the
+  default `@search` and was requiring a `config_id` to work, now `config_id` is
+  optional, when given, it will ease searching for items or meetings, but if
+  not given, then the endpoint will have the default `@search` behavior.
+  Nevertheless, if parameter `type` is given, then `config_id`
+  must be given as well.
+  [gbastien]
 
 1.0a6 (2021-01-06)
 ------------------
