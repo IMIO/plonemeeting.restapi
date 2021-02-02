@@ -12,6 +12,7 @@
   <include package=".deserializer" />
   <include package=".serializer" />
   <include package=".services" />
+  <includeOverrides file="serializer/overrides.zcml" />
 
   <genericsetup:registerProfile
       name="default"

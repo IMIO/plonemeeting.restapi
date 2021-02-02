@@ -174,6 +174,44 @@ class testServiceConfig(BaseTestCase):
         self.assertEqual(orgs[0]['UID'], self.developers_uid)
         self.assertEqual(orgs[1]['UID'], self.vendors_uid)
 
+    def test_restapi_config_extra_include_fullobjects(self):
+        """@config extra_include_fullobjects"""
+        cfg = self.meetingConfig
+        cfgId = cfg.getId()
+        self._enableField('groupsInCharge')
+        cfg.setUseGroupsAsCategories(False)
+        cfgId = cfg.getId()
+        transaction.commit()
+        endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}" \
+            "&extra_include={3}&extra_include={4}&extra_include={5}&extra_include={6}"
+        endpoint_url = endpoint_url_pattern.format(
+            self.portal_url,
+            cfgId,
+            "categories",
+            "pod_templates",
+            "searches",
+            "associated_groups",
+            "groups_in_charge")
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200)
+        json = response.json()
+        # by default, we only get summarized versions
+        self.assertFalse("modified" in json['extra_include_categories'][0])
+        self.assertFalse("modified" in json['extra_include_pod_templates'][0])
+        self.assertFalse("modified" in json['extra_include_searches'][0])
+        self.assertFalse("modified" in json['extra_include_associated_groups'][0])
+        self.assertFalse("modified" in json['extra_include_groups_in_charge'][0])
+        # parameter "extra_include_fullobjects" will get full serialized versions
+        endpoint_url += "&extra_include_fullobjects"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200)
+        json = response.json()
+        self.assertTrue("modified" in json['extra_include_categories'][0])
+        self.assertTrue("modified" in json['extra_include_pod_templates'][0])
+        self.assertTrue("modified" in json['extra_include_searches'][0])
+        self.assertTrue("modified" in json['extra_include_associated_groups'][0])
+        self.assertTrue("modified" in json['extra_include_groups_in_charge'][0])
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

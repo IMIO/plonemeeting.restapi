@@ -29,6 +29,11 @@ class BaseSerializeToJson(object):
             version=version, include_items=include_items
         )
 
+        # fullobjects for extra_includes?
+        self.extra_include_fullobjects = False
+        if "extra_include_fullobjects" in self.request.form:
+            self.extra_include_fullobjects = True
+
         result = self._extra_include(result)
         result = self._additional_values(result)
 
