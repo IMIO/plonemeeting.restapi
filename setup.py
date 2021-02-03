@@ -38,7 +38,7 @@ setup(
         # -*- Extra requirements: -*-
         "setuptools",
         "Products.PloneMeeting",
-        "imio.restapi>1.0a10",
+        "imio.restapi>=1.0a12",
     ],
     extras_require={
         "test": ["plone.restapi[test]",
