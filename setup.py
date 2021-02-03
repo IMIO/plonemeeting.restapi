@@ -11,7 +11,7 @@ long_description = "\n\n".join(
 
 setup(
     name="plonemeeting.restapi",
-    version="1.0a7.dev0",
+    version="1.0b2.dev0",
     description="Extended rest api service for Products.PloneMeeting usecases",
     long_description=long_description,
     # Get more from https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -38,7 +38,7 @@ setup(
         # -*- Extra requirements: -*-
         "setuptools",
         "Products.PloneMeeting",
-        "imio.restapi>1.0a10",
+        "imio.restapi>=1.0a12",
     ],
     extras_require={
         "test": ["plone.restapi[test]",
