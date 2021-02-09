@@ -428,7 +428,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.externalIdentifier, "my_external_id_123")
