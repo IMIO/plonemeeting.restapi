@@ -16,7 +16,7 @@ class testServiceAnnexes(BaseTestCase):
         """@annexes"""
         endpoint_url = "{0}/@annexes".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         # nothing found for now
         self.assertEqual(response.json(), [])
 

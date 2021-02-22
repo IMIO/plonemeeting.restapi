@@ -23,7 +23,7 @@ class testServiceConfig(BaseTestCase):
         )
         endpoint_url += "?config_id={0}".format(self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
 
     def test_restapi_config_config_id_not_found(self):
         """ """
@@ -41,7 +41,7 @@ class testServiceConfig(BaseTestCase):
         cfgId = cfg.getId()
         endpoint_url = "{0}/@config?config_id={1}".format(self.portal_url, cfgId)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         # by default, no "items"
         self.assertFalse("items" in json)
@@ -59,7 +59,7 @@ class testServiceConfig(BaseTestCase):
         endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
         endpoint_url = endpoint_url_pattern.format(self.portal_url, cfgId, "categories")
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         categories = json["extra_include_categories"]
         self.assertEqual(categories[0]["id"], u"deployment")
@@ -81,7 +81,7 @@ class testServiceConfig(BaseTestCase):
             self.portal_url, cfgId, "pod_templates"
         )
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         pod_templates = json["extra_include_pod_templates"]
         self.assertEqual(pod_templates[0]["id"], u"styles1")
@@ -97,7 +97,7 @@ class testServiceConfig(BaseTestCase):
         itemTemplate.reindexObject()
         transaction.commit()
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         pod_templates = json["extra_include_pod_templates"]
         self.assertEqual(len(pod_templates), 6)
@@ -110,7 +110,7 @@ class testServiceConfig(BaseTestCase):
         endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
         endpoint_url = endpoint_url_pattern.format(self.portal_url, cfgId, "searches")
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         searches = json["extra_include_searches"]
         self.assertEqual(searches[0]["id"], u"searchmyitems")
@@ -126,7 +126,7 @@ class testServiceConfig(BaseTestCase):
         searchmyitems.reindexObject()
         transaction.commit()
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         searches = json["extra_include_searches"]
         self.assertNotEqual(searches[0]["id"], u"searchmyitems")
@@ -140,7 +140,7 @@ class testServiceConfig(BaseTestCase):
         endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
         endpoint_url = endpoint_url_pattern.format(self.portal_url, cfgId, "proposing_groups")
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         orgs = json["extra_include_proposing_groups"]
         self.assertEqual(orgs[0]['UID'], self.developers_uid)
@@ -153,7 +153,7 @@ class testServiceConfig(BaseTestCase):
         endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
         endpoint_url = endpoint_url_pattern.format(self.portal_url, cfgId, "associated_groups")
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         orgs = json["extra_include_associated_groups"]
         self.assertEqual(orgs[0]['UID'], self.developers_uid)
@@ -168,7 +168,7 @@ class testServiceConfig(BaseTestCase):
         endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}"
         endpoint_url = endpoint_url_pattern.format(self.portal_url, cfgId, "groups_in_charge")
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         orgs = json["extra_include_groups_in_charge"]
         self.assertEqual(orgs[0]['UID'], self.developers_uid)
@@ -193,7 +193,7 @@ class testServiceConfig(BaseTestCase):
             "associated_groups",
             "groups_in_charge")
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         # by default, we only get summarized versions
         self.assertFalse("modified" in json['extra_include_categories'][0])
@@ -204,7 +204,7 @@ class testServiceConfig(BaseTestCase):
         # parameter "extra_include_fullobjects" will get full serialized versions
         endpoint_url += "&extra_include_fullobjects"
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertTrue("modified" in json['extra_include_categories'][0])
         self.assertTrue("modified" in json['extra_include_pod_templates'][0])

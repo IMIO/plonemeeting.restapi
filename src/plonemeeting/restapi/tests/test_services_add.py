@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from collective.iconifiedcategory.utils import calculate_category_id
-from DateTime import DateTime
+from datetime import datetime
+from datetime import timedelta
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
@@ -60,7 +61,7 @@ class testServiceAddItem(BaseTestCase):
             },
         )
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         self.assertEqual(len(pmFolder.objectIds("MeetingItem")), 1)
         item = pmFolder.get("my-item")
@@ -91,7 +92,7 @@ class testServiceAddItem(BaseTestCase):
         transaction.commit()
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.Title(), json["title"])
@@ -119,7 +120,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.Title(), json["title"])
@@ -159,7 +160,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.Title(), json["title"])
@@ -197,7 +198,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         annex = get_annexes(item)[0]
@@ -233,7 +234,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
             {
@@ -270,7 +271,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
             {
@@ -311,7 +312,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         annex1 = get_annexes(item)[0]
@@ -341,10 +342,10 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(item.queryState(), "validated")
+        self.assertEqual(item.query_state(), "validated")
         transaction.abort()
 
     def test_restapi_add_item_wf_transitions_present(self):
@@ -353,7 +354,7 @@ class testServiceAddItem(BaseTestCase):
         cfg = self.meetingConfig
         self.changeUser("pmManager")
         # meeting in the future
-        meeting = self.create("Meeting", date=DateTime() + 1)
+        meeting = self.create("Meeting", date=datetime.now() + timedelta(days=1))
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
             "config_id": cfg.getId(),
@@ -364,10 +365,10 @@ class testServiceAddItem(BaseTestCase):
         transaction.commit()
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(item.queryState(), "presented")
+        self.assertEqual(item.query_state(), "presented")
         self.assertEqual(item.getMeeting(), meeting)
         transaction.abort()
 
@@ -406,7 +407,7 @@ class testServiceAddItem(BaseTestCase):
         json["in_name_of"] = "pmCreator2"
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         # item was created in the pmCreator2 folder
         response_json = response.json()
         self.assertEqual(response_json["creators"], [u"pmCreator2"])
@@ -427,7 +428,7 @@ class testServiceAddItem(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.externalIdentifier, "my_external_id_123")

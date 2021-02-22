@@ -25,6 +25,8 @@ Changelog
   Nevertheless, if parameter `type` is given, then `config_id`
   must be given as well.
   [gbastien]
+- Adapted code and tests now that `Meeting` was moved from `AT` to `DX`.
+  [gbastien]
 
 1.0a6 (2021-01-06)
 ------------------

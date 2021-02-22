@@ -37,7 +37,7 @@ class testServiceGetUid(BaseTestCase):
         )
         endpoint_url += "?UID={0}".format(self.item1.UID())
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.content)
 
     def test_restapi_get_uid_not_found(self):
         """When given UID does not exist"""

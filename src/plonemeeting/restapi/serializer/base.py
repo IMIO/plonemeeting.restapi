@@ -13,11 +13,8 @@ from zope.interface import implementer
 from zope.interface import Interface
 
 
-@implementer(ISerializeToJson)
-@adapter(IMeetingContent, Interface)
-class BaseATSerializeToJson(ATSerializeFolderToJson):
+class BaseSerializeToJson(object):
     """ """
-
     def _extra_include(self, result):
         """ """
         return result
@@ -28,8 +25,7 @@ class BaseATSerializeToJson(ATSerializeFolderToJson):
 
     def __call__(self, version=None, include_items=True):
         """ """
-
-        result = super(BaseATSerializeToJson, self).__call__(
+        result = super(BaseSerializeToJson, self).__call__(
             version=version, include_items=include_items
         )
 
@@ -45,6 +41,12 @@ class BaseATSerializeToJson(ATSerializeFolderToJson):
 
 
 @implementer(ISerializeToJson)
+@adapter(IMeetingContent, Interface)
+class BaseATSerializeToJson(BaseSerializeToJson, ATSerializeFolderToJson):
+    """ """
+
+
+@implementer(ISerializeToJson)
 @adapter(Interface, Interface)
-class BaseDXSerializeToJson(DXSerializeFolderToJson):
+class BaseDXSerializeToJson(BaseSerializeToJson, DXSerializeFolderToJson):
     """ """
