@@ -35,6 +35,16 @@ class SerializeToJson(BaseATSerializeToJson):
                     (category, self.request), ISerializeToJson
                 )
                 result["extra_include_categories"].append(serializer())
+
+        if "classifiers" in extra_include:
+            classifiers = self.context.getCategories(catType='classifiers', onlySelectable=False)
+            result["extra_include_classifiers"] = []
+            for classifier in classifiers:
+                serializer = queryMultiAdapter(
+                    (classifier, self.request), ISerializeToJson
+                )
+                result["extra_include_classifiers"].append(serializer())
+
         if "pod_templates" in extra_include:
             pod_templates = [obj for obj in self.context.podtemplates.objectValues()
                              if getattr(obj, 'enabled', False)]
@@ -44,6 +54,7 @@ class SerializeToJson(BaseATSerializeToJson):
                     (pod_template, self.request), ISerializeToJson
                 )
                 result["extra_include_pod_templates"].append(serializer())
+
         if "searches" in extra_include:
             collections = [obj for obj in self.context.searches.searches_items.objectValues()
                            if (obj.portal_type == 'DashboardCollection' and obj.enabled)]
@@ -53,6 +64,7 @@ class SerializeToJson(BaseATSerializeToJson):
                     (collection, self.request), ISerializeToJson
                 )
                 result["extra_include_searches"].append(serializer(include_items=False))
+
         if "proposing_groups" in extra_include:
             orgs = self.context.getUsingGroups(theObjects=True)
             result["extra_include_proposing_groups"] = []
@@ -61,6 +73,7 @@ class SerializeToJson(BaseATSerializeToJson):
                     (org, self.request), ISerializeToJson
                 )
                 result["extra_include_proposing_groups"].append(serializer(include_items=False))
+
         if "associated_groups" in extra_include:
             vocab = get_vocab(
                 self.context,
@@ -73,6 +86,7 @@ class SerializeToJson(BaseATSerializeToJson):
                     (org, self.request), ISerializeToJson
                 )
                 result["extra_include_associated_groups"].append(serializer(include_items=False))
+
         if "groups_in_charge" in extra_include:
             vocab = get_vocab(
                 self.context,

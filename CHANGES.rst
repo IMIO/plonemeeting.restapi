@@ -4,8 +4,10 @@ Changelog
 1.0a10 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Backport from 1.0bx:
 
+  - Manage `extra_include=classifiers` in `@config GET` endpoint.
+    [gbastien]
 
 1.0a9 (2021-04-02)
 ------------------
