@@ -4,8 +4,8 @@ Changelog
 1.0b2 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Adapted code and tests now that `Meeting` was moved from `AT` to `DX`.
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------
@@ -24,8 +24,6 @@ Changelog
   not given, then the endpoint will have the default `@search` behavior.
   Nevertheless, if parameter `type` is given, then `config_id`
   must be given as well.
-  [gbastien]
-- Adapted code and tests now that `Meeting` was moved from `AT` to `DX`.
   [gbastien]
 
 1.0a6 (2021-01-06)
