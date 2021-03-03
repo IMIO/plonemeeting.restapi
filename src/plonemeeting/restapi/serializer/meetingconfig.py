@@ -34,6 +34,15 @@ class SerializeConfigToJsonBase(object):
                     result["extra_include_categories"].append(serializer())
                 result["extra_include_categories_items_total"] = len(categories)
 
+            if "classifiers" in extra_include:
+                classifiers = self.context.getCategories(catType='classifiers', onlySelectable=False)
+                result["extra_include_classifiers"] = []
+                for classifier in classifiers:
+                    serializer = queryMultiAdapter(
+                        (classifier, self.request), interface)
+                    result["extra_include_classifiers"].append(serializer())
+                result["extra_include_classifiers_items_total"] = len(classifiers)
+
             if "pod_templates" in extra_include:
                 pod_templates = [obj for obj in self.context.podtemplates.objectValues()
                                  if getattr(obj, 'enabled', False)]

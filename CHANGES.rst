@@ -6,6 +6,8 @@ Changelog
 
 - Adapted code and tests now that `Meeting` was moved from `AT` to `DX`.
   [gbastien]
+- Manage `extra_include=classifiers` in `@config GET` endpoint.
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------
