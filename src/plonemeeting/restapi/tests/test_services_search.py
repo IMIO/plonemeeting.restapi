@@ -2,10 +2,8 @@
 
 from datetime import datetime
 from plone.app.textfield.value import RichTextValue
-from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
-from plonemeeting.restapi.config import TYPE_WITHOUT_CONFIG_ID_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
@@ -161,21 +159,6 @@ class testServiceSearch(BaseTestCase):
             u'08 june 2020 (08:00)'
         )
         transaction.abort()
-
-    def test_restapi_search_meetings_required_params(self):
-        """@search?type=meeting, when using parameter "type",
-           then "config_id" must be given as well."""
-        endpoint_url = "{0}/@search?type=meeting".format(self.portal_url)
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
-        self.assertEqual(
-            response.json(),
-            {u"message": TYPE_WITHOUT_CONFIG_ID_ERROR % "meeting",
-             u"type": u"Exception"}
-        )
-        endpoint_url += "&config_id={0}".format(self.meetingConfig.getId())
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200, response.content)
 
     def test_restapi_search_meetings_endpoint(self):
         """ """

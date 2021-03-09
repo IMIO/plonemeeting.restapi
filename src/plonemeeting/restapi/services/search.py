@@ -4,7 +4,6 @@ from imio.restapi.services.search import SearchGet
 from plone import api
 from plone.restapi.deserializer import boolean_value
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.config import TYPE_WITHOUT_CONFIG_ID_ERROR
 from plonemeeting.restapi.utils import check_in_name_of
 
 
@@ -23,9 +22,6 @@ class PMSearchGet(SearchGet):
             self.cfg = self.tool.get(config_id, None)
             if not self.cfg:
                 raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
-        # type without config_id is nonsense
-        if self.type and not config_id:
-            raise Exception(TYPE_WITHOUT_CONFIG_ID_ERROR % self.type)
 
     @property
     def _additional_fields(self):
@@ -77,6 +73,9 @@ class PMSearchGet(SearchGet):
             query["portal_type"] = self.cfg.getMeetingTypeName()
             query["sort_on"] = form.get("sort_on", "sortable_title")
             query["sort_order"] = form.get("sort_order", "reverse")
+        else:
+            query["portal_type"] = self.type
+            query["sort_on"] = form.get("sort_on", "sortable_title")
         return query
 
     def _clean_query(self, query):

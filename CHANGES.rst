@@ -8,6 +8,10 @@ Changelog
   [gbastien]
 - Manage `extra_include=classifiers` in `@config GET` endpoint.
   [gbastien]
+- Do no more require parameter `config_id` when a `type` is given in `@search`
+  endpoint.  When `type` is other than `item/meeting`, we simply add it to the
+  `query` as `portal_type`.
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------
