@@ -367,6 +367,19 @@ class testServiceSearch(BaseTestCase):
             self.assertEqual(result[u'@type'], 'organization')
         transaction.abort()
 
+    def test_restapi_search_without_type(self):
+        """The @search endpoint original behavior is still useable."""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = (
+            "{0}/@search?UID={1}".format(self.portal_url, cfg.UID())
+        )
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json[u"items_total"], 1)
+        self.assertEqual(json[u"items"][0][u'id'], cfg.getId())
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

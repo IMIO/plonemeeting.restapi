@@ -73,7 +73,7 @@ class PMSearchGet(SearchGet):
             query["portal_type"] = self.cfg.getMeetingTypeName()
             query["sort_on"] = form.get("sort_on", "sortable_title")
             query["sort_order"] = form.get("sort_order", "reverse")
-        else:
+        elif self.type is not None:
             query["portal_type"] = self.type
             query["sort_on"] = form.get("sort_on", "sortable_title")
         return query
