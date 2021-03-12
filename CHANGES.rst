@@ -12,6 +12,9 @@ Changelog
   endpoint.  When `type` is other than `item/meeting`, we simply add it to the
   `query` as `portal_type`.
   [gbastien]
+- Added possibility to filter the `annexes endpoint` on any of the boolean
+  attributes (`to_print`, `publishable`, `confidential`, `to_sign/signed`).
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------
