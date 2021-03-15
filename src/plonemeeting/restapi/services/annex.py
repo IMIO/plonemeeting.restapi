@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collective.iconifiedcategory.utils import get_categorized_elements
+from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import IExpandableElement
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.services import Service
@@ -28,7 +29,22 @@ class Annexes(object):
 
         annexes = get_categorized_elements(self.context, result_type="objects")
         result = []
+        # get filters from request.form
+        # it is possible to filter annexes on every boolean attributes :
+        # to_print, confidential, publishable, to_sign/signed
+        filters = {k: boolean_value(v) for k, v in self.request.form.items()
+                   if k in ["to_print", "confidential", "publishable",
+                            "to_sign", "signed"]}
         for annex in annexes:
+            # check filters
+            keep = True
+            for k, v in filters.items():
+                if getattr(annex, k, None) != v:
+                    keep = False
+                    break
+            if not keep:
+                continue
+
             serialized_annex = getMultiAdapter(
                 (annex, self.request), ISerializeToJson
             )()

@@ -3,9 +3,11 @@ Changelog
 
 1.0a7 (unreleased)
 ------------------
+- Backport from 1.0bx:
 
-- Nothing changed yet.
-
+  - Added possibility to filter the `annexes endpoint` on any of the boolean
+    attributes (`to_print`, `publishable`, `confidential`, `to_sign/signed`).
+    [gbastien]
 
 1.0a6 (2021-01-06)
 ------------------
