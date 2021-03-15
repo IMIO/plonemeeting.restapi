@@ -61,14 +61,6 @@ class SerializeToJson(BaseATSerializeToJson):
                     (org, self.request), ISerializeToJson
                 )
                 result["extra_include_proposing_groups"].append(serializer(include_items=False))
-        if "proposing_groups" in extra_include:
-            orgs = self.context.getUsingGroups(theObjects=True)
-            result["extra_include_proposing_groups"] = []
-            for org in orgs:
-                serializer = queryMultiAdapter(
-                    (org, self.request), ISerializeToJson
-                )
-                result["extra_include_proposing_groups"].append(serializer(include_items=False))
         if "associated_groups" in extra_include:
             vocab = get_vocab(
                 self.context,
