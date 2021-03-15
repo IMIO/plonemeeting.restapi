@@ -2,6 +2,7 @@
 
 from plonemeeting.restapi.tests.base import BaseTestCase
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
+from Products.PloneMeeting.utils import get_annexes
 
 import transaction
 
@@ -72,6 +73,26 @@ class testServiceAnnexes(BaseTestCase):
             response_pmManager["content_category"],
             response_pmCreator1["content_category"],
         )
+
+    def test_restapi_annexes_endpoint_filters(self):
+        """@annexes, it is possible to filter on existing boolean values
+           to_print, publishable, ..."""
+        cfg = self.meetingConfig
+        config = cfg.annexes_types.item_annexes
+        config.publishable_activated = True
+        # create item with annexes
+        self.changeUser("pmManager")
+        item = self.create("MeetingItem")
+        annex = self.addAnnex(item, publishable=True)
+        self.addAnnex(item, publishable=False)
+        transaction.commit()
+        item_url = item.absolute_url()
+        endpoint_url = "{0}/@annexes?publishable=true".format(item_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(len(response.json()), 1)
+        self.assertEqual(len(get_annexes(item)), 2)
+        annex_infos = response.json()[0]
+        self.assertEqual(annex_infos['UID'], annex.UID())
 
 
 def test_suite():
