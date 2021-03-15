@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from imio.helpers.content import get_vocab
+from imio.helpers.content import uuidsToObjects
 from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
 from plonemeeting.restapi.serializer.base import BaseATSerializeToJson
@@ -71,9 +72,9 @@ class SerializeToJson(BaseATSerializeToJson):
         if "associated_groups" in extra_include:
             vocab = get_vocab(
                 self.context,
-                'Products.PloneMeeting.vocabularies.associatedgroupsvocabulary',
-                the_objects=True)
-            orgs = [term.value for term in vocab._terms]
+                'Products.PloneMeeting.vocabularies.associatedgroupsvocabulary')
+            org_uids = [term.value for term in vocab._terms]
+            orgs = uuidsToObjects(org_uids, ordered=True)
             result["extra_include_associated_groups"] = []
             for org in orgs:
                 serializer = queryMultiAdapter(
@@ -83,9 +84,9 @@ class SerializeToJson(BaseATSerializeToJson):
         if "groups_in_charge" in extra_include:
             vocab = get_vocab(
                 self.context,
-                'Products.PloneMeeting.vocabularies.groupsinchargevocabulary',
-                the_objects=True)
-            orgs = [term.value for term in vocab._terms]
+                'Products.PloneMeeting.vocabularies.groupsinchargevocabulary')
+            org_uids = [term.value for term in vocab._terms]
+            orgs = uuidsToObjects(org_uids, ordered=True)
             result["extra_include_groups_in_charge"] = []
             for org in orgs:
                 serializer = queryMultiAdapter(
