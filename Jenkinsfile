@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     triggers {
-        upstream(upstreamProjects: "IMIO-github-Jenkinsfile/Products.MeetingCommunes/master", threshold: hudson.model.Result.SUCCESS)
+        upstream(upstreamProjects: "IMIO-github-Jenkinsfile/Products.MeetingCommunes/4.1.x", threshold: hudson.model.Result.SUCCESS)
     }
 
     options {
