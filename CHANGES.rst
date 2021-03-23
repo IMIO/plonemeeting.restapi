@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0a8 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
 1.0a7 (2021-03-23)
 ------------------
 - Backport from 1.0bx:
