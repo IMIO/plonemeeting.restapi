@@ -43,7 +43,7 @@ class SerializeToJson(BaseATSerializeToJson):
                 )
                 result["extra_include_meeting"] = serializer(include_items=False)
         delib_extra_includes = [ei for ei in extra_include
-                                if "deliberation" in extra_include]
+                                if "deliberation" in ei]
         if delib_extra_includes:
             # make the @@document-generation helper view available on self
             view = self.context.restrictedTraverse("document-generation")
