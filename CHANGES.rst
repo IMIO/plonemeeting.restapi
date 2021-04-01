@@ -15,6 +15,10 @@ Changelog
 - Added possibility to filter the `annexes endpoint` on any of the boolean
   attributes (`to_print`, `publishable`, `confidential`, `to_sign/signed`).
   [gbastien]
+- Adapted `extra_include=deliberation` that was always returning every variants
+  of deliberation (`deliberation/public_deliberation/public_deliberation_decided`),
+  now the `extra_include` value is the name of the variants we want to get.
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------
