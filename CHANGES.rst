@@ -4,8 +4,9 @@ Changelog
 1.0a9 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fixed `extra_include=public_deliberation` that was only working when
+  `extra_include=deliberation` was passed as well, but not working alone.
+  [gbastien]
 
 1.0a8 (2021-04-01)
 ------------------
