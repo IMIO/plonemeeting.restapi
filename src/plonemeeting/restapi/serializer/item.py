@@ -42,12 +42,13 @@ class SerializeToJson(BaseATSerializeToJson):
                     (meeting, self.request), ISerializeToJson
                 )
                 result["extra_include_meeting"] = serializer(include_items=False)
-        if "deliberation" in extra_include:
+        delib_extra_includes = [ei for ei in extra_include
+                                if "deliberation" in extra_include]
+        if delib_extra_includes:
             # make the @@document-generation helper view available on self
             view = self.context.restrictedTraverse("document-generation")
             helper = view.get_generation_context_helper()
-            # the method helper.output_for_restapi manage what is returned by this endpoint
-            deliberation = helper.output_for_restapi()
+            deliberation = helper.deliberation_for_restapi(delib_extra_includes)
             result["extra_include_deliberation"] = deliberation
 
         return result

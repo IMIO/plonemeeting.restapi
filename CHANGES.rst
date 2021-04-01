@@ -4,11 +4,16 @@ Changelog
 1.0a8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Backport from 1.0bx:
 
+  - Adapted `extra_include=deliberation` that was always returning every variants
+    of deliberation (`deliberation/public_deliberation/public_deliberation_decided`),
+    now the `extra_include` value is the name of the variants we want to get.
+    [gbastien]
 
 1.0a7 (2021-03-23)
 ------------------
+
 - Backport from 1.0bx:
 
   - Added possibility to filter the `annexes endpoint` on any of the boolean

@@ -146,8 +146,19 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(
             response.json()["items"][0]["extra_include_deliberation"],
             {
-                u"public_deliberation": u"<p>Motivation</p><p>Some decision.</p>",
                 u"deliberation": u"<p>Motivation</p><p>Some decision.</p>",
+            },
+        )
+        # extra_include several deliberation variants
+        endpoint_url = endpoint_url + "&extra_include=deliberation"
+        endpoint_url = endpoint_url + "&extra_include=public_deliberation"
+        endpoint_url = endpoint_url + "&extra_include=public_deliberation_decided"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(
+            response.json()["items"][0]["extra_include_deliberation"],
+            {
+                u"deliberation": u"<p>Motivation</p><p>Some decision.</p>",
+                u"public_deliberation": u"<p>Motivation</p><p>Some decision.</p>",
                 u"public_deliberation_decided": u"<p>Motivation</p><p>Some decision.</p>",
             },
         )
