@@ -3,6 +3,7 @@
 from imio.restapi.services.search import SearchGet
 from plone import api
 from plone.restapi.deserializer import boolean_value
+from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.utils import check_in_name_of
 
@@ -15,8 +16,8 @@ class PMSearchGet(SearchGet):
     def __init__(self, context, request):
         super(PMSearchGet, self).__init__(context, request)
         self.tool = api.portal.get_tool("portal_plonemeeting")
-        config_id = self._config_id
         self.type = self._type
+        config_id = self._config_id
         # if config_id is given, config_id must exist
         if config_id:
             self.cfg = self.tool.get(config_id, None)
@@ -30,7 +31,11 @@ class PMSearchGet(SearchGet):
 
     @property
     def _config_id(self):
-        return self.request.form.get("config_id", None)
+        config_id = self.request.form.get("config_id", None)
+        # config_id is required when self.type is "item" or "meeting"
+        if config_id is None and self.type in ["item", "meeting"]:
+            raise Exception(CONFIG_ID_ERROR)
+        return config_id
 
     @property
     def _type(self):

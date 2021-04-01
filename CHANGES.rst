@@ -11,6 +11,7 @@ Changelog
 - Do no more require parameter `config_id` when a `type` is given in `@search`
   endpoint.  When `type` is other than `item/meeting`, we simply add it to the
   `query` as `portal_type`.
+  `config_id` is only required when `type` is `item` or `meeting`.
   [gbastien]
 - Added possibility to filter the `annexes endpoint` on any of the boolean
   attributes (`to_print`, `publishable`, `confidential`, `to_sign/signed`).

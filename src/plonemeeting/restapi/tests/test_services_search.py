@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from plone.app.textfield.value import RichTextValue
+from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.tests.base import BaseTestCase
@@ -18,7 +19,7 @@ class testServiceSearch(BaseTestCase):
         self.api_session.close()
 
     def test_restapi_search_config_id_not_found(self):
-        """ """
+        """Wrong config_id."""
         endpoint_url = "{0}/@search?config_id=unknown".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 500)
@@ -26,6 +27,32 @@ class testServiceSearch(BaseTestCase):
             response.json(),
             {u"message": CONFIG_ID_NOT_FOUND_ERROR % "unknown", u"type": u"Exception"},
         )
+
+    def test_restapi_search_config_id_error(self):
+        """Parameter config_id is required when type is "item" or "meeting"."""
+        # item
+        endpoint_url = "{0}/@search?type=item".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(
+            response.json(),
+            {u"message": CONFIG_ID_ERROR, u"type": u"Exception"},
+        )
+        # meeting
+        endpoint_url = "{0}/@search?type=meeting".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(
+            response.json(),
+            {u"message": CONFIG_ID_ERROR, u"type": u"Exception"},
+        )
+        # works for another type
+        endpoint_url = "{0}/@search?type=Folder".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items"][0][u"@type"], u"Folder")
+        self.assertEqual(resp_json[u"items"][-1][u"@type"], u"Folder")
 
     def test_restapi_search_items_endpoint(self):
         """ """
