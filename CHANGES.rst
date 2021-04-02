@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0a9 (unreleased)
+1.0a9 (2021-04-02)
 ------------------
 
 - Fixed `extra_include=public_deliberation` that was only working when
