@@ -2,6 +2,7 @@
 
 from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
+from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeToJson
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
@@ -18,38 +19,42 @@ class SerializeToJson(BaseATSerializeToJson):
     def _extra_include(self, result):
         """ """
         extra_include = listify(self.request.form.get("extra_include", []))
-        if "category" in extra_include:
-            category = self.context.getCategory(theObject=True, real=True)
-            result["extra_include_category"] = {}
-            if category:
-                serializer = queryMultiAdapter(
-                    (category, self.request), ISerializeToJson
-                )
-                result["extra_include_category"] = serializer()
-        if "proposingGroup" in extra_include:
-            proposingGroup = self.context.getProposingGroup(theObject=True)
-            result["extra_include_proposingGroup"] = {}
-            if proposingGroup:
-                serializer = queryMultiAdapter(
-                    (proposingGroup, self.request), ISerializeToJson
-                )
-                result["extra_include_proposingGroup"] = serializer()
-        if "meeting" in extra_include:
-            meeting = self.context.getMeeting()
-            result["extra_include_meeting"] = {}
-            if meeting:
-                serializer = queryMultiAdapter(
-                    (meeting, self.request), ISerializeToJson
-                )
-                result["extra_include_meeting"] = serializer(include_items=False)
-        delib_extra_includes = [ei for ei in extra_include
-                                if "deliberation" in ei]
-        if delib_extra_includes:
-            # make the @@document-generation helper view available on self
-            view = self.context.restrictedTraverse("document-generation")
-            helper = view.get_generation_context_helper()
-            deliberation = helper.deliberation_for_restapi(delib_extra_includes)
-            result["extra_include_deliberation"] = deliberation
+        if extra_include:
+            interface = ISerializeToJsonSummary
+            if self.extra_include_fullobjects:
+                    interface = ISerializeToJson
+            if "category" in extra_include:
+                category = self.context.getCategory(theObject=True, real=True)
+                result["extra_include_category"] = {}
+                if category:
+                    serializer = queryMultiAdapter(
+                        (category, self.request), interface
+                    )
+                    result["extra_include_category"] = serializer()
+            if "proposingGroup" in extra_include:
+                proposingGroup = self.context.getProposingGroup(theObject=True)
+                result["extra_include_proposingGroup"] = {}
+                if proposingGroup:
+                    serializer = queryMultiAdapter(
+                        (proposingGroup, self.request), interface
+                    )
+                    result["extra_include_proposingGroup"] = serializer()
+            if "meeting" in extra_include:
+                meeting = self.context.getMeeting()
+                result["extra_include_meeting"] = {}
+                if meeting:
+                    serializer = queryMultiAdapter(
+                        (meeting, self.request), interface
+                    )
+                    result["extra_include_meeting"] = serializer()
+            delib_extra_includes = [ei for ei in extra_include
+                                    if "deliberation" in ei]
+            if delib_extra_includes:
+                # make the @@document-generation helper view available on self
+                view = self.context.restrictedTraverse("document-generation")
+                helper = view.get_generation_context_helper()
+                deliberation = helper.deliberation_for_restapi(delib_extra_includes)
+                result["extra_include_deliberation"] = deliberation
 
         return result
 

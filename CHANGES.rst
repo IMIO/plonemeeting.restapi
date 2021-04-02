@@ -20,6 +20,9 @@ Changelog
   of deliberation (`deliberation/public_deliberation/public_deliberation_decided`),
   now the `extra_include` value is the name of the variants we want to get.
   [gbastien]
+- Take into account the `extra_include_fullobjects` in the `MeetingItem` serializer.
+  To handle this, it was necessary to implement a summary serializer for `Meeting`.
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------

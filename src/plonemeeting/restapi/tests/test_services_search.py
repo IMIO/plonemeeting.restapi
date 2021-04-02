@@ -75,10 +75,12 @@ class testServiceSearch(BaseTestCase):
 
         # found
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 2)
         # may still use additional search parameters
         endpoint_url += "&review_state=validated"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
         self.assertEqual(resp_json[u"items_total"], 1)
         self.assertEqual(resp_json[u"items"][0][u"review_state"], u"validated")
@@ -105,6 +107,7 @@ class testServiceSearch(BaseTestCase):
         )
         transaction.commit()
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         # items are returned sorted
         self.assertEqual(
             [elt["UID"] for elt in response.json()[u"items"]],
@@ -132,15 +135,18 @@ class testServiceSearch(BaseTestCase):
         )
         transaction.commit()
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         # by default no extra include
         self.assertFalse("extra_include_proposingGroup" in response.json()["items"][0])
         # does not work if fullobjects is not used
         endpoint_url = endpoint_url + "&extra_include=proposingGroup"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertFalse("extra_include_proposingGroup" in response.json()["items"][0])
         # now with fullobjects
         endpoint_url = endpoint_url + "&fullobjects"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertTrue("extra_include_proposingGroup" in json["items"][0])
         self.assertFalse("extra_include_category" in json["items"][0])
@@ -148,6 +154,7 @@ class testServiceSearch(BaseTestCase):
         endpoint_url = endpoint_url + "&extra_include=category"
         transaction.begin()
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertEqual(
             json["items"][0]["extra_include_proposingGroup"]["id"], u"developers"
@@ -157,6 +164,7 @@ class testServiceSearch(BaseTestCase):
         )
         # extra_include deliberation
         response = self.api_session.get(endpoint_url + "&extra_include=deliberation")
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(
             response.json()["items"][0]["extra_include_deliberation"],
             {
@@ -167,6 +175,7 @@ class testServiceSearch(BaseTestCase):
         endpoint_url = endpoint_url + "&extra_include=public_deliberation"
         endpoint_url = endpoint_url + "&extra_include=public_deliberation_decided"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(
             response.json()["items"][0]["extra_include_deliberation"],
             {
@@ -177,22 +186,44 @@ class testServiceSearch(BaseTestCase):
         # extra_include meeting
         endpoint_url = endpoint_url + "&extra_include=meeting"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
         self.assertEqual(
-            response.json()["items"][0]["extra_include_meeting"]["UID"],
+            resp_json["items"][0]["extra_include_meeting"]["UID"],
             meeting.UID()
         )
         self.assertEqual(
-            response.json()["items"][0]["extra_include_meeting"]["formatted_date"],
+            resp_json["items"][0]["extra_include_meeting"]["formatted_date"],
             u'08/06/2020 (08:00)'
         )
         self.assertEqual(
-            response.json()["items"][0]["extra_include_meeting"]["formatted_date_short"],
+            resp_json["items"][0]["extra_include_meeting"]["formatted_date_short"],
             u'08/06/2020'
         )
         self.assertEqual(
-            response.json()["items"][0]["extra_include_meeting"]["formatted_date_long"],
+            resp_json["items"][0]["extra_include_meeting"]["formatted_date_long"],
             u'08 june 2020 (08:00)'
         )
+        # extra_include_fullobjects
+        # by default, extra_include are summary
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_category"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_meeting"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_proposingGroup"])
+        endpoint_url = endpoint_url + "&extra_include_fullobjects"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_category"])
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_proposingGroup"])
+        # for meeting moreover by default include_items=False
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_meeting"])
+        self.assertFalse("items" in resp_json["items"][0]["extra_include_meeting"])
+        endpoint_url = endpoint_url + "&include_items=true"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_meeting"])
+        self.assertTrue("items" in resp_json["items"][0]["extra_include_meeting"])
         transaction.abort()
 
     def test_restapi_search_meetings_endpoint(self):
@@ -216,6 +247,7 @@ class testServiceSearch(BaseTestCase):
 
         # found
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
         self.assertEqual(resp_json[u"items_total"], 2)
         # meetings are sorted by date, from newest to oldest
@@ -226,6 +258,7 @@ class testServiceSearch(BaseTestCase):
         # may still use additional search parameters
         endpoint_url += "&review_state=closed"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 1)
         self.assertEqual(response.json()[u"items"][0][u"review_state"], u"closed")
         transaction.abort()
@@ -248,10 +281,12 @@ class testServiceSearch(BaseTestCase):
 
         # found
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 2)
         # may still use additional search parameters
         endpoint_url += "&review_state=closed"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
         self.assertEqual(resp_json[u"items_total"], 1)
         self.assertEqual(resp_json[u"items"][0][u"review_state"], u"closed")
@@ -287,9 +322,11 @@ class testServiceSearch(BaseTestCase):
 
         # both found by default
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 2)
         endpoint_url += "&meetings_accepting_items=True"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 1)
 
     def test_restapi_search_in_name_of(self):
@@ -325,13 +362,16 @@ class testServiceSearch(BaseTestCase):
         transaction.commit()
         # both found by default
         response = self.api_session.get(endpoint_url_pattern % "")
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 2)
         # as pmCreator1, only item1 found
         response = self.api_session.get(endpoint_url_pattern % "pmCreator1")
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 1)
         self.assertEqual(response.json()["items"][0][u"UID"], item1.UID())
         # as pmCreator2, only item2 found
         response = self.api_session.get(endpoint_url_pattern % "pmCreator2")
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 1)
         self.assertEqual(response.json()["items"][0][u"UID"], item2.UID())
 
@@ -343,8 +383,8 @@ class testServiceSearch(BaseTestCase):
         endpoint_url = "{0}/@search?config_id={1}&base_search_uid={2}".format(
             self.portal_url, cfg.getId(), base_search_uid
         )
-        response = self.api_session.get(endpoint_url)
         # nothing found for now
+        response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 0)
         # create one item for developers and one for vendors as pmManager
@@ -360,6 +400,7 @@ class testServiceSearch(BaseTestCase):
         item_ven1_uid = item_ven1.UID()
         transaction.commit()
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         # only 2 items found
         self.assertEqual(json[u"items_total"], 2)
@@ -369,6 +410,7 @@ class testServiceSearch(BaseTestCase):
         # restrict only developers_uid
         endpoint_url += "&getProposingGroup={0}".format(self.developers_uid)
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         # only 1 item found
         self.assertEqual(json[u"items_total"], 1)
@@ -376,12 +418,14 @@ class testServiceSearch(BaseTestCase):
         # override Creator, use pmCreator1
         endpoint_url += "&Creator=pmCreator1"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertEqual(json[u"items_total"], 1)
         self.assertEqual(json[u"items"][0]["UID"], item_dev1_uid)
         # get items from pmManager and pmCreator1
         endpoint_url += "&Creator=pmManager"
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertEqual(json[u"items_total"], 2)
         self.assertEqual(json[u"items"][0]["UID"], item_dev1_uid)
@@ -396,6 +440,7 @@ class testServiceSearch(BaseTestCase):
         )
         transaction.commit()
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         # organizations are returned
         json = response.json()
         for result in json[u"items"]:
@@ -411,6 +456,7 @@ class testServiceSearch(BaseTestCase):
         )
         transaction.commit()
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertEqual(json[u"items_total"], 1)
         self.assertEqual(json[u"items"][0][u'id'], cfg.getId())
