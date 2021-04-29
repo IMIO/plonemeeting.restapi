@@ -47,6 +47,9 @@ class SerializeToJson(BaseATSerializeToJson):
                         (meeting, self.request), interface
                     )
                     result["extra_include_meeting"] = serializer()
+            # various type of deliberation may be included
+            # if we find a key containing "deliberation", we use it
+            # add pass it to documentgenerator helper.deliberation_for_restapi
             delib_extra_includes = [ei for ei in extra_include
                                     if "deliberation" in ei]
             if delib_extra_includes:
