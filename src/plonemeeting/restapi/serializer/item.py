@@ -18,45 +18,53 @@ class SerializeItemToJsonBase(object):
     def _extra_include(self, result):
         """ """
         extra_include = listify(self.request.form.get("extra_include", []))
-        if extra_include:
-            interface = ISerializeToJsonSummary
-            if self.extra_include_fullobjects:
-                interface = ISerializeToJson
-            if "category" in extra_include:
-                category = self.context.getCategory(theObject=True, real=True)
-                result["extra_include_category"] = {}
-                if category:
-                    serializer = queryMultiAdapter(
-                        (category, self.request), interface
-                    )
-                    result["extra_include_category"] = serializer()
-            if "proposingGroup" in extra_include:
-                proposingGroup = self.context.getProposingGroup(theObject=True)
-                result["extra_include_proposingGroup"] = {}
-                if proposingGroup:
-                    serializer = queryMultiAdapter(
-                        (proposingGroup, self.request), interface
-                    )
-                    result["extra_include_proposingGroup"] = serializer()
-            if "meeting" in extra_include:
-                meeting = self.context.getMeeting()
-                result["extra_include_meeting"] = {}
-                if meeting:
-                    serializer = queryMultiAdapter(
-                        (meeting, self.request), interface
-                    )
-                    result["extra_include_meeting"] = serializer()
-            # various type of deliberation may be included
-            # if we find a key containing "deliberation", we use it
-            # add pass it to documentgenerator helper.deliberation_for_restapi
-            delib_extra_includes = [ei for ei in extra_include
-                                    if "deliberation" in ei]
-            if delib_extra_includes:
-                # make the @@document-generation helper view available on self
-                view = self.context.restrictedTraverse("document-generation")
-                helper = view.get_generation_context_helper()
-                deliberation = helper.deliberation_for_restapi(delib_extra_includes)
-                result["extra_include_deliberation"] = deliberation
+        interface = ISerializeToJsonSummary
+        if self.extra_include_fullobjects:
+            interface = ISerializeToJson
+        if "category" in extra_include:
+            category = self.context.getCategory(theObject=True, real=True)
+            result["extra_include_category"] = {}
+            if category:
+                serializer = queryMultiAdapter(
+                    (category, self.request), interface
+                )
+                # manage expandable_elements for extra_includes
+                serializer.extra_include_expandable_elements = \
+                    self.extra_include_expandable_elements
+                result["extra_include_category"] = serializer()
+        if "proposingGroup" in extra_include:
+            proposingGroup = self.context.getProposingGroup(theObject=True)
+            result["extra_include_proposingGroup"] = {}
+            if proposingGroup:
+                serializer = queryMultiAdapter(
+                    (proposingGroup, self.request), interface
+                )
+                # manage expandable_elements for extra_includes
+                serializer.extra_include_expandable_elements = \
+                    self.extra_include_expandable_elements
+                result["extra_include_proposingGroup"] = serializer()
+        if "meeting" in extra_include:
+            meeting = self.context.getMeeting()
+            result["extra_include_meeting"] = {}
+            if meeting:
+                serializer = queryMultiAdapter(
+                    (meeting, self.request), interface
+                )
+                # manage expandable_elements for extra_includes
+                serializer.extra_include_expandable_elements = \
+                    self.extra_include_expandable_elements
+                result["extra_include_meeting"] = serializer()
+        # various type of deliberation may be included
+        # if we find a key containing "deliberation", we use it
+        # add pass it to documentgenerator helper.deliberation_for_restapi
+        delib_extra_includes = [ei for ei in extra_include
+                                if "deliberation" in ei]
+        if delib_extra_includes:
+            # make the @@document-generation helper view available on self
+            view = self.context.restrictedTraverse("document-generation")
+            helper = view.get_generation_context_helper()
+            deliberation = helper.deliberation_for_restapi(delib_extra_includes)
+            result["extra_include_deliberation"] = deliberation
 
         return result
 

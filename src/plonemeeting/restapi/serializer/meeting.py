@@ -34,18 +34,6 @@ class SerializeMeetingToJsonBase(object):
 class SerializeToJson(SerializeMeetingToJsonBase, BaseDXSerializeToJson):
     """ """
 
-    def __call__(self, version=None, include_items=False):
-        """Change include_items=False by default."""
-        # fullobjects for extra_includes?
-        self.extra_include_fullobjects = False
-        if "extra_include_fullobjects" in self.request.form:
-            self.extra_include_fullobjects = True
-        # override include_items
-        result = super(SerializeToJson, self).__call__(
-            version=version, include_items=include_items
-        )
-        return result
-
 
 @implementer(ISerializeToJsonSummary)
 @adapter(IMeeting, Interface)
