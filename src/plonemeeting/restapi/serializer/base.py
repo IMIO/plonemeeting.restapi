@@ -56,8 +56,9 @@ class BaseSerializeToJson(object):
 
         return result
 
-    def __call__(self, version=None, include_items=True):
-        """ """
+    def __call__(self, version=None, include_items=False):
+        """Change include_items=False by default."""
+
         result = super(BaseSerializeToJson, self).__call__(
             version=version, include_items=include_items
         )
