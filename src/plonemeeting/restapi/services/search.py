@@ -93,6 +93,7 @@ class PMSearchGet(SearchGet):
         query.pop("meetings_accepting_items", None)
         query.pop("type", None)
         query.pop("extra_include_fullobjects", None)
+        query.pop("additional_values", None)
 
     def reply(self):
         """Override to handle in_name_of."""

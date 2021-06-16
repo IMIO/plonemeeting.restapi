@@ -4,6 +4,7 @@ from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeToJson
+from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
 from zope.component import queryMultiAdapter
@@ -11,9 +12,7 @@ from zope.interface import implementer
 from zope.interface import Interface
 
 
-@implementer(ISerializeToJson)
-@adapter(IMeetingItem, Interface)
-class SerializeToJson(BaseATSerializeToJson):
+class SerializeItemToJsonBase(object):
     """ """
 
     def _extra_include(self, result):
@@ -22,7 +21,7 @@ class SerializeToJson(BaseATSerializeToJson):
         if extra_include:
             interface = ISerializeToJsonSummary
             if self.extra_include_fullobjects:
-                    interface = ISerializeToJson
+                interface = ISerializeToJson
             if "category" in extra_include:
                 category = self.context.getCategory(theObject=True, real=True)
                 result["extra_include_category"] = {}
@@ -72,3 +71,15 @@ class SerializeToJson(BaseATSerializeToJson):
         )
         result["all_groupsInCharge"] = self.context.getGroupsInCharge(includeAuto=True)
         return result
+
+
+@implementer(ISerializeToJson)
+@adapter(IMeetingItem, Interface)
+class SerializeToJson(SerializeItemToJsonBase, BaseATSerializeToJson):
+    """ """
+
+
+@implementer(ISerializeToJsonSummary)
+@adapter(IMeetingItem, Interface)
+class SerializeToJsonSummary(SerializeItemToJsonBase, PMBrainJSONSummarySerializer):
+    """ """

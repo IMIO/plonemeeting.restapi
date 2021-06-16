@@ -23,6 +23,12 @@ Changelog
 - Take into account the `extra_include_fullobjects` in the `MeetingItem` serializer.
   To handle this, it was necessary to implement a summary serializer for `Meeting`.
   [gbastien]
+- Make the summary serializer able to handle `extra_include` and
+  `additional_values`. For this, needed to change the way summary serializer is
+  handled by `plone.restapi` because by default there is one single summary
+  serializer for brain interface but we need to be able to register a summary
+  adapter for different interfaces (item, meeting, ...).
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------

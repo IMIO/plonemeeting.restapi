@@ -4,7 +4,9 @@
     i18n_domain="plonemeeting.restapi">
 
     <adapter factory=".annex.AnnexSerializeToJson" />
+    <adapter factory=".catalog.PMLazyCatalogResultSerializer" />
     <adapter factory=".item.SerializeToJson" />
+    <adapter factory=".item.SerializeToJsonSummary" />
     <adapter factory=".meeting.SerializeToJson" />
     <adapter factory=".meeting.SerializeToJsonSummary" />
     <adapter factory=".meetingconfig.SerializeToJson" />

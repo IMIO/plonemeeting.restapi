@@ -138,11 +138,11 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(response.status_code, 200, response.content)
         # by default no extra include
         self.assertFalse("extra_include_proposingGroup" in response.json()["items"][0])
-        # does not work if fullobjects is not used
+        # does work even when fullobjects is not used
         endpoint_url = endpoint_url + "&extra_include=proposingGroup"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertFalse("extra_include_proposingGroup" in response.json()["items"][0])
+        self.assertTrue("extra_include_proposingGroup" in response.json()["items"][0])
         # now with fullobjects
         endpoint_url = endpoint_url + "&fullobjects"
         response = self.api_session.get(endpoint_url)
@@ -183,8 +183,9 @@ class testServiceSearch(BaseTestCase):
                 u"public_deliberation_decided": u"<p>Motivation</p><p>Some decision.</p>",
             },
         )
-        # extra_include meeting
-        endpoint_url = endpoint_url + "&extra_include=meeting"
+        # extra_include meeting, need to pass also additional_values=true
+        # to get additional_values like "formatted_date"
+        endpoint_url = endpoint_url + "&extra_include=meeting&additional_values=true"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
