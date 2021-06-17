@@ -7,7 +7,6 @@ from plonemeeting.restapi.serializer.base import BaseATSerializeToJson
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
-from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
 
@@ -18,41 +17,23 @@ class SerializeItemToJsonBase(object):
     def _extra_include(self, result):
         """ """
         extra_include = listify(self.request.form.get("extra_include", []))
-        interface = ISerializeToJsonSummary
-        if self.extra_include_fullobjects:
-            interface = ISerializeToJson
         if "category" in extra_include:
             category = self.context.getCategory(theObject=True, real=True)
             result["extra_include_category"] = {}
             if category:
-                serializer = queryMultiAdapter(
-                    (category, self.request), interface
-                )
-                # manage expandable_elements for extra_includes
-                serializer.extra_include_expandable_elements = \
-                    self.extra_include_expandable_elements
+                serializer = self._get_serializer(category, "category")
                 result["extra_include_category"] = serializer()
         if "proposingGroup" in extra_include:
             proposingGroup = self.context.getProposingGroup(theObject=True)
             result["extra_include_proposingGroup"] = {}
             if proposingGroup:
-                serializer = queryMultiAdapter(
-                    (proposingGroup, self.request), interface
-                )
-                # manage expandable_elements for extra_includes
-                serializer.extra_include_expandable_elements = \
-                    self.extra_include_expandable_elements
+                serializer = self._get_serializer(proposingGroup, "proposingGroup")
                 result["extra_include_proposingGroup"] = serializer()
         if "meeting" in extra_include:
             meeting = self.context.getMeeting()
             result["extra_include_meeting"] = {}
             if meeting:
-                serializer = queryMultiAdapter(
-                    (meeting, self.request), interface
-                )
-                # manage expandable_elements for extra_includes
-                serializer.extra_include_expandable_elements = \
-                    self.extra_include_expandable_elements
+                serializer = self._get_serializer(meeting, "meeting")
                 result["extra_include_meeting"] = serializer()
         # various type of deliberation may be included
         # if we find a key containing "deliberation", we use it
@@ -68,7 +49,7 @@ class SerializeItemToJsonBase(object):
 
         return result
 
-    def _additional_values(self, result):
+    def _include_additional_values(self, result):
         """ """
         # add some formatted values
         result["formatted_itemAssembly"] = self.context.getItemAssembly(striked=True)

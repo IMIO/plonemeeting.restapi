@@ -3,6 +3,10 @@
     xmlns:zcml="http://namespaces.zope.org/zcml"
     i18n_domain="plonemeeting.restapi">
 
+    <!-- Replace the default DX json serializer -->
+    <adapter factory="plonemeeting.restapi.serializer.base.BaseDXSerializeToJson" />
+    <adapter factory="plonemeeting.restapi.serializer.base.BaseDXSerializeFolderToJson" />
+
     <adapter factory=".annex.AnnexSerializeToJson" />
     <adapter factory=".catalog.PMLazyCatalogResultSerializer" />
     <adapter factory=".item.SerializeToJson" />

@@ -14,7 +14,7 @@ from zope.interface import Interface
 class SerializeMeetingToJsonBase(object):
     """ """
 
-    def _additional_values(self, result):
+    def _include_additional_values(self, result):
         """ """
         tool = api.portal.get_tool('portal_plonemeeting')
         # add some formatted values

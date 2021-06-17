@@ -3,6 +3,7 @@
     xmlns:zcml="http://namespaces.zope.org/zcml"
     i18n_domain="plonemeeting.restapi">
 
+    <!-- Replace the default summary json serializer -->
     <adapter factory="plonemeeting.restapi.serializer.summary.PMBrainJSONSummarySerializer" />
 
 </configure>

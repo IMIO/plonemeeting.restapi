@@ -92,10 +92,10 @@ class PMSearchGet(SearchGet):
         query.pop("in_name_of", None)
         query.pop("meetings_accepting_items", None)
         query.pop("type", None)
-        query.pop("extra_include_fullobjects", None)
-        query.pop("additional_values", None)
-        query.pop("expandable_elements", None)
-        query.pop("extra_include_expandable_elements", None)
+        # remove every values starting with include_ or extra_include_
+        for k in query.keys():
+            if k.startswith(('include_', 'extra_include_')):
+                query.pop(k, None)
 
     def reply(self):
         """Override to handle in_name_of."""
