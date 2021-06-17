@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+from os import path
 from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
@@ -8,6 +9,8 @@ from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
+from Products.PloneMeeting.tests.PloneMeetingTestCase import IMG_BASE64_DATA
+from Products.PloneMeeting import tests as pm_tests
 
 import transaction
 
@@ -225,6 +228,37 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_meeting"])
         self.assertTrue("items" in resp_json["items"][0]["extra_include_meeting"])
         transaction.abort()
+
+    def test_restapi_search_items_extra_include_deliberation_images(self):
+        """When asking for "deliberation" values, images are data base64 values"""
+        transaction.begin()
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        cfg.setUseGroupsAsCategories(False)
+        self.getMeetingFolder()
+        item = self.create("MeetingItem")
+        item.setMotivation("<p>Motivation</p>")
+        file_path = path.join(path.dirname(pm_tests.__file__), "dot.gif")
+        data = open(file_path, "r")
+        img_id = item.invokeFactory("Image", id="dot.gif", title="Image", file=data.read())
+        img = getattr(item, img_id)
+        pattern = '<p>Text with image <img src="{0}" /> and more text.</p>'
+        text = pattern.format(img.absolute_url())
+        item.setDecision(text)
+        endpoint_url = "{0}/@search?config_id={1}&type=item&fullobjects" \
+            "&extra_include=deliberation_decision".format(
+                self.portal_url, self.meetingConfig.getId())
+        # in tests the monkeypatch for safe_html.hasScript does not seem to be applied...
+        # so disable remove_javascript from safe_html
+        self.portal.portal_transforms.safe_html._config["remove_javascript"] = 0
+        self.portal.portal_transforms.reloadTransforms()
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(
+            resp_json["items"][0]["extra_include_deliberation"]["deliberation_decision"],
+            pattern.format(IMG_BASE64_DATA))
 
     def test_restapi_search_meetings_endpoint(self):
         """ """
