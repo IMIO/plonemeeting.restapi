@@ -261,7 +261,7 @@ class BaseATSerializeToJson(BaseSerializeToJson, ATSerializeFolderToJson):
             for field in obj.Schema().fields():
 
                 name = field.getName()
-                # bypass if field must not be returned
+                # only keep relevant fields
                 if (self.include_all and not self.metadata_fields) or name in self.metadata_fields:
                     if "r" not in field.mode or not field.checkPermission(
                         "r", obj
@@ -290,7 +290,8 @@ class BaseDXSerializeToJson(BaseSerializeToJson, IMIODXSerializeToJson):
                 read_permissions = mergedTaggedValueDict(schema, READ_PERMISSIONS_KEY)
 
                 for name, field in getFields(schema).items():
-                    # bypass if field must not be returned
+
+                    # only keep relevant fields
                     if (self.include_all and not self.metadata_fields) or name in self.metadata_fields:
 
                         if not self.check_permission(read_permissions.get(name), obj):
@@ -308,5 +309,5 @@ class BaseDXSerializeToJson(BaseSerializeToJson, IMIODXSerializeToJson):
 
 @implementer(ISerializeToJson)
 @adapter(IDexterityContainer, IPMRestapiLayer)
-class BaseDXSerializeFolderToJson(BaseSerializeToJson, IMIODXSerializeFolderToJson):
+class BaseDXSerializeFolderToJson(BaseDXSerializeToJson):
     """ """

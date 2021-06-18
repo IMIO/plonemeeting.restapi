@@ -7,6 +7,7 @@
     <adapter factory="plonemeeting.restapi.serializer.base.BaseDXSerializeToJson" />
     <adapter factory="plonemeeting.restapi.serializer.base.BaseDXSerializeFolderToJson" />
 
+    <!-- Custom serializers -->
     <adapter factory=".annex.AnnexSerializeToJson" />
     <adapter factory=".catalog.PMLazyCatalogResultSerializer" />
     <adapter factory=".item.SerializeToJson" />
@@ -16,5 +17,24 @@
     <adapter factory=".meetingconfig.SerializeToJson" />
     <adapter factory=".meetingconfig.SerializeToJsonSummary" />
     <adapter factory=".summary.PMJSONSummarySerializer" />
+
+    <!-- DX field serializers -->
+    <adapter factory=".dxfields.PMChoiceFieldSerializer" />
+    <adapter factory=".dxfields.PMCollectionFieldSerializer" />
+
+    <!-- AT field serializers -->
+    <configure zcml:condition="installed Products.Archetypes.atapi">
+      <adapter factory=".atfields.LinesFieldSerializer" />
+      <adapter factory=".atfields.PMTextFieldSerializer" />
+      <adapter factory=".atfields.StringFieldSerializer" />
+    </configure>
+
+    <!-- Converters -->
+    <!-- unconfigure original RichtextDXContextConverter then configure it -->
+    <include package="z3c.unconfigure" file="meta.zcml" />
+    <unconfigure>
+      <adapter factory="plone.restapi.serializer.converters.RichtextDXContextConverter" />
+    </unconfigure>
+    <adapter factory=".converters.PMRichtextDXContextConverter" />
 
 </configure>

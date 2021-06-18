@@ -8,11 +8,12 @@
   <i18n:registerTranslations directory="locales" />
 
   <include package="Products.PloneMeeting" />
+  <include package="plone.restapi" />
   <include package="imio.restapi" />
   <include package=".deserializer" />
   <include package=".serializer" />
   <include package=".services" />
-  <includeOverrides file="serializer/overrides.zcml" />
+  <includeOverrides file="overrides.zcml" />
 
   <genericsetup:registerProfile
       name="default"
