@@ -49,19 +49,16 @@ class PMCollectionFieldSerializer(CollectionFieldSerializer):
             self.field = self.field.bind(self.context)
         value = self.get_value()
         value_type = self.field.value_type
-        # XXX with elephanvocabulary, "real" vocab is stored on vocabulary.vocab
-        vocab = getattr(value_type.vocabulary, "vocab", value_type.vocabulary)
-        if (
-            value is not None
-            and IChoice.providedBy(value_type)
-            and IVocabularyTokenized.providedBy(vocab)
-        ):
-            values = []
-            for v in value:
-                try:
-                    term = value_type.vocabulary.getTerm(v)
-                    values.append({u"token": term.token, u"title": term.title})
-                except LookupError:
-                    logger.warning("Term lookup error: %r" % v)
-            value = values
+        if value is not None and IChoice.providedBy(value_type):
+            # XXX with elephanvocabulary, "real" vocab is stored on vocabulary.vocab
+            vocab = getattr(value_type.vocabulary, "vocab", value_type.vocabulary)
+            if IVocabularyTokenized.providedBy(vocab):
+                values = []
+                for v in value:
+                    try:
+                        term = value_type.vocabulary.getTerm(v)
+                        values.append({u"token": term.token, u"title": term.title})
+                    except LookupError:
+                        logger.warning("Term lookup error: %r" % v)
+                value = values
         return json_compatible(value)

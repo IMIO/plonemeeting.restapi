@@ -201,7 +201,8 @@ class testServiceConfig(BaseTestCase):
         cfg_id = cfg.getId()
         transaction.commit()
         endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}" \
-            "&extra_include={3}&extra_include={4}&extra_include={5}&extra_include={6}"
+            "&extra_include={3}&extra_include={4}&extra_include={5}" \
+            "&extra_include={6}&extra_include={7}"
         endpoint_url = endpoint_url_pattern.format(
             self.portal_url,
             cfg_id,
@@ -209,7 +210,8 @@ class testServiceConfig(BaseTestCase):
             "pod_templates",
             "searches",
             "associated_groups",
-            "groups_in_charge")
+            "groups_in_charge",
+            "proposing_groups")
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
@@ -219,8 +221,14 @@ class testServiceConfig(BaseTestCase):
         self.assertFalse("modified" in json['extra_include_searches'][0])
         self.assertFalse("modified" in json['extra_include_associated_groups'][0])
         self.assertFalse("modified" in json['extra_include_groups_in_charge'][0])
-        # parameter "extra_include_fullobjects" will get full serialized versions
-        endpoint_url += "&extra_include_fullobjects"
+        self.assertFalse("modified" in json['extra_include_proposing_groups'][0])
+        # parameter "extra_include_xxx_fullobjects" will get full serialized versions
+        endpoint_url += "&extra_include_categories_fullobjects"
+        endpoint_url += "&extra_include_pod_templates_fullobjects"
+        endpoint_url += "&extra_include_searches_fullobjects"
+        endpoint_url += "&extra_include_associated_groups_fullobjects"
+        endpoint_url += "&extra_include_groups_in_charge_fullobjects"
+        endpoint_url += "&extra_include_proposing_groups_fullobjects"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
@@ -229,6 +237,7 @@ class testServiceConfig(BaseTestCase):
         self.assertTrue("modified" in json['extra_include_searches'][0])
         self.assertTrue("modified" in json['extra_include_associated_groups'][0])
         self.assertTrue("modified" in json['extra_include_groups_in_charge'][0])
+        self.assertTrue("modified" in json['extra_include_proposing_groups'][0])
 
 
 def test_suite():

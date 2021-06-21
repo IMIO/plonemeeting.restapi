@@ -186,9 +186,11 @@ class testServiceSearch(BaseTestCase):
                 u"public_deliberation_decided": u"<p>Motivation</p><p>Some decision.</p>",
             },
         )
-        # extra_include meeting, need to pass also additional_values=true
+        # extra_include meeting, need to pass also
+        # extra_include_meeting_include_additional_values=true
         # to get additional_values like "formatted_date"
-        endpoint_url = endpoint_url + "&extra_include=meeting&additional_values=true"
+        endpoint_url = endpoint_url + \
+            "&extra_include=meeting&extra_include_meeting_include_additional_values=true"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
@@ -213,7 +215,9 @@ class testServiceSearch(BaseTestCase):
         self.assertFalse("@components" in resp_json["items"][0]["extra_include_category"])
         self.assertFalse("@components" in resp_json["items"][0]["extra_include_meeting"])
         self.assertFalse("@components" in resp_json["items"][0]["extra_include_proposingGroup"])
-        endpoint_url = endpoint_url + "&extra_include_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_category_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_meeting_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_proposingGroup_fullobjects"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
@@ -222,7 +226,7 @@ class testServiceSearch(BaseTestCase):
         # for meeting moreover by default include_items=False
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_meeting"])
         self.assertFalse("items" in resp_json["items"][0]["extra_include_meeting"])
-        endpoint_url = endpoint_url + "&include_items=true"
+        endpoint_url = endpoint_url + "&extra_include_meeting_include_items=true"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()

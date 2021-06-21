@@ -309,5 +309,5 @@ class BaseDXSerializeToJson(BaseSerializeToJson, IMIODXSerializeToJson):
 
 @implementer(ISerializeToJson)
 @adapter(IDexterityContainer, IPMRestapiLayer)
-class BaseDXSerializeFolderToJson(BaseDXSerializeToJson):
+class BaseDXSerializeFolderToJson(BaseDXSerializeToJson, IMIODXSerializeFolderToJson):
     """ """

@@ -3,7 +3,7 @@
 from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plonemeeting.restapi.serializer.base import BaseDXSerializeToJson
+from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.content.meeting import IMeeting
 from zope.component import adapter
@@ -31,7 +31,7 @@ class SerializeMeetingToJsonBase(object):
 
 @implementer(ISerializeToJson)
 @adapter(IMeeting, Interface)
-class SerializeToJson(SerializeMeetingToJsonBase, BaseDXSerializeToJson):
+class SerializeToJson(SerializeMeetingToJsonBase, BaseDXSerializeFolderToJson):
     """ """
 
 
