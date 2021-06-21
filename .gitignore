@@ -10,6 +10,7 @@
 *.log
 .*.cfg
 .coverage
+.plone.versioncheck.tracked.json
 bin/
 build/
 develop-eggs/
@@ -23,5 +24,6 @@ parts/
 dist/
 var/
 pip-selfcheck.json
+pyvenv.cfg
 src/*
 !src/plonemeeting

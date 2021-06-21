@@ -25,11 +25,6 @@ class PMSearchGet(SearchGet):
                 raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
 
     @property
-    def _additional_fields(self):
-        """ """
-        return ["UID"]
-
-    @property
     def _config_id(self):
         config_id = self.request.form.get("config_id", None)
         # config_id is required when self.type is "item" or "meeting"

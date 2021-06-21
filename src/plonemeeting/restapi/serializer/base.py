@@ -120,8 +120,7 @@ class BaseSerializeToJson(object):
 
     def _include_fields(self, obj):
         """ """
-        result = {}
-        return result
+        raise NotImplementedError
 
     def _include_items(self, obj, include_items):
         """ """
