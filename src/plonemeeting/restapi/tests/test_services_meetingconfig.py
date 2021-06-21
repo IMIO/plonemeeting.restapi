@@ -216,12 +216,12 @@ class testServiceConfig(BaseTestCase):
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         # by default, we only get summarized versions
-        self.assertFalse("modified" in json['extra_include_categories'][0])
-        self.assertFalse("modified" in json['extra_include_pod_templates'][0])
-        self.assertFalse("modified" in json['extra_include_searches'][0])
-        self.assertFalse("modified" in json['extra_include_associated_groups'][0])
-        self.assertFalse("modified" in json['extra_include_groups_in_charge'][0])
-        self.assertFalse("modified" in json['extra_include_proposing_groups'][0])
+        self.assertFalse("@components" in json['extra_include_categories'][0])
+        self.assertFalse("@components" in json['extra_include_pod_templates'][0])
+        self.assertFalse("@components" in json['extra_include_searches'][0])
+        self.assertFalse("@components" in json['extra_include_associated_groups'][0])
+        self.assertFalse("@components" in json['extra_include_groups_in_charge'][0])
+        self.assertFalse("@components" in json['extra_include_proposing_groups'][0])
         # parameter "extra_include_xxx_fullobjects" will get full serialized versions
         endpoint_url += "&extra_include_categories_fullobjects"
         endpoint_url += "&extra_include_pod_templates_fullobjects"
@@ -232,12 +232,12 @@ class testServiceConfig(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
-        self.assertTrue("modified" in json['extra_include_categories'][0])
-        self.assertTrue("modified" in json['extra_include_pod_templates'][0])
-        self.assertTrue("modified" in json['extra_include_searches'][0])
-        self.assertTrue("modified" in json['extra_include_associated_groups'][0])
-        self.assertTrue("modified" in json['extra_include_groups_in_charge'][0])
-        self.assertTrue("modified" in json['extra_include_proposing_groups'][0])
+        self.assertTrue("@components" in json['extra_include_categories'][0])
+        self.assertTrue("@components" in json['extra_include_pod_templates'][0])
+        self.assertTrue("@components" in json['extra_include_searches'][0])
+        self.assertTrue("@components" in json['extra_include_associated_groups'][0])
+        self.assertTrue("@components" in json['extra_include_groups_in_charge'][0])
+        self.assertTrue("@components" in json['extra_include_proposing_groups'][0])
 
 
 def test_suite():

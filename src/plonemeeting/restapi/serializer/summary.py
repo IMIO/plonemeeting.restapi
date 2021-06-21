@@ -18,7 +18,7 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, BaseSerializeTo
     @property
     def _additional_fields(self):
         """By default add 'UID' to returned data."""
-        return ["id", "UID", "enabled"]
+        return ["id", "UID", "enabled", "created", "modified"]
 
     def _get_metadata_fields_name(self):
         """May be overrided when necessary."""

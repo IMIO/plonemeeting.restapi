@@ -11,7 +11,6 @@ from plone.dexterity.interfaces import IDexterityContainer
 from plone.dexterity.interfaces import IDexterityContent
 from plone.dexterity.utils import iterSchemata
 from plone.restapi.batching import HypermediaBatch
-from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.interfaces import IObjectPrimaryFieldTarget
 from plone.restapi.interfaces import ISerializeToJson
@@ -22,6 +21,8 @@ from plone.restapi.serializer.expansion import expandable_elements
 from plone.restapi.serializer.nextprev import NextPrevious
 from plone.supermodel.utils import mergedTaggedValueDict
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
+from plonemeeting.restapi.utils import get_param
+from plonemeeting.restapi.utils import get_serializer
 from Products.CMFCore.utils import getToolByName
 from Products.PloneMeeting.interfaces import IMeetingContent
 from zope.component import adapter
@@ -60,36 +61,16 @@ class BaseSerializeToJson(object):
 
     def _get_serializer(self, obj, extra_include_name):
         """ """
-        interface = ISerializeToJsonSummary
-        if self._get_param("fullobjects", extra_include_name=extra_include_name):
-            interface = ISerializeToJson
-        serializer = queryMultiAdapter((obj, self.request), interface)
-        serializer._extra_include_name = extra_include_name
-        return serializer
+        return get_serializer(obj,
+                              extra_include_name,
+                              serializer=self)
 
     def _get_param(self, value, default=False, extra_include_name=None):
-        """If current serialized element is an extra_include,
-           infos in request.form are relative to extra_include,
-           else information are directly available.
-           For extra_include, a parameter is passed like :
-           ?extra_include=extra_include_name:parameter_name:value so
-           ?extra_include_category_include_all=false."""
-        # extra_include_name is stored on serializer or passed as parameter when serializer
-        # still not initialized, this is the case for parameter "fullobjects" as from this
-        # will depend the interface to use to get the serializer
-        extra_include_name = getattr(self, "_extra_include_name", extra_include_name)
-        if extra_include_name:
-            # change param value
-            value = "extra_include_{0}_{1}".format(extra_include_name, value)
-
-        param = self.request.form.get(value, None)
-
-        # param was not found in request.form
-        if param is None:
-            param = default
-        elif default in (True, False):
-            param = boolean_value(param)
-        return param
+        """ """
+        return get_param(value,
+                         default=default,
+                         extra_include_name=extra_include_name,
+                         serializer=self)
 
     def _include_base_data(self, obj):
         """ """
