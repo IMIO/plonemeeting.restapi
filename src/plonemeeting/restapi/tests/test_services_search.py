@@ -500,6 +500,124 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(json[u"items_total"], 1)
         self.assertEqual(json[u"items"][0][u'id'], cfg.getId())
 
+    def test_restapi_search_fullobjects_and_includes(self):
+        """Several includes may be passed as parameter when "fullobjects" is used.
+           By default, "fullobjects" behavior is like in plone.restapi, it retuens every infos.
+           But we may pass additional includes:
+           - include_all: when set to false, nothing else but base data (id, uid, ...) are returned;
+           - include_base_data: will include base data like id, uid, review_state, ...;
+           - include_components: will include the "@components" section;
+           - include_nextprev: will include next/previous infos;
+           - include_parent: will serialize parent into "parent" key;
+           - include_items: will include the contained elements;
+           - include_target_url: will include the "targetUrl";
+           - include_allow_discussion: will include infos about discussion;
+           - include_additional_values: will include the additional values.
+        """
+        # create 1 item
+        self.changeUser("pmManager")
+        self.create("MeetingItem")
+        transaction.commit()
+
+        endpoint_url = "{0}/@search?config_id={1}&fullobjects=True".format(
+            self.portal_url, self.meetingConfig.getId()
+        )
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items_total"], 1)
+        # by default everything is there, except "items" that is False by default
+        self.assertTrue("@components" in resp_json["items"][0])
+        self.assertTrue("id" in resp_json["items"][0])
+        self.assertTrue("UID" in resp_json["items"][0])
+        self.assertTrue("next_item" in resp_json["items"][0])
+        self.assertTrue("previous_item" in resp_json["items"][0])
+        self.assertTrue("parent" in resp_json["items"][0])
+        self.assertTrue("allow_discussion" in resp_json["items"][0])
+        self.assertTrue("formatted_itemNumber" in resp_json["items"][0])
+        self.assertFalse("items" in resp_json["items"][0])
+        # we may get what we want, only get "@components"
+        endpoint_url = "{0}/@search?config_id={1}&fullobjects=True" \
+            "&include_base_data=false&include_additional_values=false" \
+            "&include_all=false&include_components=true".format(
+                self.portal_url, self.meetingConfig.getId())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items_total"], 1)
+        self.assertTrue("@components" in resp_json["items"][0])
+        self.assertFalse("id" in resp_json["items"][0])
+        self.assertFalse("UID" in resp_json["items"][0])
+        self.assertFalse("next_item" in resp_json["items"][0])
+        self.assertFalse("previous_item" in resp_json["items"][0])
+        self.assertFalse("parent" in resp_json["items"][0])
+        self.assertFalse("allow_discussion" in resp_json["items"][0])
+        self.assertFalse("formatted_itemNumber" in resp_json["items"][0])
+        self.assertFalse("items" in resp_json["items"][0])
+
+    def test_restapi_search_extra_includes_parameters(self):
+        """Every parameters may be passed to extra_includes:
+           Example: extra_include=category, enable fullobjects and include_all=true:
+           Parameters would be the following:
+           - extra_include=category;
+           - extra_include_category_fullobjects;
+           - extra_include_category_include_all=false.
+        """
+        cfg = self.meetingConfig
+        cfg.setUseGroupsAsCategories(False)
+        # create 2 items
+        self.changeUser("pmManager")
+        self.create("MeetingItem")
+        transaction.commit()
+
+        endpoint_url = "{0}/@search?config_id={1}&extra_include=category" \
+            "&extra_include_category_fullobjects" \
+            "&extra_include_category_include_components=true" \
+            "&extra_include_category_include_all=false".format(
+                self.portal_url, self.meetingConfig.getId())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        # we get @components and base data
+        self.assertEqual(sorted(resp_json["items"][0]["extra_include_category"].keys()),
+                         [u'@components', u'@id', u'@type', u'UID', u'created', u'id',
+                          u'is_folderish', u'layout', u'modified', u'review_state'])
+
+    def test_restapi_search_metadata_fields(self):
+        """metadata_fields may be used:
+           - without fullobjects, the metadata catalog is used;
+           - with fullobjects, then it is used to select the fields we want.
+        """
+        cfg = self.meetingConfig
+        cfg.setUseGroupsAsCategories(False)
+        # create 2 items
+        self.changeUser("pmManager")
+        self.create("MeetingItem")
+        transaction.commit()
+
+        # get item base data + getItemNumber and category enabled and category_id
+        endpoint_url = "{0}/@search?config_id={1}" \
+            "&metadata_fields=getItemNumber" \
+            "&extra_include=category" \
+            "&extra_include_category_fullobjects" \
+            "&extra_include_category_include_all=false" \
+            "&extra_include_category_include_base_data=false" \
+            "&extra_include_category_metadata_fields=enabled" \
+            "&extra_include_category_metadata_fields=category_id".format(
+                self.portal_url, self.meetingConfig.getId())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        # item
+        self.assertEqual(sorted(resp_json["items"][0].keys()),
+                         [u'@id', u'@type', u'UID', u'created', u'description',
+                          u'enabled', u'extra_include_category', u'getItemNumber',
+                          u'id', u'modified', u'review_state', u'title'])
+        self.assertEqual(resp_json["items"][0]["getItemNumber"], 0)
+        # category
+        self.assertEqual(resp_json["items"][0]["extra_include_category"],
+                         {u'category_id': u'development', u'enabled': True})
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
