@@ -229,8 +229,8 @@ class BaseSerializeToJson(object):
 
 
 @implementer(ISerializeToJson)
-@adapter(IMeetingContent, Interface)
-class BaseATSerializeToJson(BaseSerializeToJson, ATSerializeFolderToJson):
+@adapter(Interface, Interface)
+class BaseATSerializeFolderToJson(BaseSerializeToJson, ATSerializeFolderToJson):
     """ """
 
     def _include_fields(self, obj):

@@ -5,7 +5,7 @@ from imio.helpers.content import uuidsToObjects
 from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plonemeeting.restapi.serializer.base import BaseATSerializeToJson
+from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.interfaces import IMeetingConfig
 from zope.component import adapter
@@ -89,7 +89,7 @@ class SerializeConfigToJsonBase(object):
 
 @implementer(ISerializeToJson)
 @adapter(IMeetingConfig, Interface)
-class SerializeToJson(SerializeConfigToJsonBase, BaseATSerializeToJson):
+class SerializeToJson(SerializeConfigToJsonBase, BaseATSerializeFolderToJson):
     """ """
 
 

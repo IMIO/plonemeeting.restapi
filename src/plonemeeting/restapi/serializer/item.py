@@ -3,7 +3,7 @@
 from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plonemeeting.restapi.serializer.base import BaseATSerializeToJson
+from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
@@ -64,7 +64,7 @@ class SerializeItemToJsonBase(object):
 
 @implementer(ISerializeToJson)
 @adapter(IMeetingItem, Interface)
-class SerializeToJson(SerializeItemToJsonBase, BaseATSerializeToJson):
+class SerializeToJson(SerializeItemToJsonBase, BaseATSerializeFolderToJson):
     """ """
 
 
