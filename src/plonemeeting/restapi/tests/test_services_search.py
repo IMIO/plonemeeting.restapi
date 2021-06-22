@@ -6,6 +6,7 @@ from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
@@ -70,10 +71,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 items
         self.changeUser("pmManager")
         item1 = self.create("MeetingItem")
-        self.assertEqual(item1.query_state(), "itemcreated")
+        self.assertEqual(self.get_review_state(item1), "itemcreated")
         item2 = self.create("MeetingItem")
         self.validateItem(item2)
-        self.assertEqual(item2.query_state(), "validated")
+        self.assertEqual(self.get_review_state(item2), "validated")
         transaction.commit()
 
         # found
@@ -112,9 +113,10 @@ class testServiceSearch(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         # items are returned sorted
+        items_getter = HAS_MEETING_DX and meeting.get_items or meeting.getItems
         self.assertEqual(
             [elt["UID"] for elt in response.json()[u"items"]],
-            [obj.UID() for obj in meeting.get_items(ordered=True)],
+            [obj.UID() for obj in items_getter(ordered=True)],
         )
         transaction.abort()
 
@@ -223,9 +225,11 @@ class testServiceSearch(BaseTestCase):
         resp_json = response.json()
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_category"])
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_proposingGroup"])
-        # for meeting moreover by default include_items=False
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_meeting"])
-        self.assertFalse("items" in resp_json["items"][0]["extra_include_meeting"])
+        # for meeting moreover by default include_items=False
+        # in AT Meeting, we have a field called "items"...
+        if HAS_MEETING_DX:
+            self.assertFalse("items" in resp_json["items"][0]["extra_include_meeting"])
         endpoint_url = endpoint_url + "&extra_include_meeting_include_items=true"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
@@ -278,10 +282,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         meeting = self.create("Meeting", date=datetime(2018, 11, 18))
-        self.assertEqual(meeting.query_state(), "created")
+        self.assertEqual(self.get_review_state(meeting), "created")
         meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.query_state(), "closed")
+        self.assertEqual(self.get_review_state(meeting2), "closed")
         transaction.commit()
 
         # found
@@ -311,11 +315,11 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         meeting = self.create("Meeting", date=datetime(2019, 11, 18))
-        self.assertEqual(meeting.query_state(), "created")
+        self.assertEqual(self.get_review_state(meeting), "created")
         meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
         meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.query_state(), "closed")
+        self.assertEqual(self.get_review_state(meeting2), "closed")
         transaction.commit()
 
         # found
@@ -349,10 +353,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         meeting = self.create("Meeting", date=datetime(2020, 5, 10))
-        self.assertEqual(meeting.query_state(), "created")
+        self.assertEqual(self.get_review_state(meeting), "created")
         meeting2 = self.create("Meeting", date=datetime(2020, 5, 17))
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.query_state(), "closed")
+        self.assertEqual(self.get_review_state(meeting2), "closed")
         transaction.commit()
         # only meeting is accepting items
         self.assertEqual(

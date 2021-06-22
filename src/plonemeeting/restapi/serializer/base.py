@@ -24,7 +24,6 @@ from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.utils import get_param
 from plonemeeting.restapi.utils import get_serializer
 from Products.CMFCore.utils import getToolByName
-from Products.PloneMeeting.interfaces import IMeetingContent
 from zope.component import adapter
 from zope.component import ComponentLookupError
 from zope.component import getMultiAdapter
@@ -238,6 +237,7 @@ class BaseATSerializeFolderToJson(BaseSerializeToJson, ATSerializeFolderToJson):
         result = {}
         # Compute fields if include_all or metadata_fields
         if self.include_all or self.metadata_fields:
+
             for field in obj.Schema().fields():
 
                 name = field.getName()

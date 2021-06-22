@@ -345,7 +345,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(item.query_state(), "validated")
+        self.assertEqual(self.get_review_state(item), "validated")
         transaction.abort()
 
     def test_restapi_add_item_wf_transitions_present(self):
@@ -368,7 +368,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(item.query_state(), "presented")
+        self.assertEqual(self.get_review_state(item), "presented")
         self.assertEqual(item.getMeeting(), meeting)
         transaction.abort()
 
