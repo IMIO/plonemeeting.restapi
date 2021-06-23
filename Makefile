@@ -9,7 +9,7 @@ cleanall:
 
 .PHONY: bootstrap
 bootstrap:cleanall
-	virtualenv --clear .
+	virtualenv --clear -p python2 .
 	bin/python bin/pip install -r https://raw.githubusercontent.com/IMIO/buildout.pm/master/requirements.txt
 
 .PHONY: buildout
