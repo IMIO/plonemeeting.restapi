@@ -2,7 +2,7 @@
 
 # XXX Override to query the serializer adapter with the real object
 # XXX instead the catalog brain as we register different summary serializers.
-# 2 thigs changed :
+# 2 things changed :
 # - use LazyMap instead Lazy to be more specific
 # - call summary serializer on object instead brain, check the XXX here under
 

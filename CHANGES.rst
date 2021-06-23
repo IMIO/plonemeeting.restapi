@@ -32,6 +32,11 @@ Changelog
   serializer for brain interface but we need to be able to register a summary
   adapter for different interfaces (item, meeting, ...).
   [gbastien]
+- Restored `Products.PloneMeeting 4.1.x/4.2.x` backward compatibility.
+  [gbastien]
+- Defined correct serializers for list fields so we have a `token/value`
+  representation in each case (AT/DX for single and multi valued select).
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------
