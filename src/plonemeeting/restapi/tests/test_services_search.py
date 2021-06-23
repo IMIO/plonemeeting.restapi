@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+from DateTime import DateTime
 from os import path
 from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
@@ -9,9 +10,9 @@ from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
+from Products.PloneMeeting import tests as pm_tests
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import IMG_BASE64_DATA
-from Products.PloneMeeting import tests as pm_tests
 
 import transaction
 
@@ -314,10 +315,16 @@ class testServiceSearch(BaseTestCase):
 
         # create 2 meetings
         self.changeUser("pmManager")
-        meeting = self.create("Meeting", date=datetime(2019, 11, 18))
+        if HAS_MEETING_DX:
+            meeting = self.create("Meeting", date=datetime(2019, 11, 18))
+            meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
+            meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
+        else:
+            meeting = self.create("Meeting", date=DateTime("2019/11/18"))
+            meeting2 = self.create("Meeting", date=DateTime("2019/11/19"))
+            meeting2.setAssembly(u'Mr Present, [[Mr Absent]], Mr Present2')
+
         self.assertEqual(self.get_review_state(meeting), "created")
-        meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
-        meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
         self.closeMeeting(meeting2)
         self.assertEqual(self.get_review_state(meeting2), "closed")
         transaction.commit()
@@ -336,7 +343,9 @@ class testServiceSearch(BaseTestCase):
 
         # includes every data as well as extra formatted values
         self.assertTrue("date" in resp_json["items"][0])
-        self.assertTrue("start_date" in resp_json["items"][0])
+        # AT/DX
+        self.assertTrue("startDate" in resp_json["items"][0] or
+                        "start_date" in resp_json["items"][0])
         self.assertTrue("notes" in resp_json["items"][0])
         self.assertEqual(
             resp_json["items"][0]["formatted_assembly"],
