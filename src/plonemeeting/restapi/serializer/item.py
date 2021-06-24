@@ -55,10 +55,25 @@ class SerializeItemToJsonBase(object):
         result["formatted_itemAssembly"] = self.context.getItemAssembly(striked=True)
         result["formatted_itemNumber"] = self.context.getItemNumber(for_display=True)
         # values including computed values
-        result["all_copyGroups"] = self.context.getAllCopyGroups(
+        # XXX to be removed when using PloneMeeting 4.2 as now
+        # computed values are stored as well
+        # need to use "token/title" format
+        # all_copyGroups
+        all_copyGroups = self.context.getAllCopyGroups(
             auto_real_plone_group_ids=True
         )
-        result["all_groupsInCharge"] = self.context.getGroupsInCharge(includeAuto=True)
+        vocab = self.context.getField('copyGroups').Vocabulary(self.context)
+        all_copyGroups = [
+            {"token": cg, "title": vocab.getValue(cg)}
+            for cg in all_copyGroups]
+        result["all_copyGroups"] = all_copyGroups
+        # all_groupsInCharge
+        all_groupsInCharge = self.context.getGroupsInCharge(includeAuto=True)
+        vocab = self.context.getField('groupsInCharge').Vocabulary(self.context)
+        all_groupsInCharge = [
+            {"token": gic, "title": vocab.getValue(gic)}
+            for gic in all_groupsInCharge]
+        result["all_groupsInCharge"] = all_groupsInCharge
         return result
 
 

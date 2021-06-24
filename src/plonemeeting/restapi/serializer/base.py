@@ -84,6 +84,7 @@ class BaseSerializeToJson(object):
                 "modified": json_compatible(obj.modified()),
                 "review_state": self._get_workflow_state(obj),
                 "UID": obj.UID(),
+                "title": obj.Title(),
                 "layout": self.context.getLayout(),
                 "is_folderish": bool(getattr(aq_base(obj), 'isPrincipiaFolderish', False)),
             }
@@ -188,8 +189,8 @@ class BaseSerializeToJson(object):
            - metadata_fields=[], when given, this will only return selected values.
            """
         version = "current" if version is None else version
-
         obj = self.getVersion(version)
+
         self.metadata_fields = listify(self._get_param('metadata_fields', []))
         # Include all
         # False if given or if metadata_fields are given

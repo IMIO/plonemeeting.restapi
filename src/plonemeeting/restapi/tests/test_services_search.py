@@ -593,8 +593,17 @@ class testServiceSearch(BaseTestCase):
         resp_json = response.json()
         # we get @components and base data
         self.assertEqual(sorted(resp_json["items"][0]["extra_include_category"].keys()),
-                         [u'@components', u'@id', u'@type', u'UID', u'created', u'id',
-                          u'is_folderish', u'layout', u'modified', u'review_state'])
+                         [u'@components',
+                          u'@id',
+                          u'@type',
+                          u'UID',
+                          u'created',
+                          u'id',
+                          u'is_folderish',
+                          u'layout',
+                          u'modified',
+                          u'review_state',
+                          u'title'])
 
     def test_restapi_search_metadata_fields(self):
         """metadata_fields may be used:
