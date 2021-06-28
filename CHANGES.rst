@@ -37,6 +37,10 @@ Changelog
 - Defined correct serializers for list fields so we have a `token/value`
   representation in each case (AT/DX for single and multi valued select).
   [gbastien]
+- Added some new `extra_include` for `MeetingItem`: `classifier`,
+  `groups_in_charge` and `associated_groups`.
+  The `extra_include` named `proposingGroup` was renamed to `proposing_group`.
+  [gbastien]
 
 1.0b1 (2021-02-03)
 ------------------

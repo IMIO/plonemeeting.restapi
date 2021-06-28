@@ -15,20 +15,40 @@ class SerializeItemToJsonBase(object):
     """ """
 
     def _extra_include(self, result):
-        """ """
+        """To be simplified when moving MeetingItem to DX as extra_include name
+           will be the same as attribute name defined in MeetingItem schema."""
         extra_include = listify(self.request.form.get("extra_include", []))
+        if "proposing_group" in extra_include:
+            proposing_group = self.context.getProposingGroup(theObject=True)
+            result["extra_include_proposing_group"] = {}
+            if proposing_group:
+                serializer = self._get_serializer(proposing_group, "proposing_group")
+                result["extra_include_proposing_group"] = serializer()
         if "category" in extra_include:
             category = self.context.getCategory(theObject=True, real=True)
             result["extra_include_category"] = {}
             if category:
                 serializer = self._get_serializer(category, "category")
                 result["extra_include_category"] = serializer()
-        if "proposingGroup" in extra_include:
-            proposingGroup = self.context.getProposingGroup(theObject=True)
-            result["extra_include_proposingGroup"] = {}
-            if proposingGroup:
-                serializer = self._get_serializer(proposingGroup, "proposingGroup")
-                result["extra_include_proposingGroup"] = serializer()
+        if "classifier" in extra_include:
+            classifier = self.context.getClassifier(theObject=True)
+            result["extra_include_classifier"] = {}
+            if classifier:
+                serializer = self._get_serializer(classifier, "classifier")
+                result["extra_include_classifier"] = serializer()
+        if "groups_in_charge" in extra_include:
+            groups_in_charge = self.context.getGroupsInCharge(theObjects=True)
+            result["extra_include_groups_in_charge"] = []
+            for group_in_charge in groups_in_charge:
+                serializer = self._get_serializer(group_in_charge, "groups_in_charge")
+                result["extra_include_groups_in_charge"].append(serializer())
+        if "associated_groups" in extra_include:
+            associated_groups = self.context.getAssociatedGroups(theObjects=True)
+            result["extra_include_associated_groups"] = []
+            for associated_group in associated_groups:
+                serializer = self._get_serializer(associated_group, "associated_groups")
+                result["extra_include_associated_groups"].append(serializer())
+
         if "meeting" in extra_include:
             meeting = self.context.getMeeting()
             result["extra_include_meeting"] = {}

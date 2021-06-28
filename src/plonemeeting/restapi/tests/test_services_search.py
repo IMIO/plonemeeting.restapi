@@ -127,9 +127,13 @@ class testServiceSearch(BaseTestCase):
         cfg = self.meetingConfig
         self.changeUser("pmManager")
         cfg.setUseGroupsAsCategories(False)
+        self._enableField("groupsInCharge")
         self.getMeetingFolder()
         meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
-        item = self.create("MeetingItem")
+        item = self.create("MeetingItem",
+                           classifier="classifier1",
+                           groupsInCharge=(self.developers_uid, ),
+                           associatedGroups=(self.vendors_uid, ))
         item.setMotivation("<p>Motivation</p>")
         item.setDecision(self.decisionText)
         self.presentItem(item)
@@ -143,27 +147,27 @@ class testServiceSearch(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         # by default no extra include
-        self.assertFalse("extra_include_proposingGroup" in response.json()["items"][0])
+        self.assertFalse("extra_include_proposing_group" in response.json()["items"][0])
         # does work even when fullobjects is not used
-        endpoint_url = endpoint_url + "&extra_include=proposingGroup"
+        endpoint_url = endpoint_url + "&extra_include=proposing_group"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertTrue("extra_include_proposingGroup" in response.json()["items"][0])
+        self.assertTrue("extra_include_proposing_group" in response.json()["items"][0])
         # now with fullobjects
         endpoint_url = endpoint_url + "&fullobjects"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
-        self.assertTrue("extra_include_proposingGroup" in json["items"][0])
+        self.assertTrue("extra_include_proposing_group" in json["items"][0])
         self.assertFalse("extra_include_category" in json["items"][0])
-        # extra_include proposingGroup and category
+        # extra_include proposing_group and category
         endpoint_url = endpoint_url + "&extra_include=category"
         transaction.begin()
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertEqual(
-            json["items"][0]["extra_include_proposingGroup"]["id"], u"developers"
+            json["items"][0]["extra_include_proposing_group"]["id"], u"developers"
         )
         self.assertEqual(
             json["items"][0]["extra_include_category"]["id"], u"development"
@@ -213,20 +217,43 @@ class testServiceSearch(BaseTestCase):
             resp_json["items"][0]["extra_include_meeting"]["formatted_date_long"],
             u'08 june 2020 (08:00)'
         )
-        # extra_include_fullobjects
+        # extra_include everything
+        endpoint_url = endpoint_url + "&extra_include=classifier"
+        endpoint_url = endpoint_url + "&extra_include=groups_in_charge"
+        endpoint_url = endpoint_url + "&extra_include=associated_groups"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
         # by default, extra_include are summary
         self.assertFalse("@components" in resp_json["items"][0]["extra_include_category"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_classifier"])
         self.assertFalse("@components" in resp_json["items"][0]["extra_include_meeting"])
-        self.assertFalse("@components" in resp_json["items"][0]["extra_include_proposingGroup"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_proposing_group"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_groups_in_charge"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_associated_groups"])
+        # extra_include_fullobjects
         endpoint_url = endpoint_url + "&extra_include_category_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_classifier_fullobjects"
         endpoint_url = endpoint_url + "&extra_include_meeting_fullobjects"
-        endpoint_url = endpoint_url + "&extra_include_proposingGroup_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_proposing_group_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_groups_in_charge_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_associated_groups_fullobjects"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_category"])
-        self.assertTrue("@components" in resp_json["items"][0]["extra_include_proposingGroup"])
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_classifier"])
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_proposing_group"])
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_groups_in_charge"][0])
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_associated_groups"][0])
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_meeting"])
+        self.assertEqual(resp_json["items"][0]["extra_include_classifier"]["id"],
+                         "classifier1")
+        self.assertEqual(resp_json["items"][0]["extra_include_groups_in_charge"][0]["id"],
+                         "developers")
+        self.assertEqual(resp_json["items"][0]["extra_include_associated_groups"][0]["id"],
+                         "vendors")
+
         # for meeting moreover by default include_items=False
         # in AT Meeting, we have a field called "items"...
         if HAS_MEETING_DX:
