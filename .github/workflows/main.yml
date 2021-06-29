@@ -6,6 +6,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name : Clean
+        run: |
+          rm -rf *
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -16,4 +19,5 @@ jobs:
           git pull -v
           git rebase origin/master --stat
           git push --force-with-lease
+      
           
