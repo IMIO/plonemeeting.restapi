@@ -16,8 +16,11 @@ jobs:
           fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
           ref: '4.1.x'
       - name: Automatic Rebase
-        uses: cirrus-actions/rebase@1.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+        run: |
+          git status
+          git pull -v
+          git rebase origin/master --stat -m -s recursive -X theirs
+          git push --force-with-lease
           
