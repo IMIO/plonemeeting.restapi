@@ -8,11 +8,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          ref: '4.1.x'
+        
       - name: Rebase
         run: |
           git pull
-          git merge origin/master --commit --stat --no-verify -m "automatic merge action" --allow-unrelated-histories
+          git rebase --onto '4.1.x' --stat
           git push --force-with-lease
           
