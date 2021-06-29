@@ -8,10 +8,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        
+        with:
+          ref: '4.1.x'
       - name: Rebase
         run: |
-          git pull
-          git rebase --onto '4.1.x' --stat
+          git status
+          git pull -v
+          git rebase origin/master --stat
           git push --force-with-lease
           
