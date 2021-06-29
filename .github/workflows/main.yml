@@ -13,6 +13,6 @@ jobs:
       - name: Rebase
         run: |
           git pull
-          git merge origin/master --squash --stat --no-verify -m "automatic merge action"
+          git merge origin/master --commit --stat --no-verify -m "automatic merge action" --allow-unrelated-histories
           git push --force-with-lease
           
