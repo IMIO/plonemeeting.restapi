@@ -13,6 +13,6 @@ jobs:
       - name: Rebase
         run: |
           git pull
-          git rebase origin/master -m -s recursive -X patience
+          git merge origin/master --squash --stat --no-verify -m "automatic merge action"
           git push --force-with-lease
           
