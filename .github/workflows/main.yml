@@ -13,6 +13,6 @@ jobs:
       - name: Rebase
         run: |
           git pull
-          git rebase origin/master
+          git rebase origin/master -m -s recursive -X patience
           git push --force-with-lease
           
