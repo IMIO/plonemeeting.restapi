@@ -17,7 +17,7 @@ jobs:
         run: |
           git status
           git pull -v
-          git rebase origin/master --stat -m -s ours
+          git rebase origin/master --stat -m -s recursive -X ours
           git push --force-with-lease
       
           
