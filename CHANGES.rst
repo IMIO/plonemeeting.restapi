@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0b2 (unreleased)
+1.0b2 (2021-07-16)
 ------------------
 
 - Adapted code and tests now that `Meeting` was moved from `AT` to `DX`.
