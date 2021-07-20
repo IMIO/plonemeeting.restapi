@@ -26,28 +26,36 @@ except ImportError:
 class SerializeMeetingToJsonBase(object):
     """ """
 
-    def _include_additional_values(self, result):
+    def _additional_values(self, result, additional_values):
         """ """
         # add some formatted values
         tool = api.portal.get_tool('portal_plonemeeting')
         # Products.PloneMeeting 4.1/4.2 compatibility
         if HAS_MEETING_DX:
-            result["formatted_assembly"] = self.context.get_assembly(striked=True)
-            result["formatted_date"] = tool.format_date(
-                self.context.date, short=True, with_hour=True)
-            result["formatted_date_short"] = tool.format_date(
-                self.context.date, short=True, with_hour=False)
-            result["formatted_date_long"] = tool.format_date(
-                self.context.date, short=False, with_hour=True)
+            if "*" in additional_values or "formatted_assembly" in additional_values:
+                result["formatted_assembly"] = self.context.get_assembly(striked=True)
+            if "*" in additional_values or "formatted_date" in additional_values:
+                result["formatted_date"] = tool.format_date(
+                    self.context.date, short=True, with_hour=True)
+            if "*" in additional_values or "formatted_date_short" in additional_values:
+                result["formatted_date_short"] = tool.format_date(
+                    self.context.date, short=True, with_hour=False)
+            if "*" in additional_values or "formatted_date_long" in additional_values:
+                result["formatted_date_long"] = tool.format_date(
+                    self.context.date, short=False, with_hour=True)
         else:
             # backward compat for AT
-            result["formatted_assembly"] = self.context.displayStrikedAssembly()
-            result["formatted_date"] = tool.formatMeetingDate(
-                self.context, short=True, withHour=True)
-            result["formatted_date_short"] = tool.formatMeetingDate(
-                self.context, short=True, withHour=False)
-            result["formatted_date_long"] = tool.formatMeetingDate(
-                self.context, short=False, withHour=True)
+            if "*" in additional_values or "formatted_assembly" in additional_values:
+                result["formatted_assembly"] = self.context.displayStrikedAssembly()
+            if "*" in additional_values or "formatted_date" in additional_values:
+                result["formatted_date"] = tool.formatMeetingDate(
+                    self.context, short=True, withHour=True)
+            if "*" in additional_values or "formatted_date_short" in additional_values:
+                result["formatted_date_short"] = tool.formatMeetingDate(
+                    self.context, short=True, withHour=False)
+            if "*" in additional_values or "formatted_date_long" in additional_values:
+                result["formatted_date_long"] = tool.formatMeetingDate(
+                    self.context, short=False, withHour=True)
 
         return result
 

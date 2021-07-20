@@ -39,7 +39,7 @@ class BaseSerializeToJson(object):
         """ """
         return result
 
-    def _include_additional_values(self, result):
+    def _additional_values(self, result, additional_values):
         """ """
         return result
 
@@ -49,12 +49,14 @@ class BaseSerializeToJson(object):
         if self._get_param("extra_include", []):
             result = self._extra_include(result)
 
-        # when fullobjects, include_additional_values default is True
-        # when not fullobjects, include_additional_values default is False
-        if (self._get_param("fullobjects", False) and
-            self._get_param("include_additional_values", True)) or \
-           self._get_param("include_additional_values", False):
-            result = self._include_additional_values(result)
+        # when fullobjects, additional_values default is ["*"]
+        # when not fullobjects, additional_values default is []
+        if self._get_param("fullobjects", False):
+            additional_values = self._get_param("additional_values", ["*"])
+        else:
+            additional_values = self._get_param("additional_values", [])
+        if additional_values:
+            result = self._additional_values(result, additional_values)
 
         return result
 

@@ -194,10 +194,10 @@ class testServiceSearch(BaseTestCase):
             },
         )
         # extra_include meeting, need to pass also
-        # extra_include_meeting_include_additional_values=true
+        # extra_include_meeting_additional_values=*
         # to get additional_values like "formatted_date"
         endpoint_url = endpoint_url + \
-            "&extra_include=meeting&extra_include_meeting_include_additional_values=true"
+            "&extra_include=meeting&extra_include_meeting_additional_values=*"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
@@ -552,7 +552,7 @@ class testServiceSearch(BaseTestCase):
            - include_items: will include the contained elements;
            - include_target_url: will include the "targetUrl";
            - include_allow_discussion: will include infos about discussion;
-           - include_additional_values: will include the additional values.
+           - additional_values: will include given additional values.
         """
         # create 1 item
         self.changeUser("pmManager")
@@ -578,7 +578,7 @@ class testServiceSearch(BaseTestCase):
         self.assertFalse("items" in resp_json["items"][0])
         # we may get what we want, only get "@components"
         endpoint_url = "{0}/@search?config_id={1}&fullobjects=True" \
-            "&include_base_data=false&include_additional_values=false" \
+            "&include_base_data=false&additional_values=" \
             "&include_all=false&include_components=true".format(
                 self.portal_url, self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)

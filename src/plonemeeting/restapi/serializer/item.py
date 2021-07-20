@@ -69,31 +69,36 @@ class SerializeItemToJsonBase(object):
 
         return result
 
-    def _include_additional_values(self, result):
+    def _additional_values(self, result, additional_values):
         """ """
         # add some formatted values
-        result["formatted_itemAssembly"] = self.context.getItemAssembly(striked=True)
-        result["formatted_itemNumber"] = self.context.getItemNumber(for_display=True)
+        if "*" in additional_values or "formatted_itemAssembly" in additional_values:
+            result["formatted_itemAssembly"] = self.context.getItemAssembly(striked=True)
+        if "*" in additional_values or "formatted_itemNumber" in additional_values:
+            result["formatted_itemNumber"] = self.context.getItemNumber(for_display=True)
+
         # values including computed values
-        # XXX to be removed when using PloneMeeting 4.2 as now
-        # computed values are stored as well
         # need to use "token/title" format
         # all_copyGroups
-        all_copyGroups = self.context.getAllCopyGroups(
-            auto_real_plone_group_ids=True
-        )
-        vocab = self.context.getField('copyGroups').Vocabulary(self.context)
-        all_copyGroups = [
-            {"token": cg, "title": vocab.getValue(cg)}
-            for cg in all_copyGroups]
-        result["all_copyGroups"] = all_copyGroups
+        if "*" in additional_values or "all_copyGroups" in additional_values:
+            all_copyGroups = self.context.getAllCopyGroups(
+                auto_real_plone_group_ids=True
+            )
+            vocab = self.context.getField('copyGroups').Vocabulary(self.context)
+            all_copyGroups = [
+                {"token": cg, "title": vocab.getValue(cg)}
+                for cg in all_copyGroups]
+            result["all_copyGroups"] = all_copyGroups
         # all_groupsInCharge
-        all_groupsInCharge = self.context.getGroupsInCharge(includeAuto=True)
-        vocab = self.context.getField('groupsInCharge').Vocabulary(self.context)
-        all_groupsInCharge = [
-            {"token": gic, "title": vocab.getValue(gic)}
-            for gic in all_groupsInCharge]
-        result["all_groupsInCharge"] = all_groupsInCharge
+        # XXX to be removed when using PloneMeeting 4.2 as now
+        # groupsInCharge are stored including "auto" groupsInCharge
+        if "*" in additional_values or "all_groupsInCharge" in additional_values:
+            all_groupsInCharge = self.context.getGroupsInCharge(includeAuto=True)
+            vocab = self.context.getField('groupsInCharge').Vocabulary(self.context)
+            all_groupsInCharge = [
+                {"token": gic, "title": vocab.getValue(gic)}
+                for gic in all_groupsInCharge]
+            result["all_groupsInCharge"] = all_groupsInCharge
         return result
 
 
