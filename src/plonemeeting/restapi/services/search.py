@@ -81,6 +81,7 @@ class PMSearchGet(SearchGet):
     def _clean_query(self, query):
         """Remove parameters that are not indexes names to avoid warnings like :
            WARNING plone.restapi.search.query No such index: 'extra_include'"""
+        query.pop("additional_values", None)
         query.pop("base_search_uid", None)
         query.pop("config_id", None)
         query.pop("extra_include", None)
@@ -91,6 +92,12 @@ class PMSearchGet(SearchGet):
         for k in query.keys():
             if k.startswith(('include_', 'extra_include_')):
                 query.pop(k, None)
+        # remove either "linkedMeetingUID" or "meeting_uid"
+        catalog = self.context.portal_catalog
+        if "linkedMeetingUID" in catalog.Indexes:
+            query.pop("meeting_uid", None)
+        else:
+            query.pop("linkedMeetingUID", None)
 
     def reply(self):
         """Override to handle in_name_of."""

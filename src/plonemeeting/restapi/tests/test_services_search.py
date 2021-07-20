@@ -574,6 +574,7 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue("previous_item" in resp_json["items"][0])
         self.assertTrue("parent" in resp_json["items"][0])
         self.assertTrue("allow_discussion" in resp_json["items"][0])
+        self.assertTrue("layout" in resp_json["items"][0])
         self.assertTrue("formatted_itemNumber" in resp_json["items"][0])
         self.assertFalse("items" in resp_json["items"][0])
         # we may get what we want, only get "@components"
@@ -627,7 +628,6 @@ class testServiceSearch(BaseTestCase):
                           u'created',
                           u'id',
                           u'is_folderish',
-                          u'layout',
                           u'modified',
                           u'review_state',
                           u'title'])

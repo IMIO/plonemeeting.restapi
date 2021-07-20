@@ -87,7 +87,6 @@ class BaseSerializeToJson(object):
                 "review_state": self._get_workflow_state(obj),
                 "UID": obj.UID(),
                 "title": obj.Title(),
-                "layout": self.context.getLayout(),
                 "is_folderish": bool(getattr(aq_base(obj), 'isPrincipiaFolderish', False)),
             }
         return result
@@ -176,6 +175,13 @@ class BaseSerializeToJson(object):
             ).enabled()
         return result
 
+    def _include_layout(self, obj):
+        """ """
+        result = {}
+        if self.include_all or self._get_param('include_layout'):
+            result["layout"] = self.context.getLayout()
+        return result
+
     def _include_custom(self, obj, result):
         """Custom part made to be overrided when necessary."""
         return {}
@@ -221,6 +227,9 @@ class BaseSerializeToJson(object):
 
         # Include allow_discussion
         result.update(self._include_allow_discussion(obj))
+
+        # Include layout
+        result.update(self._include_layout(obj))
 
         # Include custom
         result.update(self._include_custom(obj, result))
