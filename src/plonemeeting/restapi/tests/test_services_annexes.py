@@ -94,6 +94,24 @@ class testServiceAnnexes(BaseTestCase):
         annex_infos = response.json()[0]
         self.assertEqual(annex_infos['UID'], annex.UID())
 
+    def test_restapi_annexes_include_categorized_infos(self):
+        """@annexes, it is possible to get categorized element infos."""
+        self.changeUser("pmManager")
+        item = self.create("MeetingItem")
+        self.addAnnex(item)
+        transaction.commit()
+        item_url = item.absolute_url()
+        endpoint_url = "{0}/@annexes?fullobjects&include_all=false&" \
+            "include_categorized_infos=false".format(item_url)
+        response = self.api_session.get(endpoint_url)
+        resp_json = response.json()
+        self.assertFalse("category_title" in resp_json[0])
+        endpoint_url = "{0}/@annexes?fullobjects&include_all=true&" \
+            "include_categorized_infos=false".format(item_url)
+        response = self.api_session.get(endpoint_url)
+        resp_json = response.json()
+        self.assertEqual(resp_json[0]["category_title"], u'Financial analysis')
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

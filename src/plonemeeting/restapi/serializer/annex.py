@@ -24,18 +24,12 @@ class AnnexSerializeToJson(BaseDXSerializeFolderToJson):
             parent = obj.aq_parent
             infos = _categorized_elements(parent)[obj.UID()]
             result = {
-                k: v for k, v in infos.items() if k not in result and not k.endswith("_url")
+                k: v for k, v in infos.items()
+                if k not in result and not k.endswith("_url")
             }
 
         return result
 
-    def __call__(self, version=None, include_items=True):
-        """ """
-        result = super(AnnexSerializeToJson, self).__call__(
-            version=version, include_items=include_items
-        )
-        version = "current" if version is None else version
-        obj = self.getVersion(version)
-
+    def _include_custom(self, obj, result):
         result.update(self._include_categorized_infos(obj))
         return result
