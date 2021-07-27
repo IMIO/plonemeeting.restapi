@@ -14,22 +14,19 @@ from zope.interface import Interface
 class AnnexSerializeToJson(BaseDXSerializeFolderToJson):
     """ """
 
-    def _include_categorized_infos(self, obj):
-        """Include iconificategory related attributes, extend result
-           with infos managed by collective.iconifiedcategory if not already in the result
-           ignore also _url related infos that use relative URi."""
-        result = {}
+    def _additional_values(self, result, additional_values):
+        """Let include every values available from
+           parent's categorized_elements."""
 
-        if self.include_all or self._get_param('include_categorized_infos'):
-            parent = obj.aq_parent
-            infos = _categorized_elements(parent)[obj.UID()]
-            result = {
-                k: v for k, v in infos.items()
-                if k not in result and not k.endswith("_url")
-            }
+        ignored_values = ["allowedRolesAndUsers", "visible_for_groups"]
 
-        return result
+        parent = self.context.aq_parent
+        infos = _categorized_elements(parent)[self.context.UID()]
+        values = {
+            k: v for k, v in infos.items()
+            if k not in result and not (k.endswith("_url") or k in ignored_values)
+            and (additional_values == "*" or k in additional_values)
+        }
 
-    def _include_custom(self, obj, result):
-        result.update(self._include_categorized_infos(obj))
+        result.update(values)
         return result

@@ -19,6 +19,9 @@ Changelog
   `groups_in_charge` and `associated_groups`.
   The `extra_include` named `proposingGroup` was renamed to `proposing_group`.
   [gbastien]
+- Use `additional_values` in annex serializer to get categorized element infos
+  instead yet another parameter `include_categorized_infos`.
+  [gbastien]
 
 1.0b2 (2021-07-16)
 ------------------
