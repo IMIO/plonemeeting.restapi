@@ -36,16 +36,6 @@ class testServiceAnnexes(BaseTestCase):
         self.addAnnex(item)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(len(response.json()), 2)
-        # contains extra attributes managed by collective.iconifiedcategory
-        # as attributes and not in the schema
-        annex1_infos = response.json()[0]
-        self.assertTrue("category_uid" in annex1_infos)
-        self.assertTrue("preview_status" in annex1_infos)
-        self.assertTrue("signed_activated" in annex1_infos)
-        self.assertTrue("signed" in annex1_infos)
-        self.assertTrue("publishable_activated" in annex1_infos)
-        self.assertTrue("publishable" in annex1_infos)
-        self.assertTrue("to_print" in annex1_infos)
 
     def test_restapi_annex_type_only_for_meeting_managers(self):
         """Make sure when a content_category is restricted to MeetingManagers,
@@ -58,7 +48,7 @@ class testServiceAnnexes(BaseTestCase):
         self.changeUser("pmManager")
         item = self.create("MeetingItem")
         item_url = item.absolute_url()
-        endpoint_url = "{0}/@annexes".format(item_url)
+        endpoint_url = "{0}/@annexes?fullobjects".format(item_url)
         annex = self.addAnnex(item)
         transaction.commit()
         self.assertEqual(
