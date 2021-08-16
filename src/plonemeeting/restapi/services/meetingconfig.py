@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from plone import api
-from plone.restapi.interfaces import ISerializeToJson
-from plone.restapi.interfaces import ISerializeToJsonSummary
 from plone.restapi.services import Service
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from zope.component import queryMultiAdapter
+from plonemeeting.restapi.utils import get_serializer
 
 
 class ConfigGet(Service):
@@ -20,10 +18,6 @@ class ConfigGet(Service):
         self.cfg = self.tool.get(config_id, None)
         if not self.cfg:
             raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
-        # fullobjects for MeetingConfig?
-        self.fullobjects = False
-        if "fullobjects" in self.request.form:
-            self.fullobjects = True
 
     @property
     def _config_id(self):
@@ -34,14 +28,5 @@ class ConfigGet(Service):
     def reply(self):
         # set context to MeetingConfig
         self.context = self.cfg
-
-        if self.fullobjects:
-            serializer = queryMultiAdapter((self.context, self.request), ISerializeToJson)
-        else:
-            serializer = queryMultiAdapter((self.context, self.request), ISerializeToJsonSummary)
-
-        if serializer is None:
-            self.request.response.setStatus(501)
-            return dict(error=dict(message="No serializer available."))
-
+        serializer = get_serializer(self.context)
         return serializer()

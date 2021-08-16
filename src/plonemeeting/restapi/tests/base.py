@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from plone.restapi.testing import RelativeSession
+from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.testing import PM_REST_TEST_PROFILE_FUNCTIONAL
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import PloneMeetingTestCase
@@ -24,3 +25,10 @@ class BaseTestCase(PloneMeetingTestCase):
         self.changeUser("siteadmin")
         self.getMeetingFolder(userId="pmManager")
         transaction.commit()
+
+    def get_review_state(self, obj):
+        """Backward compat method that manage queryState/query_state."""
+        if HAS_MEETING_DX:
+            return obj.query_state()
+        else:
+            return obj.queryState()

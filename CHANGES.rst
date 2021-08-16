@@ -1,7 +1,29 @@
 Changelog
 =========
 
-1.0b2 (unreleased)
+1.0b3 (unreleased)
+------------------
+
+- Make the summary serializer able to handle `extra_include` and
+  `additional_values`. For this, needed to change the way summary serializer is
+  handled by `plone.restapi` because by default there is one single summary
+  serializer for brain interface but we need to be able to register a summary
+  adapter for different interfaces (item, meeting, ...).
+  [gbastien]
+- Restored `Products.PloneMeeting 4.1.x/4.2.x` backward compatibility.
+  [gbastien]
+- Defined correct serializers for list fields so we have a `token/value`
+  representation in each case (AT/DX for single and multi valued select).
+  [gbastien]
+- Added some new `extra_include` for `MeetingItem`: `classifier`,
+  `groups_in_charge` and `associated_groups`.
+  The `extra_include` named `proposingGroup` was renamed to `proposing_group`.
+  [gbastien]
+- Use `additional_values` in annex serializer to get categorized element infos
+  instead yet another parameter `include_categorized_infos`.
+  [gbastien]
+
+1.0b2 (2021-07-16)
 ------------------
 
 - Adapted code and tests now that `Meeting` was moved from `AT` to `DX`.

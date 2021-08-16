@@ -85,10 +85,6 @@ class BasePost(FolderPost):
             return self._process_reply()
 
     @property
-    def _data(self):
-        return json_body(self.request)
-
-    @property
     def _optional_fields(self):
         return []
 

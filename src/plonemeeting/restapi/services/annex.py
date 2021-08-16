@@ -3,8 +3,8 @@
 from collective.iconifiedcategory.utils import get_categorized_elements
 from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import IExpandableElement
-from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.services import Service
+from plonemeeting.restapi.utils import get_serializer
 from Products.PloneMeeting.interfaces import IMeetingContent
 from zope.component import adapter
 from zope.component import getMultiAdapter
@@ -44,10 +44,8 @@ class Annexes(object):
                     break
             if not keep:
                 continue
-
-            serialized_annex = getMultiAdapter(
-                (annex, self.request), ISerializeToJson
-            )()
+            serializer = get_serializer(annex)
+            serialized_annex = serializer()
             result.append(serialized_annex)
         return result
 

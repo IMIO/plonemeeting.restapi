@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+from DateTime import DateTime
 from os import path
 from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
+from Products.PloneMeeting import tests as pm_tests
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import IMG_BASE64_DATA
-from Products.PloneMeeting import tests as pm_tests
 
 import transaction
 
@@ -70,10 +72,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 items
         self.changeUser("pmManager")
         item1 = self.create("MeetingItem")
-        self.assertEqual(item1.query_state(), "itemcreated")
+        self.assertEqual(self.get_review_state(item1), "itemcreated")
         item2 = self.create("MeetingItem")
         self.validateItem(item2)
-        self.assertEqual(item2.query_state(), "validated")
+        self.assertEqual(self.get_review_state(item2), "validated")
         transaction.commit()
 
         # found
@@ -112,9 +114,10 @@ class testServiceSearch(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         # items are returned sorted
+        items_getter = HAS_MEETING_DX and meeting.get_items or meeting.getItems
         self.assertEqual(
             [elt["UID"] for elt in response.json()[u"items"]],
-            [obj.UID() for obj in meeting.get_items(ordered=True)],
+            [obj.UID() for obj in items_getter(ordered=True)],
         )
         transaction.abort()
 
@@ -124,9 +127,13 @@ class testServiceSearch(BaseTestCase):
         cfg = self.meetingConfig
         self.changeUser("pmManager")
         cfg.setUseGroupsAsCategories(False)
+        self._enableField("groupsInCharge")
         self.getMeetingFolder()
         meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
-        item = self.create("MeetingItem")
+        item = self.create("MeetingItem",
+                           classifier="classifier1",
+                           groupsInCharge=(self.developers_uid, ),
+                           associatedGroups=(self.vendors_uid, ))
         item.setMotivation("<p>Motivation</p>")
         item.setDecision(self.decisionText)
         self.presentItem(item)
@@ -140,27 +147,27 @@ class testServiceSearch(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         # by default no extra include
-        self.assertFalse("extra_include_proposingGroup" in response.json()["items"][0])
-        # does not work if fullobjects is not used
-        endpoint_url = endpoint_url + "&extra_include=proposingGroup"
+        self.assertFalse("extra_include_proposing_group" in response.json()["items"][0])
+        # does work even when fullobjects is not used
+        endpoint_url = endpoint_url + "&extra_include=proposing_group"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertFalse("extra_include_proposingGroup" in response.json()["items"][0])
+        self.assertTrue("extra_include_proposing_group" in response.json()["items"][0])
         # now with fullobjects
         endpoint_url = endpoint_url + "&fullobjects"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
-        self.assertTrue("extra_include_proposingGroup" in json["items"][0])
+        self.assertTrue("extra_include_proposing_group" in json["items"][0])
         self.assertFalse("extra_include_category" in json["items"][0])
-        # extra_include proposingGroup and category
+        # extra_include proposing_group and category
         endpoint_url = endpoint_url + "&extra_include=category"
         transaction.begin()
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertEqual(
-            json["items"][0]["extra_include_proposingGroup"]["id"], u"developers"
+            json["items"][0]["extra_include_proposing_group"]["id"], u"developers"
         )
         self.assertEqual(
             json["items"][0]["extra_include_category"]["id"], u"development"
@@ -186,8 +193,11 @@ class testServiceSearch(BaseTestCase):
                 u"public_deliberation_decided": u"<p>Motivation</p><p>Some decision.</p>",
             },
         )
-        # extra_include meeting
-        endpoint_url = endpoint_url + "&extra_include=meeting"
+        # extra_include meeting, need to pass also
+        # extra_include_meeting_additional_values=*
+        # to get additional_values like "formatted_date"
+        endpoint_url = endpoint_url + \
+            "&extra_include=meeting&extra_include_meeting_additional_values=*"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
@@ -207,21 +217,48 @@ class testServiceSearch(BaseTestCase):
             resp_json["items"][0]["extra_include_meeting"]["formatted_date_long"],
             u'08 june 2020 (08:00)'
         )
-        # extra_include_fullobjects
+        # extra_include everything
+        endpoint_url = endpoint_url + "&extra_include=classifier"
+        endpoint_url = endpoint_url + "&extra_include=groups_in_charge"
+        endpoint_url = endpoint_url + "&extra_include=associated_groups"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
         # by default, extra_include are summary
         self.assertFalse("@components" in resp_json["items"][0]["extra_include_category"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_classifier"])
         self.assertFalse("@components" in resp_json["items"][0]["extra_include_meeting"])
-        self.assertFalse("@components" in resp_json["items"][0]["extra_include_proposingGroup"])
-        endpoint_url = endpoint_url + "&extra_include_fullobjects"
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_proposing_group"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_groups_in_charge"])
+        self.assertFalse("@components" in resp_json["items"][0]["extra_include_associated_groups"])
+        # extra_include_fullobjects
+        endpoint_url = endpoint_url + "&extra_include_category_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_classifier_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_meeting_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_proposing_group_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_groups_in_charge_fullobjects"
+        endpoint_url = endpoint_url + "&extra_include_associated_groups_fullobjects"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_category"])
-        self.assertTrue("@components" in resp_json["items"][0]["extra_include_proposingGroup"])
-        # for meeting moreover by default include_items=False
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_classifier"])
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_proposing_group"])
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_groups_in_charge"][0])
+        self.assertTrue("@components" in resp_json["items"][0]["extra_include_associated_groups"][0])
         self.assertTrue("@components" in resp_json["items"][0]["extra_include_meeting"])
-        self.assertFalse("items" in resp_json["items"][0]["extra_include_meeting"])
-        endpoint_url = endpoint_url + "&include_items=true"
+        self.assertEqual(resp_json["items"][0]["extra_include_classifier"]["id"],
+                         "classifier1")
+        self.assertEqual(resp_json["items"][0]["extra_include_groups_in_charge"][0]["id"],
+                         "developers")
+        self.assertEqual(resp_json["items"][0]["extra_include_associated_groups"][0]["id"],
+                         "vendors")
+
+        # for meeting moreover by default include_items=False
+        # in AT Meeting, we have a field called "items"...
+        if HAS_MEETING_DX:
+            self.assertFalse("items" in resp_json["items"][0]["extra_include_meeting"])
+        endpoint_url = endpoint_url + "&extra_include_meeting_include_items=true"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
@@ -273,10 +310,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         meeting = self.create("Meeting", date=datetime(2018, 11, 18))
-        self.assertEqual(meeting.query_state(), "created")
+        self.assertEqual(self.get_review_state(meeting), "created")
         meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.query_state(), "closed")
+        self.assertEqual(self.get_review_state(meeting2), "closed")
         transaction.commit()
 
         # found
@@ -305,12 +342,18 @@ class testServiceSearch(BaseTestCase):
 
         # create 2 meetings
         self.changeUser("pmManager")
-        meeting = self.create("Meeting", date=datetime(2019, 11, 18))
-        self.assertEqual(meeting.query_state(), "created")
-        meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
-        meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
+        if HAS_MEETING_DX:
+            meeting = self.create("Meeting", date=datetime(2019, 11, 18))
+            meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
+            meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
+        else:
+            meeting = self.create("Meeting", date=DateTime("2019/11/18"))
+            meeting2 = self.create("Meeting", date=DateTime("2019/11/19"))
+            meeting2.setAssembly(u'Mr Present, [[Mr Absent]], Mr Present2')
+
+        self.assertEqual(self.get_review_state(meeting), "created")
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.query_state(), "closed")
+        self.assertEqual(self.get_review_state(meeting2), "closed")
         transaction.commit()
 
         # found
@@ -327,7 +370,9 @@ class testServiceSearch(BaseTestCase):
 
         # includes every data as well as extra formatted values
         self.assertTrue("date" in resp_json["items"][0])
-        self.assertTrue("start_date" in resp_json["items"][0])
+        # AT/DX
+        self.assertTrue("startDate" in resp_json["items"][0] or
+                        "start_date" in resp_json["items"][0])
         self.assertTrue("notes" in resp_json["items"][0])
         self.assertEqual(
             resp_json["items"][0]["formatted_assembly"],
@@ -344,10 +389,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         meeting = self.create("Meeting", date=datetime(2020, 5, 10))
-        self.assertEqual(meeting.query_state(), "created")
+        self.assertEqual(self.get_review_state(meeting), "created")
         meeting2 = self.create("Meeting", date=datetime(2020, 5, 17))
         self.closeMeeting(meeting2)
-        self.assertEqual(meeting2.query_state(), "closed")
+        self.assertEqual(self.get_review_state(meeting2), "closed")
         transaction.commit()
         # only meeting is accepting items
         self.assertEqual(
@@ -494,6 +539,133 @@ class testServiceSearch(BaseTestCase):
         json = response.json()
         self.assertEqual(json[u"items_total"], 1)
         self.assertEqual(json[u"items"][0][u'id'], cfg.getId())
+
+    def test_restapi_search_fullobjects_and_includes(self):
+        """Several includes may be passed as parameter when "fullobjects" is used.
+           By default, "fullobjects" behavior is like in plone.restapi, it retuens every infos.
+           But we may pass additional includes:
+           - include_all: when set to false, nothing else but base data (id, uid, ...) are returned;
+           - include_base_data: will include base data like id, uid, review_state, ...;
+           - include_components: will include the "@components" section;
+           - include_nextprev: will include next/previous infos;
+           - include_parent: will serialize parent into "parent" key;
+           - include_items: will include the contained elements;
+           - include_target_url: will include the "targetUrl";
+           - include_allow_discussion: will include infos about discussion;
+           - additional_values: will include given additional values.
+        """
+        # create 1 item
+        self.changeUser("pmManager")
+        self.create("MeetingItem")
+        transaction.commit()
+
+        endpoint_url = "{0}/@search?config_id={1}&fullobjects=True".format(
+            self.portal_url, self.meetingConfig.getId()
+        )
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items_total"], 1)
+        # by default everything is there, except "items" that is False by default
+        self.assertTrue("@components" in resp_json["items"][0])
+        self.assertTrue("id" in resp_json["items"][0])
+        self.assertTrue("UID" in resp_json["items"][0])
+        self.assertTrue("next_item" in resp_json["items"][0])
+        self.assertTrue("previous_item" in resp_json["items"][0])
+        self.assertTrue("parent" in resp_json["items"][0])
+        self.assertTrue("allow_discussion" in resp_json["items"][0])
+        self.assertTrue("layout" in resp_json["items"][0])
+        self.assertTrue("formatted_itemNumber" in resp_json["items"][0])
+        self.assertFalse("items" in resp_json["items"][0])
+        # we may get what we want, only get "@components"
+        endpoint_url = "{0}/@search?config_id={1}&fullobjects=True" \
+            "&include_base_data=false&additional_values=" \
+            "&include_all=false&include_components=true".format(
+                self.portal_url, self.meetingConfig.getId())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items_total"], 1)
+        self.assertTrue("@components" in resp_json["items"][0])
+        self.assertFalse("id" in resp_json["items"][0])
+        self.assertFalse("UID" in resp_json["items"][0])
+        self.assertFalse("next_item" in resp_json["items"][0])
+        self.assertFalse("previous_item" in resp_json["items"][0])
+        self.assertFalse("parent" in resp_json["items"][0])
+        self.assertFalse("allow_discussion" in resp_json["items"][0])
+        self.assertFalse("formatted_itemNumber" in resp_json["items"][0])
+        self.assertFalse("items" in resp_json["items"][0])
+
+    def test_restapi_search_extra_includes_parameters(self):
+        """Every parameters may be passed to extra_includes:
+           Example: extra_include=category, enable fullobjects and include_all=true:
+           Parameters would be the following:
+           - extra_include=category;
+           - extra_include_category_fullobjects;
+           - extra_include_category_include_all=false.
+        """
+        cfg = self.meetingConfig
+        cfg.setUseGroupsAsCategories(False)
+        # create 2 items
+        self.changeUser("pmManager")
+        self.create("MeetingItem")
+        transaction.commit()
+
+        endpoint_url = "{0}/@search?config_id={1}&extra_include=category" \
+            "&extra_include_category_fullobjects" \
+            "&extra_include_category_include_components=true" \
+            "&extra_include_category_include_all=false".format(
+                self.portal_url, self.meetingConfig.getId())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        # we get @components and base data
+        self.assertEqual(sorted(resp_json["items"][0]["extra_include_category"].keys()),
+                         [u'@components',
+                          u'@id',
+                          u'@type',
+                          u'UID',
+                          u'created',
+                          u'id',
+                          u'is_folderish',
+                          u'modified',
+                          u'review_state',
+                          u'title'])
+
+    def test_restapi_search_metadata_fields(self):
+        """metadata_fields may be used:
+           - without fullobjects, the metadata catalog is used;
+           - with fullobjects, then it is used to select the fields we want.
+        """
+        cfg = self.meetingConfig
+        cfg.setUseGroupsAsCategories(False)
+        # create 2 items
+        self.changeUser("pmManager")
+        self.create("MeetingItem")
+        transaction.commit()
+
+        # get item base data + getItemNumber and category enabled and category_id
+        endpoint_url = "{0}/@search?config_id={1}" \
+            "&metadata_fields=getItemNumber" \
+            "&extra_include=category" \
+            "&extra_include_category_fullobjects" \
+            "&extra_include_category_include_all=false" \
+            "&extra_include_category_include_base_data=false" \
+            "&extra_include_category_metadata_fields=enabled" \
+            "&extra_include_category_metadata_fields=category_id".format(
+                self.portal_url, self.meetingConfig.getId())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        # item
+        self.assertEqual(sorted(resp_json["items"][0].keys()),
+                         [u'@id', u'@type', u'UID', u'created', u'description',
+                          u'enabled', u'extra_include_category', u'getItemNumber',
+                          u'id', u'modified', u'review_state', u'title'])
+        self.assertEqual(resp_json["items"][0]["getItemNumber"], 0)
+        # category
+        self.assertEqual(resp_json["items"][0]["extra_include_category"],
+                         {u'category_id': u'development', u'enabled': True})
 
 
 def test_suite():

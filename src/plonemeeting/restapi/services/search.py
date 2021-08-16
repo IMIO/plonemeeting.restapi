@@ -25,11 +25,6 @@ class PMSearchGet(SearchGet):
                 raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
 
     @property
-    def _additional_fields(self):
-        """ """
-        return ["UID"]
-
-    @property
     def _config_id(self):
         config_id = self.request.form.get("config_id", None)
         # config_id is required when self.type is "item" or "meeting"
@@ -86,13 +81,23 @@ class PMSearchGet(SearchGet):
     def _clean_query(self, query):
         """Remove parameters that are not indexes names to avoid warnings like :
            WARNING plone.restapi.search.query No such index: 'extra_include'"""
+        query.pop("additional_values", None)
         query.pop("base_search_uid", None)
         query.pop("config_id", None)
         query.pop("extra_include", None)
         query.pop("in_name_of", None)
         query.pop("meetings_accepting_items", None)
         query.pop("type", None)
-        query.pop("extra_include_fullobjects", None)
+        # remove every values starting with include_ or extra_include_
+        for k in query.keys():
+            if k.startswith(('include_', 'extra_include_')):
+                query.pop(k, None)
+        # remove either "linkedMeetingUID" or "meeting_uid"
+        catalog = self.context.portal_catalog
+        if "linkedMeetingUID" in catalog.Indexes:
+            query.pop("meeting_uid", None)
+        else:
+            query.pop("linkedMeetingUID", None)
 
     def reply(self):
         """Override to handle in_name_of."""

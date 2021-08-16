@@ -3,48 +3,67 @@
 from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plonemeeting.restapi.serializer.base import BaseDXSerializeToJson
+from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
+from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
-from Products.PloneMeeting.content.meeting import IMeeting
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
 
 
+# until every Products.PloneMeeting are not using version 4.2
+# we need to keep backward compatibility between Meeting using AT (4.1) and DX (4.2)
+HAS_MEETING_DX = False
+MeetingBaseClass = BaseATSerializeFolderToJson
+try:
+    from Products.PloneMeeting.content.meeting import IMeeting
+    HAS_MEETING_DX = True
+    MeetingBaseClass = BaseDXSerializeFolderToJson
+except ImportError:
+    from Products.PloneMeeting.interfaces import IMeeting
+
+
 class SerializeMeetingToJsonBase(object):
     """ """
 
-    def _additional_values(self, result):
+    def _additional_values(self, result, additional_values):
         """ """
-        tool = api.portal.get_tool('portal_plonemeeting')
         # add some formatted values
-        result["formatted_assembly"] = self.context.get_assembly(striked=True)
-        result["formatted_date"] = tool.format_date(
-            self.context.date, short=True, with_hour=True)
-        result["formatted_date_short"] = tool.format_date(
-            self.context.date, short=True, with_hour=False)
-        result["formatted_date_long"] = tool.format_date(
-            self.context.date, short=False, with_hour=True)
+        tool = api.portal.get_tool('portal_plonemeeting')
+        # Products.PloneMeeting 4.1/4.2 compatibility
+        if HAS_MEETING_DX:
+            if "*" in additional_values or "formatted_assembly" in additional_values:
+                result["formatted_assembly"] = self.context.get_assembly(striked=True)
+            if "*" in additional_values or "formatted_date" in additional_values:
+                result["formatted_date"] = tool.format_date(
+                    self.context.date, short=True, with_hour=True)
+            if "*" in additional_values or "formatted_date_short" in additional_values:
+                result["formatted_date_short"] = tool.format_date(
+                    self.context.date, short=True, with_hour=False)
+            if "*" in additional_values or "formatted_date_long" in additional_values:
+                result["formatted_date_long"] = tool.format_date(
+                    self.context.date, short=False, with_hour=True)
+        else:
+            # backward compat for AT
+            if "*" in additional_values or "formatted_assembly" in additional_values:
+                result["formatted_assembly"] = self.context.displayStrikedAssembly()
+            if "*" in additional_values or "formatted_date" in additional_values:
+                result["formatted_date"] = tool.formatMeetingDate(
+                    self.context, short=True, withHour=True)
+            if "*" in additional_values or "formatted_date_short" in additional_values:
+                result["formatted_date_short"] = tool.formatMeetingDate(
+                    self.context, short=True, withHour=False)
+            if "*" in additional_values or "formatted_date_long" in additional_values:
+                result["formatted_date_long"] = tool.formatMeetingDate(
+                    self.context, short=False, withHour=True)
 
         return result
 
 
 @implementer(ISerializeToJson)
 @adapter(IMeeting, Interface)
-class SerializeToJson(SerializeMeetingToJsonBase, BaseDXSerializeToJson):
+class SerializeToJson(SerializeMeetingToJsonBase, MeetingBaseClass):
     """ """
-
-    def __call__(self, version=None, include_items=False):
-        """Change include_items=False by default."""
-        # fullobjects for extra_includes?
-        self.extra_include_fullobjects = False
-        if "extra_include_fullobjects" in self.request.form:
-            self.extra_include_fullobjects = True
-        # override include_items
-        result = super(SerializeToJson, self).__call__(
-            version=version, include_items=include_items
-        )
-        return result
 
 
 @implementer(ISerializeToJsonSummary)
