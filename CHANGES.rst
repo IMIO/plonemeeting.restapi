@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc1 (unreleased)
+1.0rc1 (2021-08-17)
 -------------------
 
 - Make the summary serializer able to handle `extra_include` and
