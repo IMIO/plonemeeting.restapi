@@ -11,7 +11,7 @@ long_description = "\n\n".join(
 
 setup(
     name="plonemeeting.restapi",
-    version="1.0rc1",
+    version="1.0rc2.dev0",
     description="Extended rest api service for Products.PloneMeeting usecases",
     long_description=long_description,
     # Get more from https://pypi.python.org/pypi?%3Aaction=list_classifiers
