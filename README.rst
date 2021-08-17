@@ -28,8 +28,8 @@ and then running ``bin/buildout``
 Contribute
 ----------
 
-- Issue Tracker: https://github.com/collective/plonemeeting.restapi/issues
-- Source Code: https://github.com/collective/plonemeeting.restapi
+- Issue Tracker: https://github.com/IMIO/plonemeeting.restapi/issues
+- Source Code: https://github.com/IMIO/plonemeeting.restapi
 
 
 License
