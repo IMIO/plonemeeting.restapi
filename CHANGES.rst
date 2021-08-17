@@ -1,8 +1,8 @@
 Changelog
 =========
 
-1.0b3 (unreleased)
-------------------
+1.0rc1 (unreleased)
+-------------------
 
 - Make the summary serializer able to handle `extra_include` and
   `additional_values`. For this, needed to change the way summary serializer is
