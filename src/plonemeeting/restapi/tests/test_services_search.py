@@ -279,16 +279,12 @@ class testServiceSearch(BaseTestCase):
         data = open(file_path, "r")
         img_id = item.invokeFactory("Image", id="dot.gif", title="Image", file=data.read())
         img = getattr(item, img_id)
-        pattern = '<p>Text with image <img src="{0}" /> and more text.</p>'
+        pattern = '<p>Text with image <img src="{0}"/> and more text.</p>'
         text = pattern.format(img.absolute_url())
         item.setDecision(text)
         endpoint_url = "{0}/@search?config_id={1}&type=item&fullobjects" \
             "&extra_include=deliberation_decision".format(
                 self.portal_url, self.meetingConfig.getId())
-        # in tests the monkeypatch for safe_html.hasScript does not seem to be applied...
-        # so disable remove_javascript from safe_html
-        self.portal.portal_transforms.safe_html._config["remove_javascript"] = 0
-        self.portal.portal_transforms.reloadTransforms()
         transaction.commit()
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
