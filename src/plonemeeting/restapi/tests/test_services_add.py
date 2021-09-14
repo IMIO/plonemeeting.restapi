@@ -79,6 +79,7 @@ class testServiceAddItem(BaseTestCase):
            like "proposingGroup", "groupsInCharge", ... may have the organization id
            even if finally the UID is stored.
            If a wrong id/UID is given, an error is raised."""
+        transaction.begin()
         endpoint_url = "{0}/@item".format(self.portal_url)
         response = self.api_session.post(
             endpoint_url,
@@ -94,6 +95,7 @@ class testServiceAddItem(BaseTestCase):
             {u"message": ORG_FIELD_VALUE_ERROR % ("wrong-id", "proposingGroup"),
              u"type": u"BadRequest"}
         )
+        transaction.abort()
 
     def test_restapi_add_item_optional_fields(self):
         """When creating an item, given optional fields must be enabled in config."""
