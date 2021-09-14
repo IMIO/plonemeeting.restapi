@@ -14,6 +14,11 @@ Changelog
     an item without every data, the item will have to be completed in the Web UI.
 
   [gbastien]
+- Make sure `externalIdentifier` is always stored as a string, as it may be
+  passed in the @add endpoint as an integer, if it is stored as an integer,
+  it is not searchable in the `portal_catalog` using the `@search` endpoint
+  afterwards.
+  [gbastien]
 
 1.0rc1 (2021-08-17)
 -------------------
@@ -60,7 +65,7 @@ Changelog
   To handle this, it was necessary to implement a summary serializer for `Meeting`.
   [gbastien]
 - Added `test_restapi_search_items_extra_include_deliberation_images` showing
-  that images are received as base64 data value. 
+  that images are received as base64 data value.
   [gbastien]
 
 1.0b1 (2021-02-03)

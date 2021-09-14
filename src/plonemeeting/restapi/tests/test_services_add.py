@@ -9,6 +9,7 @@ from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import OPTIONAL_FIELD_ERROR
 from plonemeeting.restapi.services.add import OPTIONAL_FIELDS_WARNING
+from plonemeeting.restapi.services.add import ORG_FIELD_VALUE_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_REQUIRED_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_VALUED_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_WARNING
@@ -72,6 +73,27 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(item.Title(), "My item")
         self.assertEqual(item.getProposingGroup(), self.developers_uid)
         transaction.abort()
+
+    def test_restapi_add_item_turn_ids_into_uids_error(self):
+        """When creating an item, for convenience, fields holding organizations
+           like "proposingGroup", "groupsInCharge", ... may have the organization id
+           even if finally the UID is stored.
+           If a wrong id/UID is given, an error is raised."""
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        response = self.api_session.post(
+            endpoint_url,
+            json={
+                "config_id": self.meetingConfig.getId(),
+                "proposingGroup": "wrong-id",
+                "title": "My item",
+            },
+        )
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u"message": ORG_FIELD_VALUE_ERROR % ("wrong-id", "proposingGroup"),
+             u"type": u"BadRequest"}
+        )
 
     def test_restapi_add_item_optional_fields(self):
         """When creating an item, given optional fields must be enabled in config."""
@@ -455,15 +477,17 @@ class testServiceAddItem(BaseTestCase):
             "config_id": cfg.getId(),
             "proposingGroup": self.developers.getId(),
             "title": "My item",
-            "externalIdentifier": "my_external_id_123"
+            # may sometimes be given as an integer
+            "externalIdentifier": 123
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
         self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(item.externalIdentifier, "my_external_id_123")
-        brains = self.catalog(externalIdentifier="my_external_id_123")
+        # is forced to str when stored
+        self.assertEqual(item.externalIdentifier, "123")
+        brains = self.catalog(externalIdentifier="123")
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].UID, item.UID())
         transaction.abort()

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from collective.contact.plonegroup.utils import get_organizations
 from collective.iconifiedcategory.utils import calculate_category_id
 from imio.helpers.security import fplog
 from imio.restapi.services.add import FolderPost
@@ -14,17 +15,18 @@ from zExceptions import BadRequest
 
 ANNEX_CONTENT_CATEGORY_ERROR = 'Given content_category "%s" was not found!'
 IGNORE_VALIDATION_FOR_REQUIRED_ERROR = \
-    'You can not ignore validation for required fields! Define a value for "%s"!'
+    'You can not ignore validation for required fields! Define a value for %s!'
 IGNORE_VALIDATION_FOR_VALUED_ERROR = \
-    'You can not ignore validation for a field for which a value ' \
+    'You can not ignore validation of a field for which a value ' \
     'is provided, remove "%s" from data!'
 IGNORE_VALIDATION_FOR_WARNING = 'Validation was ignored for following fields: %s.'
 OPTIONAL_FIELD_ERROR = 'The optional field "%s" is not activated in this configuration! ' \
     'You can ignore optional fields errors by adding "ignore_not_used_data: true" to sent data.'
 OPTIONAL_FIELDS_WARNING = 'The following optional fields are not activated in ' \
-    'this configuration and were ignored: "%s".'
+    'this configuration and were ignored: %s.'
+ORG_FIELD_VALUE_ERROR = 'Error with value "%s" defined for field "%s"! Enter a valid organization id or UID.'
 REQUIRED_FIELDS = ["title", "proposingGroup"]
-UNKNOWN_DATA = "Following field names were ignored : \"%s\""
+UNKNOWN_DATA = "Following field names were ignored: %s"
 
 
 class BasePost(FolderPost):
@@ -48,6 +50,8 @@ class BasePost(FolderPost):
             data = self._check_ignore_validation_for(data)
             # turn ids to UIDs
             data = self._turn_ids_into_uids(data)
+            # fix data
+            data = self._fix_data(data)
         elif data["@type"].startswith("annex"):
             # reinject data from parent: config_id and in_name_of
             data["config_id"] = self.cfg.getId()
@@ -160,19 +164,37 @@ class BasePost(FolderPost):
         return []
 
     def _turn_ids_into_uids(self, data):
+        org_uids = get_organizations(only_selected=False, the_objects=False)
+
+        def _get_org_uid(field_name, field_value):
+            """Get org UID as given field_value may be an UID or an id."""
+
+            if field_value in org_uids:
+                return field_value
+            else:
+                org_uid = org_id_to_uid(field_value, raise_on_error=False)
+                if org_uid is None:
+                    raise BadRequest(ORG_FIELD_VALUE_ERROR % (field_value, field_name))
+                return org_uid
+
         for field_name in self._turn_ids_into_uids_fieldnames:
             field_value = data.get(field_name)
             if field_value:
                 if hasattr(field_value, "__iter__"):
-                    data[field_name] = [
-                        org_id_to_uid(v, raise_on_error=False) or v
-                        for v in field_value
-                        if v
-                    ]
+                    data[field_name] = []
+                    for v in field_value:
+                        data[field_name].append(_get_org_uid(field_name, v))
                 else:
-                    data[field_name] = (
-                        org_id_to_uid(field_value, raise_on_error=False) or field_value
-                    )
+                    data[field_name] = _get_org_uid(field_name, field_value)
+        return data
+
+    def _fix_data(self, data):
+        """Fix some data format."""
+        # externalIdentifier must be string
+        if "externalIdentifier" in data:
+            externalIdentifier = data["externalIdentifier"]
+            externalIdentifier = externalIdentifier and str(externalIdentifier) or ""
+            data["externalIdentifier"] = externalIdentifier
         return data
 
     def clean_data(self, data):
