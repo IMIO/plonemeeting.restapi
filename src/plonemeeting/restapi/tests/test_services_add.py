@@ -74,7 +74,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(item.getProposingGroup(), self.developers_uid)
         transaction.abort()
 
-    def test_restapi_add_item_turn_ids_into_uids_error(self):
+    def test_restapi_add_item_ids_into_uids_error(self):
         """When creating an item, for convenience, fields holding organizations
            like "proposingGroup", "groupsInCharge", ... may have the organization id
            even if finally the UID is stored.
@@ -89,6 +89,7 @@ class testServiceAddItem(BaseTestCase):
                 "title": "My item",
             },
         )
+        transaction.commit()
         self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
@@ -302,7 +303,6 @@ class testServiceAddItem(BaseTestCase):
     def test_restapi_add_item_with_annexes_filename_or_content_type_required(self):
         """When creating an item, we may add annexes as __children__,
            one of 'filename' or 'content-type' is required to determinate content_type."""
-        return
         transaction.begin()
         cfg = self.meetingConfig
         self.changeUser("pmManager")
