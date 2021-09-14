@@ -4,8 +4,16 @@ Changelog
 1.0rc2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Simplify external service call to @item POST (add item):
 
+  - Handle parameter `ignore_not_used_data:true` that will add a warning instead
+    raising an error if an optional field is given (in this case, the given
+    optional field value is ignored);
+  - Handle parameter `ignore_validation_for` that will bypass validation of given
+    fields if it is not in data or if it is empty. This makes it possible to add
+    an item without every data, the item will have to be completed in the Web UI.
+
+  [gbastien]
 
 1.0rc1 (2021-08-17)
 -------------------

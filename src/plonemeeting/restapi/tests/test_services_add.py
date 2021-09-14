@@ -8,6 +8,10 @@ from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import OPTIONAL_FIELD_ERROR
+from plonemeeting.restapi.services.add import OPTIONAL_FIELDS_WARNING
+from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_REQUIRED_ERROR
+from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_VALUED_ERROR
+from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_WARNING
 from plonemeeting.restapi.testing import PM_REST_TEST_ADD_PROFILE_FUNCTIONAL
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.tests.config import base64_pdf_data
@@ -86,7 +90,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
-            {u"message": OPTIONAL_FIELD_ERROR % "notes", u"type": u"BadRequest"},
+            {u"message": OPTIONAL_FIELD_ERROR % "notes", u"type": u"BadRequest"}
         )
         self._enableField("notes")
         transaction.commit()
@@ -98,6 +102,33 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(item.Title(), json["title"])
         self.assertEqual(item.getProposingGroup(), json["proposingGroup"])
         self.assertEqual(item.getNotes(), json["notes"])
+        transaction.abort()
+
+    def test_restapi_add_item_optional_fields_ignore_not_used_data(self):
+        """When creating an item, given optional fields must be enabled in config,
+           but when using parameter "ignore_not_used_data=true" then a warning
+           is added instead raising an error."""
+        cfg = self.meetingConfig
+        self.assertFalse("notes" in cfg.getUsedItemAttributes())
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers_uid,
+            "title": "My item",
+            "notes": u"<p>My notes</p>",
+            "ignore_not_used_data": True
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertTrue(OPTIONAL_FIELDS_WARNING % "notes" in response.json()['@warnings'])
+        pmFolder = self.getMeetingFolder()
+        item = pmFolder.objectValues()[-1]
+        self.assertEqual(item.Title(), json["title"])
+        self.assertEqual(item.getProposingGroup(), json["proposingGroup"])
+        # optional field not enable was ignore
+        self.assertFalse(item.getNotes())
         transaction.abort()
 
     def test_restapi_add_item_org_fields(self):
@@ -240,7 +271,7 @@ class testServiceAddItem(BaseTestCase):
             {
                 u"message": ANNEX_CONTENT_CATEGORY_ERROR % "unknown",
                 u"type": u"BadRequest",
-            },
+            }
         )
         transaction.abort()
 
@@ -277,7 +308,7 @@ class testServiceAddItem(BaseTestCase):
             {
                 u"message": ANNEX_CONTENT_CATEGORY_ERROR % "unknown",
                 u"type": u"BadRequest",
-            },
+            }
         )
         transaction.abort()
 
@@ -435,6 +466,78 @@ class testServiceAddItem(BaseTestCase):
         brains = self.catalog(externalIdentifier="my_external_id_123")
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].UID, item.UID())
+        transaction.abort()
+
+    def test_restapi_add_item_ignore_validation_for(self):
+        """When creating an item, it is possible to define
+           a list of fields to bypass validation for if it is empty."""
+        cfg = self.meetingConfig
+        cfg.setUseGroupsAsCategories(False)
+        self._enableField("classifier")
+        transaction.commit()
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            "category": "unknown",
+            "classifier": "classifier1"
+        }
+        # when using categories, creating an item without category fails
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u"[{'field': 'category', 'message': u'Please select a category.', "
+                         u"'error': 'ValidationError'}]",
+             u'type': u'BadRequest'}
+        )
+        # when using "ignore_validation_for", some required fields
+        # validation may not be bypassed
+        json["title"] = ""
+        json["ignore_validation_for"] = ["title"]
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {
+                u"message": IGNORE_VALIDATION_FOR_REQUIRED_ERROR % "title",
+                u"type": u"BadRequest",
+            }
+        )
+        # when using "ignore_validation_for", only empty values
+        # (or not given at all) validation may be bypassed
+        json["title"] = "My item"
+        json["ignore_validation_for"] = ["category"]
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {
+                u"message": IGNORE_VALIDATION_FOR_VALUED_ERROR % "category",
+                u"type": u"BadRequest",
+            }
+        )
+        # use "ignore_validation_for" correctly
+        # bypass category validation and classifier validation
+        # remove category from data and pass an empty classifier
+        # check also that such an item may be set to WF state "validated"
+        json["ignore_validation_for"] = ["category", "classifier"]
+        json.pop("category")
+        json["classifier"] = None
+        json["wf_transitions"] = ["propose", "validate"]
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        item = pmFolder.objectValues()[-1]
+        self.assertEqual(item.getCategory(), "")
+        self.assertEqual(item.getClassifier(), "")
+        self.assertEqual(item.query_state(), "validated")
+        # a warning was added nevertheless
+        self.assertEqual(response.json()['@warnings'],
+                         [IGNORE_VALIDATION_FOR_WARNING % "category, classifier"])
         transaction.abort()
 
 

@@ -4,7 +4,6 @@ from collective.iconifiedcategory.utils import calculate_category_id
 from imio.helpers.security import fplog
 from imio.restapi.services.add import FolderPost
 from plone import api
-from plone.restapi.deserializer import json_body
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.utils import check_in_name_of
@@ -13,8 +12,19 @@ from Products.PloneMeeting.utils import org_id_to_uid
 from zExceptions import BadRequest
 
 
-OPTIONAL_FIELD_ERROR = 'The optional field "%s" is not activated in this configuration!'
 ANNEX_CONTENT_CATEGORY_ERROR = 'Given content_category "%s" was not found!'
+IGNORE_VALIDATION_FOR_REQUIRED_ERROR = \
+    'You can not ignore validation for required fields! Define a value for "%s"!'
+IGNORE_VALIDATION_FOR_VALUED_ERROR = \
+    'You can not ignore validation for a field for which a value ' \
+    'is provided, remove "%s" from data!'
+IGNORE_VALIDATION_FOR_WARNING = 'Validation was ignored for following fields: %s.'
+OPTIONAL_FIELD_ERROR = 'The optional field "%s" is not activated in this configuration! ' \
+    'You can ignore optional fields errors by adding "ignore_not_used_data: true" to sent data.'
+OPTIONAL_FIELDS_WARNING = 'The following optional fields are not activated in ' \
+    'this configuration and were ignored: "%s".'
+REQUIRED_FIELDS = ["title", "proposingGroup"]
+UNKNOWN_DATA = "Following field names were ignored : \"%s\""
 
 
 class BasePost(FolderPost):
@@ -34,6 +44,8 @@ class BasePost(FolderPost):
         if data["@type"].startswith("Meeting"):
             # check that given values are useable, will raise if not
             data = self._check_optional_fields(data)
+            # check fields for which validation will be ignored
+            data = self._check_ignore_validation_for(data)
             # turn ids to UIDs
             data = self._turn_ids_into_uids(data)
         elif data["@type"].startswith("annex"):
@@ -95,15 +107,52 @@ class BasePost(FolderPost):
     def _check_optional_fields(self, data):
         optional_fields = self._optional_fields
         active_fields = self._active_fields
+        inactive_fields = []
+        ignore_not_used_data = data.get("ignore_not_used_data", False)
         for field_name, field_value in data.items():
             # if the field is an optional field that is not used
-            # and that has a value (contains data), we raise
+            # and that has a value (contains data), we warn if
+            # ignore_not_used_data or we raise
             if (
                 field_name in optional_fields
                 and field_name not in active_fields
                 and field_value
             ):
-                raise BadRequest(OPTIONAL_FIELD_ERROR % field_name)
+                if ignore_not_used_data:
+                    inactive_fields.append(field_name)
+                    data.pop(field_name)
+                else:
+                    raise BadRequest(OPTIONAL_FIELD_ERROR % field_name)
+
+        if inactive_fields:
+            self.warnings.append(OPTIONAL_FIELDS_WARNING %
+                                 u', '.join(inactive_fields))
+        return data
+
+    def _check_ignore_validation_for(self, data):
+        """Parameter "ignore_validation_for" will let ignore validation
+           of given fields for which no value was provided."""
+        ignore_validation_for = data.get("ignore_validation_for", [])
+        if ignore_validation_for:
+            # raise if trying to ignore validation of a required field
+            ignored_required_fields = set(ignore_validation_for).intersection(
+                REQUIRED_FIELDS)
+            if ignored_required_fields:
+                raise BadRequest(IGNORE_VALIDATION_FOR_REQUIRED_ERROR % u", ".join(
+                    ignored_required_fields))
+
+            # raise if trying to bypass validation and a value is given
+            ignored_valued_fields = [k for k, v in data.items()
+                                     if k in ignore_validation_for and v]
+            if ignored_valued_fields:
+                raise BadRequest(IGNORE_VALIDATION_FOR_VALUED_ERROR % u", ".join(
+                    ignored_valued_fields))
+
+            self.warnings.append(IGNORE_VALIDATION_FOR_WARNING %
+                                 u', '.join(ignore_validation_for))
+            # remove these fields from data to avoid setting a wrong empty value
+            for field_name in ignore_validation_for:
+                data.pop(field_name, None)
         return data
 
     @property
@@ -132,6 +181,7 @@ class BasePost(FolderPost):
         cleaned_data.pop("config_id", None)
         cleaned_data.pop("in_name_of", None)
         cleaned_data.pop("wf_transitions", None)
+        cleaned_data.pop("ignore_not_used_data", None)
         return cleaned_data
 
     def _after_reply_hook(self, serialized_obj):
@@ -151,10 +201,10 @@ class BasePost(FolderPost):
         fplog("create_by_ws_rest", extras=extras)
 
     def _check_unknown_data(self, serialized_obj):
-        diff = set(self.cleaned_data.keys()).difference(serialized_obj.keys())
+        ignored = ["ignore_validation_for"]
+        diff = set(self.cleaned_data.keys()).difference(serialized_obj.keys() + ignored)
         if diff:
-            unkown_msg = "Following field names were ignored : %s" % ", ".join(diff)
-            self.warnings.append(unkown_msg)
+            self.warnings.append(UNKNOWN_DATA % ", ".join(diff))
 
 
 class ItemPost(BasePost):
