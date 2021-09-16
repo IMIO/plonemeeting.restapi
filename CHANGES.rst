@@ -4,6 +4,9 @@ Changelog
 1.0rc2 (unreleased)
 -------------------
 
+- Use `Products.PloneMeeting.utils.convert2xhtml` to convert `text/html` data
+  to correct format (images to base64 data and xhtml compliant).
+  [gbastien]
 - Simplify external service call to @item POST (add item):
 
   - Handle parameter `ignore_not_used_data:true` that will add a warning instead

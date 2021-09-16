@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from imio.helpers.xhtml import imagesToData
 from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.serializer.atfields import DefaultFieldSerializer
 from plone.restapi.serializer.atfields import TextFieldSerializer
@@ -11,6 +10,7 @@ from Products.Archetypes.interfaces.field import ILinesField
 from Products.Archetypes.interfaces.field import IStringField
 from Products.Archetypes.interfaces.field import ITextField
 from Products.CMFCore.utils import getToolByName
+from Products.PloneMeeting.utils import convert2xhtml
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
@@ -52,7 +52,10 @@ class PMTextFieldSerializer(TextFieldSerializer):
         data = super(TextFieldSerializer, self).__call__()
         content_type = json_compatible(mimetypes_registry(data)[2].normalized())
         if content_type == u'text/html':
-            data = imagesToData(self.context, data)
+            data = convert2xhtml(self.context,
+                                 data,
+                                 image_src_to_data=True,
+                                 use_appy_pod_preprocessor=True)
         return {
             "content-type": json_compatible(content_type),
             "data": data,
