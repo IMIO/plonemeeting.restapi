@@ -346,7 +346,7 @@ class testServiceSearch(BaseTestCase):
             meeting = self.create("Meeting", date=DateTime("2019/11/18"))
             meeting2 = self.create("Meeting", date=DateTime("2019/11/19"))
             meeting2.setAssembly(u'Mr Present, [[Mr Absent]], Mr Present2')
-            self._add_image(meeting2)
+            img = self._add_image(meeting2)
             text = pattern.format(img.absolute_url())
             meeting2.setObservations(text)
 
