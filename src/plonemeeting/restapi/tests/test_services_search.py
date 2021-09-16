@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from DateTime import DateTime
-from os import path
+from imio.helpers.content import richtextval
 from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
@@ -10,7 +10,6 @@ from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
-from Products.PloneMeeting import tests as pm_tests
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import IMG_BASE64_DATA
 
@@ -275,10 +274,7 @@ class testServiceSearch(BaseTestCase):
         self.getMeetingFolder()
         item = self.create("MeetingItem")
         item.setMotivation("<p>Motivation</p>")
-        file_path = path.join(path.dirname(pm_tests.__file__), "dot.gif")
-        data = open(file_path, "r")
-        img_id = item.invokeFactory("Image", id="dot.gif", title="Image", file=data.read())
-        img = getattr(item, img_id)
+        img = self._add_image(item)
         pattern = '<p>Text with image <img src="{0}"/> and more text.</p>'
         text = pattern.format(img.absolute_url())
         item.setDecision(text)
@@ -338,14 +334,21 @@ class testServiceSearch(BaseTestCase):
 
         # create 2 meetings
         self.changeUser("pmManager")
+        pattern = '<p>Text with image <img src="{0}"/> and more text.</p>'
         if HAS_MEETING_DX:
             meeting = self.create("Meeting", date=datetime(2019, 11, 18))
             meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
             meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
+            img = self._add_image(meeting2)
+            text = pattern.format(img.absolute_url())
+            meeting2.observations = richtextval(text)
         else:
             meeting = self.create("Meeting", date=DateTime("2019/11/18"))
             meeting2 = self.create("Meeting", date=DateTime("2019/11/19"))
             meeting2.setAssembly(u'Mr Present, [[Mr Absent]], Mr Present2')
+            self._add_image(meeting2)
+            text = pattern.format(img.absolute_url())
+            meeting2.setObservations(text)
 
         self.assertEqual(self.get_review_state(meeting), "created")
         self.closeMeeting(meeting2)
@@ -373,6 +376,8 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(
             resp_json["items"][0]["formatted_assembly"],
             u'<p>Mr Present, <strike>Mr Absent</strike>, Mr Present2</p>')
+        self.assertEqual(resp_json["items"][0]["observations"]["data"],
+                         pattern.format(IMG_BASE64_DATA))
         transaction.abort()
 
     def test_restapi_search_meetings_accepting_items(self):

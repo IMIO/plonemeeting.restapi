@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from os import path
 from plone.restapi.testing import RelativeSession
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.testing import PM_REST_TEST_PROFILE_FUNCTIONAL
+from Products.PloneMeeting import tests as pm_tests
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import PloneMeetingTestCase
 
@@ -32,3 +34,11 @@ class BaseTestCase(PloneMeetingTestCase):
             return obj.query_state()
         else:
             return obj.queryState()
+
+    def _add_image(self, obj):
+        """ """
+        file_path = path.join(path.dirname(pm_tests.__file__), "dot.gif")
+        data = open(file_path, "r")
+        img_id = obj.invokeFactory("Image", id="dot.gif", title="Image", file=data.read())
+        img = getattr(obj, img_id)
+        return img

@@ -4,8 +4,9 @@ Changelog
 1.0rc2 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Use `Products.PloneMeeting.utils.convert2xhtml` to convert `text/html` data
+  to correct format (images to base64 data and xhtml compliant).
+  [gbastien]
 
 1.0rc1 (2021-08-17)
 -------------------
