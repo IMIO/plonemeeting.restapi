@@ -7,6 +7,21 @@ Changelog
 - Use `Products.PloneMeeting.utils.convert2xhtml` to convert `text/html` data
   to correct format (images to base64 data and xhtml compliant).
   [gbastien]
+- Simplify external service call to @item POST (add item):
+
+  - Handle parameter `ignore_not_used_data:true` that will add a warning instead
+    raising an error if an optional field is given (in this case, the given
+    optional field value is ignored);
+  - Handle parameter `ignore_validation_for` that will bypass validation of given
+    fields if it is not in data or if it is empty. This makes it possible to add
+    an item without every data, the item will have to be completed in the Web UI.
+
+  [gbastien]
+- Make sure `externalIdentifier` is always stored as a string, as it may be
+  passed in the @add endpoint as an integer, if it is stored as an integer,
+  it is not searchable in the `portal_catalog` using the `@search` endpoint
+  afterwards.
+  [gbastien]
 
 1.0rc1 (2021-08-17)
 -------------------
@@ -53,7 +68,7 @@ Changelog
   To handle this, it was necessary to implement a summary serializer for `Meeting`.
   [gbastien]
 - Added `test_restapi_search_items_extra_include_deliberation_images` showing
-  that images are received as base64 data value. 
+  that images are received as base64 data value.
   [gbastien]
 
 1.0b1 (2021-02-03)
