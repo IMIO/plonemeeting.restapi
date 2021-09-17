@@ -6,6 +6,7 @@ from datetime import timedelta
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import OPTIONAL_FIELD_ERROR
 from plonemeeting.restapi.services.add import OPTIONAL_FIELDS_WARNING
@@ -552,7 +553,9 @@ class testServiceAddItem(BaseTestCase):
         json["ignore_validation_for"] = ["category", "classifier"]
         json.pop("category")
         json["classifier"] = None
-        json["wf_transitions"] = ["propose", "validate"]
+        # triggering transitions without category only works with PM4.2+
+        if HAS_MEETING_DX:
+            json["wf_transitions"] = ["propose", "validate"]
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
         self.assertEqual(response.status_code, 201, response.content)
@@ -560,10 +563,12 @@ class testServiceAddItem(BaseTestCase):
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.getCategory(), "")
         self.assertEqual(item.getClassifier(), "")
-        self.assertEqual(item.query_state(), "validated")
         # a warning was added nevertheless
         self.assertEqual(response.json()['@warnings'],
                          [IGNORE_VALIDATION_FOR_WARNING % "category, classifier"])
+        # use getInfoFor instead query_state for PM 4.1/4.2 compat
+        if HAS_MEETING_DX:
+            self.assertEqual(self.get_review_state(item), "validated")
         transaction.abort()
 
 
