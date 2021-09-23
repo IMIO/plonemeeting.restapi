@@ -667,32 +667,37 @@ class testServiceSearch(BaseTestCase):
 
     def test_restapi_search_data_are_anonymized(self):
         """Data collected from PloneMeeting are anonymized."""
-        cfg = self.meetingConfig
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField("observations")
+        self._enableField("observations", related_to="Meeting")
+
         # create 2 items
-        text = '<p>Text shown<span class=""> text hidden</span>.</p>'
+        text = '<p>Text shown<span class="pm-anonymize"> text hidden</span> and ' \
+            'some <span class="highlight-red">highlighted text</span>.</p>'
+        anonymized_text = '<p>Text shown<span class="pm-anonymize"></span> and ' \
+            'some <span class="highlight-red">highlighted text</span>.</p>'
         self.changeUser("pmManager")
         item = self.create("MeetingItem")
-        item.setDescription(text)
+        item.setObservations(text)
         meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
         if HAS_MEETING_DX:
-            meeting.description = richtextval(text)
+            meeting.observations = richtextval(text)
         else:
-            meeting.setDescription(text)
+            meeting.setObsevations(text)
         transaction.commit()
 
         # query to get meeting and item description
-        endpoint_url = "{0}/@search?config_id={1}" \
-            "&include_base_data=false" \
-            "&metadata_fields=description" \
-            "&extra_include=meeting" \
-            "&extra_include_meeting_include_base_data=false" \
-            "&extra_include_meeting_metadatafields=description" \
+        endpoint_url = "{0}/@search?fullobjects" \
+            "&include_all=false" \
+            "&metadata_fields=observations" \
             "&UID={2}&UID={3}".format(
-            self.portal_url, self.meetingConfig.getId(), item.UID(), meeting.UID())
+                self.portal_url, self.meetingConfig.getId(),
+                item.UID(), meeting.UID())
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
+        self.assertEqual(resp_json["items_total"], 2)
+        self.assertEqual(resp_json["items"][0]["observations"]["data"], anonymized_text)
+        self.assertEqual(resp_json["items"][1]["observations"]["data"], anonymized_text)
 
 
 def test_suite():

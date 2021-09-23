@@ -6,6 +6,7 @@ from plone.restapi.interfaces import ISerializeToJsonSummary
 from AccessControl import Unauthorized
 from plone import api
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from Products.PloneMeeting.utils import convert2xhtml
 from zExceptions import BadRequest
 from zope.globalrequest import getRequest
 from zope.component import queryMultiAdapter
@@ -62,3 +63,12 @@ def get_param(value, default=False, extra_include_name=None, serializer=None):
     elif default in (True, False):
         param = boolean_value(param)
     return param
+
+
+def handle_html(obj, data):
+    """ """
+    return convert2xhtml(obj,
+                         data,
+                         image_src_to_data=True,
+                         anonymize=True,
+                         use_appy_pod_preprocessor=True)

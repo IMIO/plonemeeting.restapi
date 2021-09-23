@@ -22,6 +22,15 @@ Changelog
   it is not searchable in the `portal_catalog` using the `@search` endpoint
   afterwards.
   [gbastien]
+- Handle anonymization of content.  To do so, added `utils.handle_html` that
+  will handle every html data (AT pr DX) and make sure it is compliant with
+  what we need:
+
+  - images as base64 data;
+  - use `appy.pod` preprocessor to make sure we have valid XHTML;
+  - anonymize content if necessary.
+
+  [gbastien]
 
 1.0rc1 (2021-08-17)
 -------------------

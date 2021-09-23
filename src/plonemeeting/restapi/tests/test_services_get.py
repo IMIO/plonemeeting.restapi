@@ -19,7 +19,9 @@ class testServiceGetUid(BaseTestCase):
         super(testServiceGetUid, self).setUp()
         self.changeUser("pmManager")
         self.item1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
+        self.item1_uid = self.item1.UID()
         self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
+        self.item2_uid = self.item2.UID()
         self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
         transaction.commit()
 
@@ -35,7 +37,7 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(
             response.json(), {u"message": UID_REQUIRED_ERROR, u"type": u"Exception"}
         )
-        endpoint_url += "?UID={0}".format(self.item1.UID())
+        endpoint_url += "?UID={0}".format(self.item1_uid)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
 
@@ -83,14 +85,25 @@ class testServiceGetUid(BaseTestCase):
         """There is a @item convenience endpoint that is just a shortcut to @get"""
         self._check_get_uid_endpoint(obj=self.item1, endpoint_name="@item")
 
-    def test_restapi_get_uid_meeting(self):
-        """There is a @meeting convenience endpoint that is just a shortcut to @get"""
-        self._check_get_uid_endpoint(obj=self.meeting, endpoint_name="@meeting")
-
     def test_restapi_get_uid_item_wrong_type(self):
         """@item endpoint is supposed to return an item, so if we receive an UID
            of another type, we raise"""
         endpoint_url = "{0}/@item?UID={1}".format(
+            self.portal_url, self.portal.Members.pmManager.UID()
+        )
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(
+            response.json(), {u"message": UID_WRONG_TYPE_ERROR, u"type": u"BadRequest"}
+        )
+
+    def test_restapi_get_uid_meeting(self):
+        """There is a @meeting convenience endpoint that is just a shortcut to @get"""
+        self._check_get_uid_endpoint(obj=self.meeting, endpoint_name="@meeting")
+
+    def test_restapi_get_uid_meeting_wrong_type(self):
+        """@meeting endpoint is supposed to return a meeting, so if we receive an UID
+           of another type, we raise"""
+        endpoint_url = "{0}/@meeting?UID={1}".format(
             self.portal_url, self.portal.Members.pmManager.UID()
         )
         response = self.api_session.get(endpoint_url)

@@ -5,12 +5,12 @@ from plone.restapi.serializer.atfields import DefaultFieldSerializer
 from plone.restapi.serializer.atfields import TextFieldSerializer
 from plone.restapi.serializer.converters import json_compatible
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
+from plonemeeting.restapi.utils import handle_html
 from Products.Archetypes.interfaces import IBaseObject
 from Products.Archetypes.interfaces.field import ILinesField
 from Products.Archetypes.interfaces.field import IStringField
 from Products.Archetypes.interfaces.field import ITextField
 from Products.CMFCore.utils import getToolByName
-from Products.PloneMeeting.utils import convert2xhtml
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
@@ -52,10 +52,7 @@ class PMTextFieldSerializer(TextFieldSerializer):
         data = super(TextFieldSerializer, self).__call__()
         content_type = json_compatible(mimetypes_registry(data)[2].normalized())
         if content_type == u'text/html':
-            data = convert2xhtml(self.context,
-                                 data,
-                                 image_src_to_data=True,
-                                 use_appy_pod_preprocessor=True)
+            data = handle_html(self.context, data)
         return {
             "content-type": json_compatible(content_type),
             "data": data,

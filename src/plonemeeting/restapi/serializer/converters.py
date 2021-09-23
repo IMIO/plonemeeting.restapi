@@ -4,7 +4,7 @@ from plone.app.textfield.interfaces import IRichTextValue
 from plone.dexterity.interfaces import IDexterityContent
 from plone.restapi.interfaces import IContextawareJsonCompatible
 from plone.restapi.serializer.converters import RichtextDXContextConverter
-from Products.PloneMeeting.utils import convert2xhtml
+from plonemeeting.restapi.utils import handle_html
 from zope.component import adapter
 from zope.interface import implementer
 
@@ -15,9 +15,5 @@ class PMRichtextDXContextConverter(RichtextDXContextConverter):
 
     def __call__(self):
         result = super(PMRichtextDXContextConverter, self).__call__()
-        result["data"] = convert2xhtml(self.context,
-                                       result["data"],
-                                       image_src_to_data=True,
-                                       anonymize=True,
-                                       use_appy_pod_preprocessor=True)
+        result["data"] = handle_html(self.context, result["data"])
         return result
