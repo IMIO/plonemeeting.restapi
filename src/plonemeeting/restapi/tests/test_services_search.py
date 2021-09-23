@@ -678,6 +678,7 @@ class testServiceSearch(BaseTestCase):
         self.changeUser("pmManager")
         item = self.create("MeetingItem")
         item.setObservations(text)
+        item.setDecision(text)
         meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
         if HAS_MEETING_DX:
             meeting.observations = richtextval(text)
@@ -688,15 +689,24 @@ class testServiceSearch(BaseTestCase):
         # query to get meeting and item description
         endpoint_url = "{0}/@search?fullobjects" \
             "&include_all=false" \
+            "&extra_include=public_deliberation" \
             "&metadata_fields=observations" \
-            "&UID={2}&UID={3}".format(
+            "&UID={2}&UID={3}&sort_on=getId".format(
                 self.portal_url, self.meetingConfig.getId(),
                 item.UID(), meeting.UID())
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
         self.assertEqual(resp_json["items_total"], 2)
+        # item
+        # RichTextField
         self.assertEqual(resp_json["items"][0]["observations"]["data"], anonymized_text)
+        # RichText treated by printXhtml
+        self.assertEqual(
+            resp_json["items"][0]["extra_include_deliberation"]["public_deliberation"],
+            anonymized_text)
+        # meeting
+        # RichTextField
         self.assertEqual(resp_json["items"][1]["observations"]["data"], anonymized_text)
 
 
