@@ -675,7 +675,6 @@ class testServiceSearch(BaseTestCase):
         item = self.create("MeetingItem")
         item.setDescription(text)
         meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
-        import ipdb; ipdb.set_trace()
         if HAS_MEETING_DX:
             meeting.description = richtextval(text)
         else:
