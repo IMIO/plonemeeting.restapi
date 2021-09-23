@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from DateTime import DateTime
 from imio.helpers.content import richtextval
 from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
@@ -335,16 +334,14 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         pattern = '<p>Text with image <img src="{0}"/> and more text.</p>'
+        meeting = self.create("Meeting", date=datetime(2019, 11, 18))
+        meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
         if HAS_MEETING_DX:
-            meeting = self.create("Meeting", date=datetime(2019, 11, 18))
-            meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
             meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
             img = self._add_image(meeting2)
             text = pattern.format(img.absolute_url())
             meeting2.observations = richtextval(text)
         else:
-            meeting = self.create("Meeting", date=DateTime("2019/11/18"))
-            meeting2 = self.create("Meeting", date=DateTime("2019/11/19"))
             meeting2.setAssembly(u'Mr Present, [[Mr Absent]], Mr Present2')
             img = self._add_image(meeting2)
             text = pattern.format(img.absolute_url())
@@ -667,6 +664,36 @@ class testServiceSearch(BaseTestCase):
         # category
         self.assertEqual(resp_json["items"][0]["extra_include_category"],
                          {u'category_id': u'development', u'enabled': True})
+
+    def test_restapi_search_data_are_anonymized(self):
+        """Data collected from PloneMeeting are anonymized."""
+        cfg = self.meetingConfig
+        cfg.setUseGroupsAsCategories(False)
+        # create 2 items
+        text = '<p>Text shown<span class=""> text hidden</span>.</p>'
+        self.changeUser("pmManager")
+        item = self.create("MeetingItem")
+        item.setDescription(text)
+        meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
+        import ipdb; ipdb.set_trace()
+        if HAS_MEETING_DX:
+            meeting.description = richtextval(text)
+        else:
+            meeting.setDescription(text)
+        transaction.commit()
+
+        # query to get meeting and item description
+        endpoint_url = "{0}/@search?config_id={1}" \
+            "&include_base_data=false" \
+            "&metadata_fields=description" \
+            "&extra_include=meeting" \
+            "&extra_include_meeting_include_base_data=false" \
+            "&extra_include_meeting_metadatafields=description" \
+            "&UID={2}&UID={3}".format(
+            self.portal_url, self.meetingConfig.getId(), item.UID(), meeting.UID())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
 
 
 def test_suite():

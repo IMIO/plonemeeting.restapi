@@ -56,9 +56,18 @@ class UidGet(ContentGet):
 
 
 class ItemGet(UidGet):
-    """Get an item from it's UID, just check that returned value is an item."""
+    """Get an item from it's UID, just check that returned value is a MeetingItem."""
 
     def _check_obj(self):
         """ """
-        if not self.context.meta_type == "MeetingItem":
+        if not self.context.__class__.__name__ == "MeetingItem":
+            raise BadRequest(UID_WRONG_TYPE_ERROR)
+
+
+class MeetingGet(UidGet):
+    """Get a meeting from it's UID, just check that returned value is a Meeting."""
+
+    def _check_obj(self):
+        """ """
+        if not self.context.__class__.__name__ == "Meeting":
             raise BadRequest(UID_WRONG_TYPE_ERROR)

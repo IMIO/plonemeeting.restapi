@@ -40,6 +40,15 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
+  <!-- get UID meeting -->
+  <plone:service
+    method="GET"
+    for="Products.CMFCore.interfaces.IFolderish"
+    factory=".get.MeetingGet"
+    name="@meeting"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
   <!-- POST meeting -->
   <plone:service
     method="POST"

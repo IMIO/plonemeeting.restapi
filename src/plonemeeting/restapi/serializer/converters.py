@@ -18,5 +18,6 @@ class PMRichtextDXContextConverter(RichtextDXContextConverter):
         result["data"] = convert2xhtml(self.context,
                                        result["data"],
                                        image_src_to_data=True,
+                                       anonymize=True,
                                        use_appy_pod_preprocessor=True)
         return result

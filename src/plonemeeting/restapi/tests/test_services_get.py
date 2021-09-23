@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from plonemeeting.restapi.services.get import UID_NOT_ACCESSIBLE_ERROR
 from plonemeeting.restapi.services.get import UID_NOT_FOUND_ERROR
 from plonemeeting.restapi.services.get import UID_REQUIRED_ERROR
@@ -18,9 +19,8 @@ class testServiceGetUid(BaseTestCase):
         super(testServiceGetUid, self).setUp()
         self.changeUser("pmManager")
         self.item1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
-        self.item1_uid = self.item1.UID()
         self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
-        self.item2_uid = self.item2.UID()
+        self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
         transaction.commit()
 
     def tearDown(self):
@@ -62,25 +62,30 @@ class testServiceGetUid(BaseTestCase):
             },
         )
 
-    def _check_get_uid_endpoint(self, endpoint_name="@get"):
+    def _check_get_uid_endpoint(self, obj, endpoint_name="@get"):
         """ """
+        obj_uid = obj.UID()
         endpoint_url = "{0}/{1}?UID={2}".format(
-            self.portal_url, endpoint_name, self.item1_uid
+            self.portal_url, endpoint_name, obj_uid
         )
         response = self.api_session.get(endpoint_url)
         json = response.json()
-        self.assertEqual(json["id"], self.item1.getId())
-        self.assertEqual(json["UID"], self.item1_uid)
+        self.assertEqual(json["id"], obj.getId())
+        self.assertEqual(json["UID"], obj_uid)
         # by default, no items
         self.assertFalse("items" in json)
 
     def test_restapi_get_uid(self):
         """When given UID is accessible, it is returned"""
-        self._check_get_uid_endpoint()
+        self._check_get_uid_endpoint(obj=self.item1)
 
     def test_restapi_get_uid_item(self):
         """There is a @item convenience endpoint that is just a shortcut to @get"""
-        self._check_get_uid_endpoint(endpoint_name="@item")
+        self._check_get_uid_endpoint(obj=self.item1, endpoint_name="@item")
+
+    def test_restapi_get_uid_meeting(self):
+        """There is a @meeting convenience endpoint that is just a shortcut to @get"""
+        self._check_get_uid_endpoint(obj=self.meeting, endpoint_name="@meeting")
 
     def test_restapi_get_uid_item_wrong_type(self):
         """@item endpoint is supposed to return an item, so if we receive an UID
