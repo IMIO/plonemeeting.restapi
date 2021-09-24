@@ -39,7 +39,6 @@ class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
 
         results = {}
         results["@id"] = batch.canonical_url
-        results["items_total"] = batch.items_total
         links = batch.links
         if links:
             results["batching"] = links
@@ -47,27 +46,31 @@ class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
         results["items"] = []
         use_obj_summary = self._use_obj_summary_serializer(fullobjects)
         for brain in batch:
-            if fullobjects:
-                try:
-                    result = getMultiAdapter(
-                        (brain.getObject(), self.request), ISerializeToJson
-                    )(include_items=False)
-                except KeyError:
-                    # Guard in case the brain returned refers to an object that doesn't
-                    # exists because it failed to uncatalog itself or the catalog has
-                    # stale cataloged objects for some reason
-                    log.warning(
-                        "Brain getObject error: {} doesn't exist anymore".format(
-                            brain.getPath()
-                        )
-                    )
-            else:
-                # XXX use "brain.getObject()" instead "brain"
+            try:
                 obj = use_obj_summary and brain.getObject() or brain
+            except AttributeError:
+                # Guard in case the brain returned refers to an object that doesn't
+                # exists because it failed to uncatalog itself or the catalog has
+                # stale cataloged objects for some reason
+                log.warning(
+                    "Brain getObject error: {} doesn't exist anymore".format(
+                        brain.getPath()
+                    )
+                )
+                continue
+
+            if fullobjects:
+                result = getMultiAdapter(
+                    (obj, self.request), ISerializeToJson
+                )(include_items=False)
+            else:
                 result = getMultiAdapter(
                     (obj, self.request), ISerializeToJsonSummary
                 )()
 
             results["items"].append(result)
+
+        # compute items_total after results so we bypass not found brains
+        results["items_total"] = len(results["items"])
 
         return results

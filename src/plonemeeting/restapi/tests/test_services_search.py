@@ -10,6 +10,7 @@ from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
+from Products.PloneMeeting.MeetingItem import MeetingItem
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import IMG_BASE64_DATA
 
@@ -667,6 +668,37 @@ class testServiceSearch(BaseTestCase):
         # category
         self.assertEqual(resp_json["items"][0]["extra_include_category"],
                          {u'category_id': u'development', u'enabled': True})
+
+    def test_restapi_search_not_found_brain(self):
+        """Check that everything is behaving correctly when some brains
+        are lost in portal_catalog (object does not exist anymore)."""
+        self.changeUser("pmManager")
+        item1 = self.create("MeetingItem")
+        item1_uid = item1.UID()
+        item2 = self.create("MeetingItem")
+        # prevent unindex when deleting item1
+        old__unindexObject = MeetingItem.unindexObject
+        MeetingItem.unindexObject = lambda *args: None
+        self.deleteAsManager(item1_uid)
+        MeetingItem.unindexObject = old__unindexObject
+        self.assertTrue(self.catalog(UID=item1_uid))
+        self.assertFalse(item1 in item1.aq_parent.objectValues())
+        self.assertTrue(item2 in item1.aq_parent.objectValues())
+        transaction.commit()
+
+        # when using brains, 2 results
+        endpoint_url = "{0}/@search?config_id={1}&sort_on=getId".format(
+            self.portal_url, self.meetingConfig.getId())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json["items_total"], 2)
+        # with fullobjects, only 1 result
+        endpoint_url += "&fullobjects"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json["items_total"], 1)
 
 
 def test_suite():
