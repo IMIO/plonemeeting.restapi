@@ -692,13 +692,13 @@ class testServiceSearch(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
-        self.assertEqual(resp_json["items_total"], 2)
+        self.assertEqual(len(resp_json["items"]), 2)
         # with fullobjects, only 1 result
         endpoint_url += "&fullobjects"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
-        self.assertEqual(resp_json["items_total"], 1)
+        self.assertEqual(len(resp_json["items"]), 1)
 
 
 def test_suite():

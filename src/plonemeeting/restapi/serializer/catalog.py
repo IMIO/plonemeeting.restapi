@@ -39,6 +39,7 @@ class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
 
         results = {}
         results["@id"] = batch.canonical_url
+        results["items_total"] = batch.items_total
         links = batch.links
         if links:
             results["batching"] = links
@@ -69,8 +70,5 @@ class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
                 )()
 
             results["items"].append(result)
-
-        # compute items_total after results so we bypass not found brains
-        results["items_total"] = len(results["items"])
 
         return results
