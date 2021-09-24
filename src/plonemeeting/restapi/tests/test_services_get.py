@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.get import UID_NOT_ACCESSIBLE_ERROR
 from plonemeeting.restapi.services.get import UID_NOT_FOUND_ERROR
 from plonemeeting.restapi.services.get import UID_REQUIRED_ERROR
@@ -75,7 +76,10 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(json["id"], obj.getId())
         self.assertEqual(json["UID"], obj_uid)
         # by default, no items
-        self.assertFalse("items" in json)
+        # except for AT Meeting for which items is also a ReferenceField...
+        if (obj.__class__.__name__ == "Meeting" and HAS_MEETING_DX) or \
+           obj.__class__.__name__ != "Meeting":
+            self.assertFalse("items" in json)
 
     def test_restapi_get_uid(self):
         """When given UID is accessible, it is returned"""

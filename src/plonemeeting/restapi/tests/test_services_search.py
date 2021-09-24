@@ -711,11 +711,13 @@ class testServiceSearch(BaseTestCase):
         item = self.create("MeetingItem")
         item.setObservations(text)
         item.setDecision(text)
+        # in 4.1.x item observations was only readable until validated...
+        self.validateItem(item)
         meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
         if HAS_MEETING_DX:
             meeting.observations = richtextval(text)
         else:
-            meeting.setObsevations(text)
+            meeting.setObservations(text)
         transaction.commit()
 
         # query to get meeting and item description
