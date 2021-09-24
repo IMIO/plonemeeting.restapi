@@ -22,6 +22,10 @@ Changelog
   it is not searchable in the `portal_catalog` using the `@search` endpoint
   afterwards.
   [gbastien]
+- Fixed `PMLazyCatalogResultSerializer.__call__` to avoid an `UnboundLocalError`
+  or duplicates in results when the corresponding object does not exist anymore
+  for a brain or when a `KeyError` occured in call to serializer.
+  [gbastien]
 
 1.0rc1 (2021-08-17)
 -------------------
