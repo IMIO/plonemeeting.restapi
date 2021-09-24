@@ -234,7 +234,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(annex.file.contentType, "text/plain")
         transaction.abort()
 
-    def test_restapi_add_item_with_annexes_encoding(self):
+    def test_restapi_add_item_with_annexes_check_encoding(self):
         """When creating an item, we may add annexes as __children__,
            if encoding not given, we assume it is 'base64'."""
         cfg = self.meetingConfig

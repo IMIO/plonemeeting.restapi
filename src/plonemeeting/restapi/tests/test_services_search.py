@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from DateTime import DateTime
 from imio.helpers.content import richtextval
 from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
@@ -336,16 +335,14 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         pattern = '<p>Text with image <img src="{0}"/> and more text.</p>'
+        meeting = self.create("Meeting", date=datetime(2019, 11, 18))
+        meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
         if HAS_MEETING_DX:
-            meeting = self.create("Meeting", date=datetime(2019, 11, 18))
-            meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
             meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
             img = self._add_image(meeting2)
             text = pattern.format(img.absolute_url())
             meeting2.observations = richtextval(text)
         else:
-            meeting = self.create("Meeting", date=DateTime("2019/11/18"))
-            meeting2 = self.create("Meeting", date=DateTime("2019/11/19"))
             meeting2.setAssembly(u'Mr Present, [[Mr Absent]], Mr Present2')
             img = self._add_image(meeting2)
             text = pattern.format(img.absolute_url())
@@ -699,6 +696,50 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
         self.assertEqual(len(resp_json["items"]), 1)
+
+    def test_restapi_search_data_are_anonymized(self):
+        """Data collected from PloneMeeting are anonymized."""
+        self._enableField("observations")
+        self._enableField("observations", related_to="Meeting")
+
+        # create 2 items
+        text = '<p>Text shown<span class="pm-anonymize"> text hidden</span> and ' \
+            'some <span class="highlight-red">highlighted text</span>.</p>'
+        anonymized_text = '<p>Text shown<span class="pm-anonymize"></span> and ' \
+            'some <span class="highlight-red">highlighted text</span>.</p>'
+        self.changeUser("pmManager")
+        item = self.create("MeetingItem")
+        item.setObservations(text)
+        item.setDecision(text)
+        meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
+        if HAS_MEETING_DX:
+            meeting.observations = richtextval(text)
+        else:
+            meeting.setObsevations(text)
+        transaction.commit()
+
+        # query to get meeting and item description
+        endpoint_url = "{0}/@search?fullobjects" \
+            "&include_all=false" \
+            "&extra_include=public_deliberation" \
+            "&metadata_fields=observations" \
+            "&UID={2}&UID={3}&sort_on=getId".format(
+                self.portal_url, self.meetingConfig.getId(),
+                item.UID(), meeting.UID())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json["items_total"], 2)
+        # item
+        # RichTextField
+        self.assertEqual(resp_json["items"][0]["observations"]["data"], anonymized_text)
+        # RichText treated by printXhtml
+        self.assertEqual(
+            resp_json["items"][0]["extra_include_deliberation"]["public_deliberation"],
+            anonymized_text)
+        # meeting
+        # RichTextField
+        self.assertEqual(resp_json["items"][1]["observations"]["data"], anonymized_text)
 
 
 def test_suite():
