@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0rc3 (unreleased)
+-------------------
+
+- Nothing changed yet.
+
+
 1.0rc2 (2021-09-28)
 -------------------
 
