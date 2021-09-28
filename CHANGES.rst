@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc2 (unreleased)
+1.0rc2 (2021-09-28)
 -------------------
 
 - Use `Products.PloneMeeting.utils.convert2xhtml` to convert `text/html` data
