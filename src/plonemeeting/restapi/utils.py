@@ -18,7 +18,7 @@ def check_in_name_of(instance, data):
     """ """
     in_name_of = data.get("in_name_of", None)
     if in_name_of:
-        if not bool(instance.tool.isManager(instance.cfg)):
+        if not bool(may_access_config_endpoints(instance.cfg)):
             raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
         user = api.user.get(in_name_of)
         if not user:
@@ -72,3 +72,15 @@ def handle_html(obj, data):
                          image_src_to_data=True,
                          anonymize=True,
                          use_appy_pod_preprocessor=True)
+
+
+def may_access_config_endpoints(context):
+    '''
+      This will be used to protect access to some config endpoints or
+      functionnalities like "in_name_of".
+    '''
+    res = False
+    tool = api.portal.get_tool('portal_plonemeeting')
+    if tool.isManager(context) or tool.userIsAmong(['meetingmanagers']):
+        res = True
+    return res

@@ -4,8 +4,11 @@ Changelog
 1.0rc3 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Extended `@users` `plone.restapi` endpoint that by default get infos for
+  a single user or let query several users.
+  Added parameter `?include_groups=true`, a `groups` key is added with user
+  groups token/title list.
+  [gbastien]
 
 1.0rc2 (2021-09-28)
 -------------------

@@ -90,4 +90,13 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
+  <!-- get users -->
+  <plone:service
+      method="GET"
+      factory=".users.PMUsersGet"
+      for="Products.CMFCore.interfaces.ISiteRoot"
+      permission="zope2.View"
+      layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+      name="@users" />
+
 </configure>
