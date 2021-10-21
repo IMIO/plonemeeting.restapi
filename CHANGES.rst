@@ -4,8 +4,10 @@ Changelog
 1.0rc3 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Added `@users` endpoint to be able to get infos for a single user or
+  the query several users.  When parameter `?include_groups=true`,
+  a `groups` key is added with user groups token/title list.
+  [gbastien]
 
 1.0rc2 (2021-09-28)
 -------------------

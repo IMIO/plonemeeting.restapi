@@ -18,6 +18,10 @@
     <adapter factory=".meetingconfig.SerializeToJsonSummary" />
     <adapter factory=".summary.PMJSONSummarySerializer" />
 
+    <!-- User serializers -->
+    <adapter factory=".user.SerializeUserToJson" />
+    <adapter factory=".user.SerializeUserToJsonSummary" />
+
     <!-- DX field serializers -->
     <adapter factory=".dxfields.PMChoiceFieldSerializer" />
     <adapter factory=".dxfields.PMCollectionFieldSerializer" />
