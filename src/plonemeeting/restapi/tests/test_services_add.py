@@ -8,12 +8,12 @@ from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
-from plonemeeting.restapi.services.add import OPTIONAL_FIELD_ERROR
-from plonemeeting.restapi.services.add import OPTIONAL_FIELDS_WARNING
-from plonemeeting.restapi.services.add import ORG_FIELD_VALUE_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_REQUIRED_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_VALUED_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_WARNING
+from plonemeeting.restapi.services.add import OPTIONAL_FIELD_ERROR
+from plonemeeting.restapi.services.add import OPTIONAL_FIELDS_WARNING
+from plonemeeting.restapi.services.add import ORG_FIELD_VALUE_ERROR
 from plonemeeting.restapi.testing import PM_REST_TEST_ADD_PROFILE_FUNCTIONAL
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.tests.config import base64_pdf_data

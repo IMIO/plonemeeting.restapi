@@ -34,10 +34,7 @@ from zope.schema import getFields
 
 
 class BaseSerializeToJson(object):
-    """ """
-    def _extra_include(self, result):
-        """ """
-        return result
+    """__call__ must be redefined by class heritating from BaseSerializeToJson."""
 
     def _additional_values(self, result, additional_values):
         """ """
@@ -72,6 +69,10 @@ class BaseSerializeToJson(object):
                          default=default,
                          extra_include_name=extra_include_name,
                          serializer=self)
+
+
+class ContentSerializeToJson(BaseSerializeToJson):
+    """ """
 
     def _include_base_data(self, obj):
         """ """
@@ -241,7 +242,7 @@ class BaseSerializeToJson(object):
 
 @implementer(ISerializeToJson)
 @adapter(Interface, Interface)
-class BaseATSerializeFolderToJson(BaseSerializeToJson, ATSerializeFolderToJson):
+class BaseATSerializeFolderToJson(ContentSerializeToJson, ATSerializeFolderToJson):
     """ """
 
     def _include_fields(self, obj):
@@ -270,7 +271,7 @@ class BaseATSerializeFolderToJson(BaseSerializeToJson, ATSerializeFolderToJson):
 
 @implementer(ISerializeToJson)
 @adapter(IDexterityContent, IPMRestapiLayer)
-class BaseDXSerializeToJson(BaseSerializeToJson, IMIODXSerializeToJson):
+class BaseDXSerializeToJson(ContentSerializeToJson, IMIODXSerializeToJson):
     """ """
 
     def _include_fields(self, obj):
@@ -301,5 +302,5 @@ class BaseDXSerializeToJson(BaseSerializeToJson, IMIODXSerializeToJson):
 
 @implementer(ISerializeToJson)
 @adapter(IDexterityContainer, IPMRestapiLayer)
-class BaseDXSerializeFolderToJson(BaseDXSerializeToJson, IMIODXSerializeFolderToJson):
+class BaseDXSerializeFolderToJson(ContentSerializeToJson, IMIODXSerializeFolderToJson):
     """ """

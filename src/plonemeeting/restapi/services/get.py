@@ -5,6 +5,7 @@ from plone import api
 from plone.restapi.services.content.get import ContentGet
 from zExceptions import BadRequest
 
+
 UID_REQUIRED_ERROR = 'The "UID or uid" parameter must be given!'
 UID_NOT_FOUND_ERROR = 'No element found with UID "%s"!'
 UID_NOT_ACCESSIBLE_ERROR = (

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from imio.restapi.serializer.base import DefaultJSONSummarySerializer
-from plone.restapi.interfaces import ISerializeToJsonSummary
-from plonemeeting.restapi.serializer.base import BaseSerializeToJson
-from Products.ZCatalog.interfaces import ICatalogBrain
 from OFS.interfaces import IItem
+from plone.restapi.interfaces import ISerializeToJsonSummary
+from plonemeeting.restapi.serializer.base import ContentSerializeToJson
+from Products.ZCatalog.interfaces import ICatalogBrain
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
@@ -12,7 +12,7 @@ from zope.interface import Interface
 
 @implementer(ISerializeToJsonSummary)
 @adapter(ICatalogBrain, Interface)
-class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, BaseSerializeToJson):
+class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializeToJson):
     """ISerializeToJsonSummary adapter for brain."""
 
     @property
