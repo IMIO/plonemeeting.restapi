@@ -2,18 +2,25 @@
 
 from collective.contact.plonegroup.utils import get_organizations
 from collective.iconifiedcategory.utils import calculate_category_id
+from imio.helpers.content import get_vocab
 from imio.helpers.security import fplog
 from imio.restapi.services.add import FolderPost
 from plone import api
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.services.get import _get_obj_from_uid
 from plonemeeting.restapi.utils import check_in_name_of
 from Products.PloneMeeting.utils import add_wf_history_action
+from Products.PloneMeeting.utils import get_annexes_config
 from Products.PloneMeeting.utils import org_id_to_uid
 from zExceptions import BadRequest
+from zope.interface import implementer
+from zope.publisher.interfaces import IPublishTraverse
+from zope.publisher.interfaces import NotFound
 
 
-ANNEX_CONTENT_CATEGORY_ERROR = 'Given content_category "%s" was not found!'
+ANNEX_CONTENT_CATEGORY_ERROR = 'Given content_category "%s" was not found or ' \
+    'is not useable for added annex!'
 IGNORE_VALIDATION_FOR_REQUIRED_ERROR = \
     'You can not ignore validation for required fields! Define a value for %s!'
 IGNORE_VALIDATION_FOR_VALUED_ERROR = \
@@ -56,18 +63,17 @@ class BasePost(FolderPost):
             # reinject data from parent: config_id and in_name_of
             data["config_id"] = self.cfg.getId()
             if not data.get("in_name_of", None) and self.parent_data.get(
-                "in_name_of", None
-            ):
+               "in_name_of", None):
                 data["in_name_of"] = self.parent_data["in_name_of"]
-            if data["@type"] == "annex":
-                # turn annex_type into content_category
-                content_category = data["content_category"]
-                annex_type = self.cfg.annexes_types.item_annexes.get(content_category)
-                if not annex_type:
-                    raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
-                annex_type_value = calculate_category_id(annex_type)
-                data["content_category"] = annex_type_value
-
+            # when adding a single annex, self is an AnnexPost instance
+            # when adding an item with __children__ annexes it is not
+            # the case but we use the _turn_ids_into_uids from AnnexPost
+            # to cleanup data
+            annex_post = self
+            if not isinstance(annex_post, AnnexPost):
+                annex_post = AnnexPost(self.context, self.request)
+                annex_post._container = self.context
+            data = annex_post._turn_ids_into_uids(data)
         return data
 
     def _prepare_data_config_id(self, data):
@@ -75,19 +81,16 @@ class BasePost(FolderPost):
             raise Exception(CONFIG_ID_ERROR)
         return data.get("config_id", self.parent_data.get("config_id"))
 
-    def _prepare_data_type(self, data):
-        if "@type" not in data or "@type" == "item":
-            data["@type"] = self.cfg.getItemTypeName()
-        elif "@type" == "meeting":
-            data["@type"] = self.cfg.getMeetingTypeName()
-        return data.get("@type")
+    def _get_container(self):
+        """ """
+        return self.tool.getPloneMeetingFolder(self.cfg.getId())
 
     def _process_reply(self):
         # change context, the view is called on portal, when need
         # the set context to place where element will be added
         # if we have something else, probably we are adding an annex into an item or meeting
         if self.context.portal_type == "Plone Site":
-            self.context = self.tool.getPloneMeetingFolder(self.cfg.getId())
+            self.context = self._get_container()
         serialized_obj = super(BasePost, self)._reply()
         self._check_unknown_data(serialized_obj)
         return serialized_obj
@@ -256,6 +259,11 @@ class ItemPost(BasePost):
             )
         return warning_message
 
+    def _prepare_data_type(self, data):
+        if not data.get("@type"):
+            data["@type"] = self.cfg.getItemTypeName()
+        return data.get("@type")
+
 
 class MeetingPost(BasePost):
     @property
@@ -265,3 +273,64 @@ class MeetingPost(BasePost):
     @property
     def _active_fields(self):
         return self.cfg.getUsedMeetingAttributes()
+
+    def _prepare_data_type(self, data):
+        data["@type"] = self.cfg.getMeetingTypeName()
+        return data.get("@type")
+
+
+@implementer(IPublishTraverse)
+class AnnexPost(BasePost):
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.container_uid = None
+        self._container = None
+
+    def publishTraverse(self, request, name):
+        if self.container_uid is None:
+            self.container_uid = name
+        else:
+            raise NotFound(self, name, request)
+        return self
+
+    @property
+    def container(self):
+        if not self._container:
+            self._container = _get_obj_from_uid(self.container_uid)
+            self.context = self._container
+        return self.context
+
+    def _get_container(self):
+        """ """
+        return self.context
+
+    def _prepare_data_config_id(self, data):
+        tool = api.portal.get_tool("portal_plonemeeting")
+        cfg = tool.getMeetingConfig(self.container)
+        return cfg.getId()
+
+    def _prepare_data_type(self, data):
+        data["@type"] = data.get("decision_related", False) and "annexDecision" or "annex"
+        return data.get("@type")
+
+    def _turn_ids_into_uids(self, data):
+        # turn annex_type id into content_category calculated id
+        content_category = data["content_category"]
+        if data["@type"] == "annexDecision":
+            self.request.set('force_use_item_decision_annexes_group', False)
+        annex_group = get_annexes_config(self.context, data["@type"], annex_group=True)
+        annex_type = annex_group.get(content_category)
+        if not annex_type:
+            raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
+        # check that given annex_type is useable
+        # get info from vocabulary that manage only_for_meeting_managers
+        if data["@type"] == "annexDecision":
+            self.request.set('force_use_item_decision_annexes_group', True)
+        vocab = get_vocab(self.context, 'collective.iconifiedcategory.categories')
+        annex_type_value = calculate_category_id(annex_type)
+        if annex_type_value not in vocab:
+            raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
+        data["content_category"] = annex_type_value
+        return data

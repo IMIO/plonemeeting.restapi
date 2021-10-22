@@ -16,6 +16,9 @@ Changelog
 
   [gbastien]
 
+- Added `@annex` POST endpoint to be able to add an annex on an existing element.
+  [gbastien]
+
 1.0rc2 (2021-09-28)
 -------------------
 
