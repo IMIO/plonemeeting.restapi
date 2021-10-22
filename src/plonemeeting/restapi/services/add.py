@@ -84,7 +84,12 @@ class BasePost(FolderPost):
             # to cleanup data
             annex_post = self
             if not isinstance(annex_post, AnnexPost):
-                annex_post = traverse(self.request, path="/mc30b/@annex/{0}".format(self.context.UID()))
+                portal = api.portal.get()
+                annex_post = traverse(
+                    self.request,
+                    path="{0}/@annex/{1}".format(
+                        "/".join(portal.getPhysicalPath()),
+                        self.context.UID()))
                 annex_post.context = annex_post.container
             data = annex_post._turn_ids_into_uids(data)
         return data
