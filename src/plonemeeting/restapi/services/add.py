@@ -283,7 +283,6 @@ class MeetingPost(BasePost):
 class AnnexPost(BasePost):
 
     def __init__(self, context, request):
-        super(AnnexPost, self).__init__(context, request)
         self.context = context
         self.request = request
         self.warnings = []
