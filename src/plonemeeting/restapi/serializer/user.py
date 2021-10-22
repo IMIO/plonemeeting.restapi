@@ -16,7 +16,7 @@ from zope.interface import implementer
 class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
 
     def __call__(self):
-        result = super(PMBaseSerializer, self).__call__()
+        result = super(PMBaseUserSerializer, self).__call__()
         # call _after__call__ that manages additional_values and extra_includes
         result = self._after__call__(result)
         return result
