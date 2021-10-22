@@ -4,17 +4,16 @@ from imio.restapi.utils import listify
 from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plone.restapi.serializer.user import BaseSerializer
+from plone.restapi.serializer.user import BaseSerializer as BaseUserSerializer
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.serializer.base import BaseSerializeToJson
-from plonemeeting.restapi.utils import get_param
 from Products.CMFCore.interfaces._tools import IMemberData
 from Products.CMFPlone.utils import safe_unicode
 from zope.component import adapter
 from zope.interface import implementer
 
 
-class PMBaseSerializer(BaseSerializer, BaseSerializeToJson):
+class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
 
     def __call__(self):
         result = super(PMBaseSerializer, self).__call__()
@@ -56,11 +55,11 @@ class PMBaseSerializer(BaseSerializer, BaseSerializeToJson):
 
 @implementer(ISerializeToJson)
 @adapter(IMemberData, IPMRestapiLayer)
-class SerializeUserToJson(PMBaseSerializer):
+class SerializeUserToJson(PMBaseUserSerializer):
     pass
 
 
 @implementer(ISerializeToJsonSummary)
 @adapter(IMemberData, IPMRestapiLayer)
-class SerializeUserToJsonSummary(PMBaseSerializer):
+class SerializeUserToJsonSummary(PMBaseUserSerializer):
     pass
