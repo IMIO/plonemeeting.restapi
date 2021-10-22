@@ -14,11 +14,9 @@ from Products.PloneMeeting.utils import add_wf_history_action
 from Products.PloneMeeting.utils import get_annexes_config
 from Products.PloneMeeting.utils import org_id_to_uid
 from zExceptions import BadRequest
-from zope.event import notify
 from zope.interface import implementer
 from zope.publisher.interfaces import IPublishTraverse
 from zope.publisher.interfaces import NotFound
-from ZPublisher.pubevents import PubStart
 
 
 ANNEX_CONTENT_CATEGORY_ERROR = 'Given content_category "%s" was not found or ' \
@@ -36,17 +34,6 @@ OPTIONAL_FIELDS_WARNING = 'The following optional fields are not activated in ' 
 ORG_FIELD_VALUE_ERROR = 'Error with value "%s" defined for field "%s"! Enter a valid organization id or UID.'
 REQUIRED_FIELDS = ["title", "proposingGroup"]
 UNKNOWN_DATA = "Following field names were ignored: %s"
-
-
-def traverse(request, path, accept="application/json", method="POST"):
-    from imio.restapi.services.add import create_request
-    new_request = create_request(request, {})
-    new_request.environ["PATH_INFO"] = path
-    new_request.environ["PATH_TRANSLATED"] = path
-    new_request.environ["HTTP_ACCEPT"] = accept
-    new_request.environ["REQUEST_METHOD"] = method
-    notify(PubStart(new_request))
-    return new_request.traverse(path)
 
 
 class BasePost(FolderPost):
@@ -84,13 +71,8 @@ class BasePost(FolderPost):
             # to cleanup data
             annex_post = self
             if not isinstance(annex_post, AnnexPost):
-                portal = api.portal.get()
-                annex_post = traverse(
-                    self.request,
-                    path="{0}/@annex/{1}".format(
-                        "/".join(portal.getPhysicalPath()),
-                        self.context.UID()))
-                annex_post.context = annex_post.container
+                annex_post = AnnexPost(self.context, self.request)
+                annex_post._container = self.context
             data = annex_post._turn_ids_into_uids(data)
         return data
 
@@ -302,6 +284,9 @@ class AnnexPost(BasePost):
 
     def __init__(self, context, request):
         super(AnnexPost, self).__init__(context, request)
+        self.context = context
+        self.request = request
+        self.warnings = []
         self.container_uid = None
         self._container = None
 
@@ -317,11 +302,11 @@ class AnnexPost(BasePost):
         if not self._container:
             self._container = _get_obj_from_uid(self.container_uid)
             self.context = self._container
-        return self._container
+        return self.context
 
     def _get_container(self):
         """ """
-        return self.container
+        return self.context
 
     def _prepare_data_config_id(self, data):
         tool = api.portal.get_tool("portal_plonemeeting")
@@ -335,7 +320,9 @@ class AnnexPost(BasePost):
     def _turn_ids_into_uids(self, data):
         # turn annex_type id into content_category calculated id
         content_category = data["content_category"]
-        annex_group = get_annexes_config(self.container, data["@type"], annex_group=True)
+        if data["@type"] == "annexDecision":
+            self.request.set('force_use_item_decision_annexes_group', False)
+        annex_group = get_annexes_config(self.context, data["@type"], annex_group=True)
         annex_type = annex_group.get(content_category)
         if not annex_type:
             raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
@@ -343,9 +330,7 @@ class AnnexPost(BasePost):
         # get info from vocabulary that manage only_for_meeting_managers
         if data["@type"] == "annexDecision":
             self.request.set('force_use_item_decision_annexes_group', True)
-        vocab = get_vocab(self.container, 'collective.iconifiedcategory.categories')
-        if data["@type"] == "annexDecision":
-            self.request.set('force_use_item_decision_annexes_group', False)
+        vocab = get_vocab(self.context, 'collective.iconifiedcategory.categories')
         annex_type_value = calculate_category_id(annex_type)
         if annex_type_value not in vocab:
             raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
