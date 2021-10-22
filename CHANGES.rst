@@ -4,10 +4,16 @@ Changelog
 1.0rc3 (unreleased)
 -------------------
 
-- Extended `@users` `plone.restapi` endpoint that by default get infos for
-  a single user or let query several users.
-  Added parameter `?include_groups=true`, a `groups` key is added with user
-  groups token/title list.
+- Extended `@users` `plone.restapi` endpoint that by default returns infos for
+  a single user or let query several users:
+
+  - `extra_include=groups` will add the organizations the user is member of;
+  - `extra_include_groups_suffixes=creators` will add the organizations
+    the user is creator for;
+  - `extra_include=app_groups` will add the user Plone groups;
+  - `extra_include=configs` will return the `MeetingConfigs`
+    the user has access to.
+
   [gbastien]
 
 1.0rc2 (2021-09-28)

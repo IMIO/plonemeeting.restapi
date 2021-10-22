@@ -7,9 +7,9 @@
 # - call summary serializer on object instead brain, check the XXX here under
 
 from plone.restapi.batching import HypermediaBatch
-from plone.restapi.serializer.catalog import LazyCatalogResultSerializer
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
+from plone.restapi.serializer.catalog import LazyCatalogResultSerializer
 from plonemeeting.restapi import logger
 from Products.ZCatalog.Lazy import LazyMap
 from zope.component import adapter

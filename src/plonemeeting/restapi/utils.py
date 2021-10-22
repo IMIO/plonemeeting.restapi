@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
+from AccessControl import Unauthorized
+from plone import api
 from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from AccessControl import Unauthorized
-from plone import api
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from Products.PloneMeeting.utils import convert2xhtml
 from zExceptions import BadRequest
-from zope.globalrequest import getRequest
 from zope.component import queryMultiAdapter
+from zope.globalrequest import getRequest
+
 
 IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
 

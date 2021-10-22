@@ -7,7 +7,6 @@ from plone.restapi.services import Service
 from plonemeeting.restapi.utils import get_serializer
 from Products.PloneMeeting.interfaces import IMeetingContent
 from zope.component import adapter
-from zope.component import getMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
 
