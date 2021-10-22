@@ -4,7 +4,7 @@ Changelog
 1.0rc3 (unreleased)
 -------------------
 
-- Extended `@users` `plone.restapi` endpoint that by default get infos for
+- Extended `@users` `plone.restapi` endpoint that by default returns infos for
   a single user or let query several users:
 
   - `extra_include=groups` will add the organizations the user is member of;
