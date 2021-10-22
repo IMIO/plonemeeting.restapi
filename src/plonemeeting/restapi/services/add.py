@@ -285,6 +285,7 @@ class AnnexPost(BasePost):
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.warnings = []
         self.container_uid = None
         self._container = None
 
