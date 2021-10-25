@@ -12,7 +12,13 @@ Changelog
     the user is creator for;
   - `extra_include=app_groups` will add the user Plone groups;
   - `extra_include=configs` will return the `MeetingConfigs`
-    the user has access to.
+    the user has access to;
+  - `extra_include=categories`, will return the categories the user is able to
+    use for each `MeetingConfig` (`extra_include_categories_config` parameter
+    will filter results for given `MeetingConfigs`);
+  - `extra_include=classifiers`, will return the classifiers the user is able to
+    use for each `MeetingConfig` (`extra_include_classifiers_config` parameter
+    will filter results for given MeetingConfigs);
 
   [gbastien]
 

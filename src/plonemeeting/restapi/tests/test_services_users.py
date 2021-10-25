@@ -82,6 +82,58 @@ class testServicePMUsersGet(BaseTestCase):
         self.assertTrue(self.developers_creators in group_tokens)
         self.assertTrue(self.developers_creators in group_tokens)
 
+    def test_restapi_users_categories(self):
+        """@users?extra_include=categories"""
+        cfg = self.meetingConfig
+        cfg_id = cfg.getId()
+        cfg2 = self.meetingConfig2
+        cfg2_id = cfg2.getId()
+        endpoint_url = "{0}/@users/pmManager?extra_include=categories".format(
+            self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json["username"], u'pmManager')
+        # extra_include=categories will return categories of every active configs
+        self.assertEqual(len(json["extra_include_categories"]), 2)
+        cfg_cat_ids = [cat["id"] for cat in json["extra_include_categories"][cfg_id]]
+        cfg2_cat_ids = [cat["id"] for cat in json["extra_include_categories"][cfg2_id]]
+        self.assertTrue("development" in cfg_cat_ids)
+        self.assertTrue("deployment" in cfg2_cat_ids)
+        # can get categories of only one MeetingConfig
+        endpoint_url += "&extra_include_categories_config={0}".format(cfg_id)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json["username"], u'pmManager')
+        self.assertEqual(len(json["extra_include_categories"]), 1)
+
+    def test_restapi_users_classifiers(self):
+        """@users?extra_include=classifiers"""
+        cfg = self.meetingConfig
+        cfg_id = cfg.getId()
+        cfg2 = self.meetingConfig2
+        cfg2_id = cfg2.getId()
+        endpoint_url = "{0}/@users/pmManager?extra_include=classifiers".format(
+            self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json["username"], u'pmManager')
+        # extra_include=classifiers will return classifiers of every active configs
+        self.assertEqual(len(json["extra_include_classifiers"]), 2)
+        cfg_cat_ids = [cat["id"] for cat in json["extra_include_classifiers"][cfg_id]]
+        cfg2_cat_ids = [cat["id"] for cat in json["extra_include_classifiers"][cfg2_id]]
+        self.assertTrue("classifier1" in cfg_cat_ids)
+        self.assertTrue("classifier1" in cfg2_cat_ids)
+        # can get classifiers of only one MeetingConfig
+        endpoint_url += "&extra_include_classifiers_config={0}".format(cfg_id)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json["username"], u'pmManager')
+        self.assertEqual(len(json["extra_include_classifiers"]), 1)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
