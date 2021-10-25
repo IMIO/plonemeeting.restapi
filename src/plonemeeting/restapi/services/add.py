@@ -21,7 +21,9 @@ from zope.publisher.interfaces import NotFound
 
 
 ANNEX_CONTENT_CATEGORY_ERROR = 'Given content_category "%s" was not found or ' \
-    'is not useable for added annex!'
+    'is not useable for the annex you try to add!'
+ANNEX_DECISION_RELATED_NOT_ITEM_ERROR = 'The "decision_related" parameter is ' \
+    'only relevant when annex added on an item!'
 IGNORE_VALIDATION_FOR_REQUIRED_ERROR = \
     'You can not ignore validation for required fields! Define a value for %s!'
 IGNORE_VALIDATION_FOR_VALUED_ERROR = \
@@ -316,7 +318,10 @@ class AnnexPost(BasePost):
         return cfg.getId()
 
     def _prepare_data_type(self, data):
-        data["@type"] = data.get("decision_related", False) and "annexDecision" or "annex"
+        decision_related = data.get("decision_related", False)
+        if decision_related and not self._container.__class__.__name__ == "MeetingItem":
+            raise BadRequest(ANNEX_DECISION_RELATED_NOT_ITEM_ERROR)
+        data["@type"] = decision_related and "annexDecision" or "annex"
         return data.get("@type")
 
     def _turn_ids_into_uids(self, data):
