@@ -214,6 +214,7 @@ class BasePost(FolderPost):
         cleaned_data.pop("in_name_of", None)
         cleaned_data.pop("wf_transitions", None)
         cleaned_data.pop("ignore_not_used_data", None)
+        cleaned_data.pop("decision_related", None)
         return cleaned_data
 
     def _after_reply_hook(self, serialized_obj):
