@@ -17,6 +17,23 @@ UID_WRONG_TYPE_ERROR = (
 )
 
 
+def _get_obj_from_uid(uid):
+    """ """
+    # change self.context with element found with self.uid
+    objs = uuidsToObjects(uuids=uid)
+    if not objs:
+        # try to get it unrestricted
+        objs = uuidsToObjects(uuids=uid, unrestricted=True)
+        if objs:
+            raise BadRequest(
+                UID_NOT_ACCESSIBLE_ERROR
+                % (uid, api.user.get_current().getId())
+            )
+        else:
+            raise BadRequest(UID_NOT_FOUND_ERROR % uid)
+    return objs[0]
+
+
 class UidGet(ContentGet):
     """Returns a serialized content object based on required UID parameter."""
 
@@ -35,20 +52,8 @@ class UidGet(ContentGet):
         return
 
     def reply(self):
-        # change self.context with element found with self.uid
-        objs = uuidsToObjects(uuids=self.uid)
-        if not objs:
-            # try to get it unrestricted
-            objs = uuidsToObjects(uuids=self.uid, unrestricted=True)
-            if objs:
-                raise BadRequest(
-                    UID_NOT_ACCESSIBLE_ERROR
-                    % (self.uid, api.user.get_current().getId())
-                )
-            else:
-                raise BadRequest(UID_NOT_FOUND_ERROR % self.uid)
-
-        self.context = objs[0]
+        obj = _get_obj_from_uid(self.uid)
+        self.context = obj
         self._check_obj()
         # set include_items=False by default in request
         if not self.request.form.get("include_items", None):

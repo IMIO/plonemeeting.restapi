@@ -8,6 +8,7 @@ from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
+from plonemeeting.restapi.services.add import ANNEX_DECISION_RELATED_NOT_ITEM_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_REQUIRED_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_VALUED_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_WARNING
@@ -569,6 +570,70 @@ class testServiceAddItem(BaseTestCase):
         # use getInfoFor instead query_state for PM 4.1/4.2 compat
         if HAS_MEETING_DX:
             self.assertEqual(self.get_review_state(item), "validated")
+        transaction.abort()
+
+    def test_restapi_add_annex_to_existing_element(self):
+        """Use the @annex POST endpoint to create an annex."""
+        cfg = self.meetingConfig
+        self._removeConfigObjectsFor(cfg)
+        self.changeUser("pmManager")
+        item = self.create('MeetingItem')
+        item_uid = item.UID()
+        meeting = self.create('Meeting')
+        meeting_uid = meeting.UID()
+        transaction.commit()
+
+        # add annex to item
+        json = {
+            "title": "My annex",
+            "content_category": "wrong-annex",
+            "file": {
+                "data": "123456",
+                "encoding": "ascii",
+                "filename": "file.txt"}
+            }
+        endpoint_url = "{0}/@annex/{1}".format(self.portal_url, item_uid)
+        # wrong content_category
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u"message": ANNEX_CONTENT_CATEGORY_ERROR % "wrong-annex",
+             u"type": u"BadRequest"}
+        )
+        # add annex to item correctly
+        json["content_category"] = "item-annex"
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201, response.content)
+        # add annexDecision to item correctly
+        json["content_category"] = "decision-annex"
+        json["decision_related"] = True
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201, response.content)
+        # add annex to meeting
+        # can not use parameter "decision_related" on a meeting
+        json["content_category"] = "meeting-annex"
+        endpoint_url = endpoint_url.replace(item_uid, meeting_uid)
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u"message": ANNEX_DECISION_RELATED_NOT_ITEM_ERROR,
+             u"type": u"BadRequest"}
+        )
+        # add annex to meeting correctly
+        json["decision_related"] = False
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201, response.content)
+        transaction.commit()
+
+        # annexes were added to item and meeting
+        item_annexes = get_annexes(item, ["annex"])
+        self.assertEqual(len(item_annexes), 1)
+        decision_annexes = get_annexes(item, ["annexDecision"])
+        self.assertEqual(len(decision_annexes), 1)
+        meeting_annexes = get_annexes(meeting)
+        self.assertEqual(len(meeting_annexes), 1)
         transaction.abort()
 
 

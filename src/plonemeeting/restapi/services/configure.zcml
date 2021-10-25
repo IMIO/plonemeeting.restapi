@@ -31,6 +31,15 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
+  <!-- POST annex -->
+  <plone:service
+    method="POST"
+    name="@annex"
+    for="Products.CMFCore.interfaces.ISiteRoot"
+    factory=".add.AnnexPost"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
   <!-- get UID item -->
   <plone:service
     method="GET"
