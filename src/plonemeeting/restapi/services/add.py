@@ -14,6 +14,7 @@ from Products.PloneMeeting.utils import add_wf_history_action
 from Products.PloneMeeting.utils import get_annexes_config
 from Products.PloneMeeting.utils import org_id_to_uid
 from zExceptions import BadRequest
+from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.publisher.interfaces import IPublishTraverse
 from zope.publisher.interfaces import NotFound
@@ -71,8 +72,12 @@ class BasePost(FolderPost):
             # to cleanup data
             annex_post = self
             if not isinstance(annex_post, AnnexPost):
-                annex_post = AnnexPost(self.context, self.request)
+                portal = api.portal.get()
+                annex_post = queryMultiAdapter(
+                    (portal, self.request),
+                    name="POST_application_json_@annex")
                 annex_post._container = self.context
+                annex_post.context = self.context
             data = annex_post._turn_ids_into_uids(data)
         return data
 
@@ -283,9 +288,7 @@ class MeetingPost(BasePost):
 class AnnexPost(BasePost):
 
     def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.warnings = []
+        super(AnnexPost, self).__init__(context, request)
         self.container_uid = None
         self._container = None
 
