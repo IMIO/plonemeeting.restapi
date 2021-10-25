@@ -579,7 +579,7 @@ class testServiceAddItem(BaseTestCase):
         self.changeUser("pmManager")
         item = self.create('MeetingItem')
         item_uid = item.UID()
-        meeting = self.create('Meeting')
+        meeting = self.create('Meeting', date=datetime.now())
         meeting_uid = meeting.UID()
         transaction.commit()
 
