@@ -24,6 +24,8 @@ ANNEX_CONTENT_CATEGORY_ERROR = 'Given content_category "%s" was not found or ' \
     'is not useable for the annex you try to add!'
 ANNEX_DECISION_RELATED_NOT_ITEM_ERROR = 'The "decision_related" parameter is ' \
     'only relevant when annex added on an item!'
+ANNEX_NO_CONTENT_CATEGORY_AVAILABLE_ERROR = 'No annex_type available to create annex, ' \
+    'please check configuration!'
 IGNORE_VALIDATION_FOR_REQUIRED_ERROR = \
     'You can not ignore validation for required fields! Define a value for %s!'
 IGNORE_VALIDATION_FOR_VALUED_ERROR = \
@@ -327,20 +329,30 @@ class AnnexPost(BasePost):
 
     def _turn_ids_into_uids(self, data):
         # turn annex_type id into content_category calculated id
-        content_category = data["content_category"]
-        if data["@type"] == "annexDecision":
-            self.request.set('force_use_item_decision_annexes_group', False)
-        annex_group = get_annexes_config(self.context, data["@type"], annex_group=True)
-        annex_type = annex_group.get(content_category)
-        if not annex_type:
-            raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
-        # check that given annex_type is useable
-        # get info from vocabulary that manage only_for_meeting_managers
+        content_category = data.get("content_category", None)
+        annex_type = None
+        # get selectable categories
         if data["@type"] == "annexDecision":
             self.request.set('force_use_item_decision_annexes_group', True)
         vocab = get_vocab(self.context, 'collective.iconifiedcategory.categories')
-        annex_type_value = calculate_category_id(annex_type)
-        if annex_type_value not in vocab:
-            raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
+        # when content_category provided, it must exist
+        if content_category is not None:
+            annex_group = get_annexes_config(self.context, data["@type"], annex_group=True)
+            # get given content_category or the first one
+            annex_type = annex_group.get(content_category)
+            if not annex_type:
+                raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
+            annex_type_value = calculate_category_id(annex_type)
+            if annex_type_value not in vocab:
+                raise BadRequest(ANNEX_CONTENT_CATEGORY_ERROR % content_category)
+        else:
+            # use the default annex_type, the first selectable
+            if not vocab._terms:
+                raise BadRequest(ANNEX_NO_CONTENT_CATEGORY_AVAILABLE_ERROR)
+            annex_type_value = vocab._terms[0].token
         data["content_category"] = annex_type_value
+        # cleanup
+        if data["@type"] == "annexDecision":
+            self.request.set('force_use_item_decision_annexes_group', False)
+
         return data

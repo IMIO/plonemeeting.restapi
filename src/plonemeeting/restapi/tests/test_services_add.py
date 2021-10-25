@@ -605,6 +605,12 @@ class testServiceAddItem(BaseTestCase):
         json["content_category"] = "item-annex"
         response = self.api_session.post(endpoint_url, json=json)
         self.assertEqual(response.status_code, 201, response.content)
+        # adding an annex without "content_category" will use default one
+        # the default annex type is "financial-analysis"
+        json.pop("content_category")
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(response.json()["content_category"]["title"], u'Financial analysis')
         # add annexDecision to item correctly
         json["content_category"] = "decision-annex"
         json["decision_related"] = True
@@ -629,7 +635,7 @@ class testServiceAddItem(BaseTestCase):
 
         # annexes were added to item and meeting
         item_annexes = get_annexes(item, ["annex"])
-        self.assertEqual(len(item_annexes), 1)
+        self.assertEqual(len(item_annexes), 2)
         decision_annexes = get_annexes(item, ["annexDecision"])
         self.assertEqual(len(decision_annexes), 1)
         meeting_annexes = get_annexes(meeting)
