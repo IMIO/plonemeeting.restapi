@@ -35,6 +35,9 @@ Changelog
   the summary version of serialized data, to get the full serialization, then
   parameter `fullobjects` will need to be given.
   [gbastien]
+- Serializer may now complete a `@extra_includes` key that list `extra_include`
+  values available for it.
+  [gbastien]
 
 1.0rc2 (2021-09-28)
 -------------------

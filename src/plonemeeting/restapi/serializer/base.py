@@ -36,6 +36,11 @@ from zope.schema import getFields
 class BaseSerializeToJson(object):
     """__call__ must be redefined by class heritating from BaseSerializeToJson."""
 
+    def _available_extra_includes(self, result):
+        """ """
+        result["@extra_includes"] = []
+        return result
+
     def _extra_include(self, result):
         """ """
         return result
@@ -47,6 +52,7 @@ class BaseSerializeToJson(object):
     def _after__call__(self, result):
         """ """
         # only call _extra_include if relevant
+        result = self._available_extra_includes(result)
         if self._get_param("extra_include", []):
             result = self._extra_include(result)
 

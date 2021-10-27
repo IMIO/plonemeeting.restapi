@@ -14,6 +14,13 @@ from zope.interface import Interface
 class SerializeItemToJsonBase(object):
     """ """
 
+    def _available_extra_includes(self, result):
+        """ """
+        result["@extra_includes"] = [
+            "proposing_group", "category", "classifier", "groups_in_charge",
+            "associated_groups", "meeting", "deliberation*"]
+        return result
+
     def _extra_include(self, result):
         """To be simplified when moving MeetingItem to DX as extra_include name
            will be the same as attribute name defined in MeetingItem schema."""

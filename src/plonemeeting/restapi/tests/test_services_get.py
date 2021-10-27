@@ -125,7 +125,7 @@ class testServiceGetUid(BaseTestCase):
         # summary data
         self.assertEqual(
             sorted(json.keys()),
-            [u'@id', u'@type', u'UID', u'created',
+            [u'@extra_includes', u'@id', u'@type', u'UID', u'created',
              u'description', u'enabled', u'id',
              u'modified', u'review_state', u'title'])
         # passing an extra_include will work and still use summary

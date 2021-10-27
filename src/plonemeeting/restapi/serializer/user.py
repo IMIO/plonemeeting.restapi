@@ -31,6 +31,12 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
                 cfgs = self.cfgs
         return cfgs
 
+    def _available_extra_includes(self, result):
+        """ """
+        result["@extra_includes"] = [
+            "groups", "app_groups", "configs", "categories", "classifiers"]
+        return result
+
     def _extra_include(self, result):
         extra_include = listify(self.request.form.get("extra_include", []))
 

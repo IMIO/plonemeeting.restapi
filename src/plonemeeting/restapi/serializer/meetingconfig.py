@@ -15,6 +15,14 @@ from zope.interface import Interface
 
 class SerializeConfigToJsonBase(object):
     """ """
+
+    def _available_extra_includes(self, result):
+        """ """
+        result["@extra_includes"] = [
+            "categories", "classifiers", "pod_templates", "searches",
+            "proposing_groups", "associated_groups", "groups_in_charge*"]
+        return result
+
     def _extra_include(self, result):
         """ """
         extra_include = listify(self.request.form.get("extra_include", []))

@@ -621,6 +621,7 @@ class testServiceSearch(BaseTestCase):
         # we get @components and base data
         self.assertEqual(sorted(resp_json["items"][0]["extra_include_category"].keys()),
                          [u'@components',
+                          u'@extra_includes',
                           u'@id',
                           u'@type',
                           u'UID',
@@ -658,7 +659,8 @@ class testServiceSearch(BaseTestCase):
         resp_json = response.json()
         # item
         self.assertEqual(sorted(resp_json["items"][0].keys()),
-                         [u'@id', u'@type', u'UID', u'created', u'description',
+                         [u'@id', u'@extra_includes', u'@type', u'UID',
+                          u'created', u'description',
                           u'enabled', u'extra_include_category', u'getItemNumber',
                           u'id', u'modified', u'review_state', u'title'])
         self.assertEqual(resp_json["items"][0]["getItemNumber"], 0)
