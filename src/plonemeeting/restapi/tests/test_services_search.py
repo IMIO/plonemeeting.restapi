@@ -620,7 +620,8 @@ class testServiceSearch(BaseTestCase):
         resp_json = response.json()
         # we get @components and base data
         self.assertEqual(sorted(resp_json["items"][0]["extra_include_category"].keys()),
-                         [u'@components',
+                         [u'@extra_includes',
+                          u'@components',
                           u'@extra_includes',
                           u'@id',
                           u'@type',
