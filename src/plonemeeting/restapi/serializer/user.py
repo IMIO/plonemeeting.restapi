@@ -63,7 +63,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
         if "categories" in extra_include:
             result["extra_include_categories"] = {}
             cfgs = self._configs_for_user()
-            config_ids = self._get_param("config", default=[], extra_include_name="categories")
+            config_ids = self._get_param("configs", default=[], extra_include_name="categories")
             for cfg in cfgs:
                 cfg_id = cfg.getId()
                 if config_ids and cfg_id not in config_ids:
@@ -77,7 +77,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
         if "classifiers" in extra_include:
             result["extra_include_classifiers"] = {}
             cfgs = self._configs_for_user()
-            config_ids = self._get_param("config", default=[], extra_include_name="classifiers")
+            config_ids = self._get_param("configs", default=[], extra_include_name="classifiers")
             for cfg in cfgs:
                 cfg_id = cfg.getId()
                 if config_ids and cfg_id not in config_ids:

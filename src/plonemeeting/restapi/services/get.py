@@ -2,8 +2,12 @@
 
 from imio.helpers.content import uuidsToObjects
 from plone import api
+from plone.restapi.deserializer import boolean_value
+from plone.restapi.interfaces import ISerializeToJson
+from plone.restapi.interfaces import ISerializeToJsonSummary
 from plone.restapi.services.content.get import ContentGet
 from zExceptions import BadRequest
+from zope.component import queryMultiAdapter
 
 
 UID_REQUIRED_ERROR = 'The "UID or uid" parameter must be given!'
@@ -58,7 +62,22 @@ class UidGet(ContentGet):
         # set include_items=False by default in request
         if not self.request.form.get("include_items", None):
             self.request.form["include_items"] = False
-        return super(UidGet, self).reply()
+
+        # boolean_value of "" is True
+        fullobjects = boolean_value(self.request.form.get("fullobjects", False))
+        if fullobjects:
+            serializer = queryMultiAdapter((self.context, self.request), ISerializeToJson)
+        else:
+            serializer = queryMultiAdapter((self.context, self.request), ISerializeToJsonSummary)
+
+        if serializer is None:
+            self.request.response.setStatus(501)
+            return dict(error=dict(message="No serializer available."))
+
+        if fullobjects:
+            return serializer(version=self.request.get("version"))
+        else:
+            return serializer()
 
 
 class ItemGet(UidGet):

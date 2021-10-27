@@ -27,7 +27,7 @@ log = logger
 class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
     """ """
 
-    def _use_obj_summary_serializer(self, fullobjects):
+    def _use_own_summary_serializer(self, fullobjects):
         """Check if we need to use our own implementation of the summary serializer,
            necessary to manage additional_values and extra_include."""
         return bool(fullobjects or
@@ -45,10 +45,10 @@ class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
             results["batching"] = links
 
         results["items"] = []
-        use_obj_summary = self._use_obj_summary_serializer(fullobjects)
+        use_own_summary = self._use_own_summary_serializer(fullobjects)
         for brain in batch:
             try:
-                obj = use_obj_summary and brain.getObject() or brain
+                obj = use_own_summary and brain.getObject() or brain
             except AttributeError:
                 # Guard in case the brain returned refers to an object that doesn't
                 # exists because it failed to uncatalog itself or the catalog has

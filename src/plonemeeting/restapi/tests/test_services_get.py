@@ -115,6 +115,36 @@ class testServiceGetUid(BaseTestCase):
             response.json(), {u"message": UID_WRONG_TYPE_ERROR, u"type": u"BadRequest"}
         )
 
+    def test_restapi_get_uid_fullobjects(self):
+        """By default summary is returned except when "fullobject" is given"""
+        endpoint_url = "{0}/@get?UID={1}".format(
+            self.portal_url, self.item1_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        # summary data
+        self.assertEqual(
+            sorted(json.keys()),
+            [u'@id', u'@type', u'UID', u'created',
+             u'description', u'enabled', u'id',
+             u'modified', u'review_state', u'title'])
+        # passing an extra_include will work and still use summary
+        endpoint_url += "&extra_include=proposing_group"
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(
+            sorted(json.keys()),
+            [u'@id', u'@type', u'UID', u'created',
+             u'description', u'enabled', u'extra_include_proposing_group',
+             u'id', u'modified', u'review_state', u'title'])
+        # fullobject is possible too
+        endpoint_url += "&fullobjects"
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertTrue("extra_include_proposing_group" in json)
+        self.assertTrue("externalIdentifier" in json)
+        self.assertTrue("itemReference" in json)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

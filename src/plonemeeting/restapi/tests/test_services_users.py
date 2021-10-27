@@ -101,7 +101,7 @@ class testServicePMUsersGet(BaseTestCase):
         self.assertTrue("development" in cfg_cat_ids)
         self.assertTrue("deployment" in cfg2_cat_ids)
         # can get categories of only one MeetingConfig
-        endpoint_url += "&extra_include_categories_config={0}".format(cfg_id)
+        endpoint_url += "&extra_include_categories_configs={0}".format(cfg_id)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
@@ -127,7 +127,7 @@ class testServicePMUsersGet(BaseTestCase):
         self.assertTrue("classifier1" in cfg_cat_ids)
         self.assertTrue("classifier1" in cfg2_cat_ids)
         # can get classifiers of only one MeetingConfig
-        endpoint_url += "&extra_include_classifiers_config={0}".format(cfg_id)
+        endpoint_url += "&extra_include_classifiers_configs={0}".format(cfg_id)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()

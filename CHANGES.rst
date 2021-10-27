@@ -31,6 +31,10 @@ Changelog
 
 - Added `@annex` POST endpoint to be able to add an annex on an existing element.
   [gbastien]
+- Changed default behavior of `@get GET` endpoint that will return by default
+  the summary version of serialized data, to get the full serialization, then
+  parameter `fullobjects` will need to be given.
+  [gbastien]
 
 1.0rc2 (2021-09-28)
 -------------------
