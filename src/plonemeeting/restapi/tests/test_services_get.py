@@ -134,7 +134,7 @@ class testServiceGetUid(BaseTestCase):
         json = response.json()
         self.assertEqual(
             sorted(json.keys()),
-            [u'@id', u'@type', u'UID', u'created',
+            [u'@extra_includes', u'@id', u'@type', u'UID', u'created',
              u'description', u'enabled', u'extra_include_proposing_group',
              u'id', u'modified', u'review_state', u'title'])
         # fullobject is possible too
