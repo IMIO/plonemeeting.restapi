@@ -8,17 +8,24 @@ Changelog
   a single user or let query several users:
 
   - `extra_include=groups` will add the organizations the user is member of;
-  - `extra_include_groups_suffixes=creators` will add the organizations
-    the user is creator for;
+
+    - in addition, passing `extra_include_groups_suffixes=creators` will add
+      the organizations the user is creator for (any suffix may be used);
+
   - `extra_include=app_groups` will add the user Plone groups;
   - `extra_include=configs` will return the `MeetingConfigs`
     the user has access to;
   - `extra_include=categories`, will return the categories the user is able to
-    use for each `MeetingConfig` (`extra_include_categories_config` parameter
-    will filter results for given `MeetingConfigs`);
+    use for each `MeetingConfig`
+
+    - in addition, `extra_include_categories_config=meeting-config-id` parameter
+      will filter results for given `MeetingConfig` id;
+
   - `extra_include=classifiers`, will return the classifiers the user is able to
-    use for each `MeetingConfig` (`extra_include_classifiers_config` parameter
-    will filter results for given MeetingConfigs);
+    use for each `MeetingConfig`
+
+    - in addition `extra_include_classifiers_config=meeting-config-id` parameter
+      will filter results for given `MeetingConfig` ids.
 
   [gbastien]
 
