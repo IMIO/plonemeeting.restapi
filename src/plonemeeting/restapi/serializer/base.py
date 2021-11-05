@@ -58,7 +58,7 @@ class BaseSerializeToJson(object):
 
         # when fullobjects, additional_values default is ["*"] except if include_all=False
         # otherwise additional_values default is []
-        if self._get_param("fullobjects", False) and self._get_param("include_all", True):
+        if self._get_param("fullobjects", False) and self._get_param('include_all', True):
             additional_values = self._get_param("additional_values", ["*"])
         else:
             additional_values = self._get_param("additional_values", [])
