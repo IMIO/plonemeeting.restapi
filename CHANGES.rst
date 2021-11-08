@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc3 (unreleased)
+1.0rc3 (2021-11-08)
 -------------------
 
 - Extended `@users` `plone.restapi` endpoint that by default returns infos for
