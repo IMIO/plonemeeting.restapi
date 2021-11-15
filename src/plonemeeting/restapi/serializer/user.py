@@ -43,7 +43,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
         if "groups" in extra_include:
             suffixes = self._get_param("suffixes", default=[], extra_include_name="groups")
             orgs = self.tool.get_orgs_for_user(
-                user_id=self.context.id, suffixes=suffixes)
+                user_id=self.context.id, suffixes=suffixes, the_objects=True)
             result["extra_include_groups"] = []
             for org in orgs:
                 serializer = self._get_serializer(org, "groups")

@@ -4,8 +4,9 @@ Changelog
 1.0rc4 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Default value for parameter `the_objects` changed in
+  `ToolPloneMeeting.get_orgs_for_user` (from True to False).
+  [gbastien]
 
 1.0rc3 (2021-11-08)
 -------------------
