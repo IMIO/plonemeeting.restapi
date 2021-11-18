@@ -6,6 +6,8 @@ from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from Products.CMFCore.permissions import ManagePortal
+from Products.CMFCore.utils import _checkPermission
 from Products.PloneMeeting.utils import convert2xhtml
 from zExceptions import BadRequest
 from zope.component import queryMultiAdapter
@@ -75,13 +77,15 @@ def handle_html(obj, data):
                          use_appy_pod_preprocessor=True)
 
 
-def may_access_config_endpoints(context):
+def may_access_config_endpoints(cfg=None):
     '''
       This will be used to protect access to some config endpoints or
       functionnalities like "in_name_of".
     '''
     res = False
     tool = api.portal.get_tool('portal_plonemeeting')
-    if tool.isManager(context) or tool.userIsAmong(['meetingmanagers']):
+    if (cfg is not None and tool.isManager(cfg)) or \
+       tool.userIsAmong(['meetingmanagers']) or \
+       _checkPermission(ManagePortal, tool):
         res = True
     return res

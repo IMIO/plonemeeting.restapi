@@ -7,6 +7,9 @@ Changelog
 - Default value for parameter `the_objects` changed in
   `ToolPloneMeeting.get_orgs_for_user` (from True to False).
   [gbastien]
+- Adapted `utils.may_access_config_endpoints` to only check `tool.isManager`
+  if given `cfg` is not None.
+  [gbastien]
 
 1.0rc3 (2021-11-08)
 -------------------

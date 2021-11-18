@@ -14,10 +14,10 @@ class PMUsersGet(UsersGet):
         self.query = self.request.form.copy()
 
     def has_permission_to_query(self):
-        return may_access_config_endpoints(self.context)
+        return may_access_config_endpoints()
 
     def has_permission_to_enumerate(self):
-        return may_access_config_endpoints(self.context)
+        return may_access_config_endpoints()
 
     def has_permission_to_access_user_info(self):
-        return may_access_config_endpoints(self.context)
+        return may_access_config_endpoints()
