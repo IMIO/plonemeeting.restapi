@@ -58,10 +58,25 @@ class testServiceAnnexes(BaseTestCase):
         response_pmManager = self.api_session.get(endpoint_url).json()[0]
         self.changeUser("pmCreator1")
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
+        # this will use the MissingTerms adapter used by annex.content_category
         response_pmCreator1 = self.api_session.get(endpoint_url).json()[0]
         self.assertEqual(
             response_pmManager["content_category"],
             response_pmCreator1["content_category"],
+        )
+        # in case value is really not found, we get correct format token/title
+        # but with value as title
+        annex.unindexObject()
+        self.deleteAsManager(financial_analysis.UID())
+        annex.reindexObject()
+        transaction.commit()
+        response_pmCreator1 = self.api_session.get(endpoint_url).json()[0]
+        self.assertEqual(
+            response_pmCreator1["content_category"],
+            {u'title': u'Missing: plonemeeting-assembly-annexes_types_-'
+                u'_item_annexes_-_financial-analysis',
+             u'token': u'plonemeeting-assembly-annexes_types_-'
+                u'_item_annexes_-_financial-analysis'}
         )
 
     def test_restapi_annexes_endpoint_filters(self):

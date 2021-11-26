@@ -10,6 +10,9 @@ Changelog
 - Adapted `utils.may_access_config_endpoints` to only check `tool.isManager`
   if given `cfg` is not None.
   [gbastien]
+- Make PMChoiceFieldSerializer use a MissingTerms adapter when value not found
+  in vocabulary.
+  [gbastien]
 
 1.0rc3 (2021-11-08)
 -------------------
