@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc4 (unreleased)
+1.0rc4 (2021-11-26)
 -------------------
 
 - Default value for parameter `the_objects` changed in
