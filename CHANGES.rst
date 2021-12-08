@@ -4,8 +4,8 @@ Changelog
 1.0rc5 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- When returning annex additional values, ignore `last_updated`.
+  [gbastien]
 
 1.0rc4 (2021-11-26)
 -------------------

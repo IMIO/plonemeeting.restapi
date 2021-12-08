@@ -18,8 +18,7 @@ class AnnexSerializeToJson(BaseDXSerializeFolderToJson):
         """Let include every values available from
            parent's categorized_elements."""
 
-        ignored_values = ["allowedRolesAndUsers", "visible_for_groups"]
-
+        ignored_values = ["allowedRolesAndUsers", "last_updated", "visible_for_groups"]
         parent = self.context.aq_parent
         infos = _categorized_elements(parent)[self.context.UID()]
         values = {
