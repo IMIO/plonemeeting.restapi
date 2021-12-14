@@ -66,17 +66,13 @@ class testServiceAnnexes(BaseTestCase):
         )
         # in case value is really not found, we get correct format token/title
         # but with value as title
-        annex.unindexObject()
-        self.deleteAsManager(financial_analysis.UID())
-        annex.reindexObject()
+        annex.content_category = "some-removed-annex-type"
         transaction.commit()
         response_pmCreator1 = self.api_session.get(endpoint_url).json()[0]
         self.assertEqual(
             response_pmCreator1["content_category"],
-            {u'title': u'Missing: plonemeeting-assembly-annexes_types_-'
-                u'_item_annexes_-_financial-analysis',
-             u'token': u'plonemeeting-assembly-annexes_types_-'
-                u'_item_annexes_-_financial-analysis'}
+            {u'title': u'Missing: some-removed-annex-type',
+             u'token': u'some-removed-annex-type'}
         )
 
     def test_restapi_annexes_endpoint_filters(self):
