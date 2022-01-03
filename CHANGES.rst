@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc5 (unreleased)
+1.0rc5 (2022-01-03)
 -------------------
 
 - When returning annex additional values, ignore `last_updated`.
