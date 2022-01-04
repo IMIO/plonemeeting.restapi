@@ -4,8 +4,8 @@ Changelog
 1.0rc6 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Added `extra_include=pod_templates` for `Meeting` and `MeetingItem`.
+  [gbastien]
 
 1.0rc5 (2022-01-03)
 -------------------

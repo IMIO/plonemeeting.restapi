@@ -31,6 +31,10 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
     def __call__(self):
         """ """
         result = super(PMBrainJSONSummarySerializer, self).__call__()
+
+        # Include custom
+        result.update(self._include_custom(self.context, result))
+
         result = self._after__call__(result)
         return result
 

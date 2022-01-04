@@ -7,8 +7,13 @@ from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
+from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
+from zope.component import getAdapter
+from collective.documentgenerator.interfaces import IGenerablePODTemplates
+
+import json
 
 
 class SerializeItemToJsonBase(object):
@@ -55,7 +60,16 @@ class SerializeItemToJsonBase(object):
             for associated_group in associated_groups:
                 serializer = self._get_serializer(associated_group, "associated_groups")
                 result["extra_include_associated_groups"].append(serializer())
-
+        if "pod_templates" in extra_include:
+            # get generatable POD template for self.context
+            adapter = getAdapter(self.context, IGenerablePODTemplates)
+            generable_templates = adapter.get_generable_templates()
+            result["extra_include_pod_templates"] = []
+            for pod_template in generable_templates:
+                serializer = self._get_serializer(pod_template, "pod_templates")
+                # to be used to compute url to generate element
+                serializer.original_context = self.context
+                result["extra_include_pod_templates"].append(serializer())
         if "meeting" in extra_include:
             meeting = self.context.getMeeting()
             result["extra_include_meeting"] = {}
