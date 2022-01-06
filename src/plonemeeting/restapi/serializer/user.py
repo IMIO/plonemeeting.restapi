@@ -26,9 +26,15 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
         """ """
         cfgs = getattr(self, "cfgs", [])
         if not cfgs:
+            # remove AUTHENTICATED_USER during adopt_user
+            auth_user = self.request.get("AUTHENTICATED_USER")
+            if auth_user:
+                self.request["AUTHENTICATED_USER"] = None
             with api.env.adopt_user(username=self.context.id):
                 self.cfgs = self.tool.getActiveConfigs()
                 cfgs = self.cfgs
+            if auth_user:
+                self.request["AUTHENTICATED_USER"] = auth_user
         return cfgs
 
     def _available_extra_includes(self, result):

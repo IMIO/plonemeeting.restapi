@@ -107,8 +107,15 @@ class BasePost(FolderPost):
     def _reply(self):
         in_name_of = check_in_name_of(self, self.data)
         if in_name_of:
+            # remove AUTHENTICATED_USER during adopt_user
+            auth_user = self.request.get("AUTHENTICATED_USER")
+            if auth_user:
+                self.request["AUTHENTICATED_USER"] = None
             with api.env.adopt_user(username=in_name_of):
-                return self._process_reply()
+                res = self._process_reply()
+            if auth_user:
+                self.request["AUTHENTICATED_USER"] = auth_user
+            return res
         else:
             return self._process_reply()
 

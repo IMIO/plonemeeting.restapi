@@ -3,6 +3,7 @@
 from Acquisition import aq_base
 from Acquisition import aq_inner
 from Acquisition import aq_parent
+from collective.documentgenerator.interfaces import IGenerablePODTemplates
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
 from imio.restapi.utils import listify
@@ -26,11 +27,26 @@ from plonemeeting.restapi.utils import get_serializer
 from Products.CMFCore.utils import getToolByName
 from zope.component import adapter
 from zope.component import ComponentLookupError
+from zope.component import getAdapter
 from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.schema import getFields
+
+
+def serialize_pod_templates(context, serializer):
+    """Serialize generable POD templates for p_context."""
+    # get generatable POD template for self.context
+    adapter = getAdapter(context, IGenerablePODTemplates)
+    generable_templates = adapter.get_generable_templates()
+    result = []
+    for pod_template in generable_templates:
+        pod_serializer = serializer._get_serializer(pod_template, "pod_templates")
+        # to be used to compute url to generate element
+        pod_serializer.original_context = context
+        result.append(pod_serializer())
+    return result
 
 
 class BaseSerializeToJson(object):

@@ -24,6 +24,7 @@ class testServiceGetUid(BaseTestCase):
         self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
         self.item2_uid = self.item2.UID()
         self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
+        self.meeting_uid = self.meeting.UID()
         transaction.commit()
 
     def tearDown(self):
@@ -145,6 +146,28 @@ class testServiceGetUid(BaseTestCase):
         self.assertTrue("externalIdentifier" in json)
         self.assertTrue("itemReference" in json)
 
+    def test_restapi_get_uid_extra_include_pod_templates(self):
+        """ """
+        # MeetingItem
+        endpoint_url = "{0}/@get?UID={1}&extra_include=pod_templates".format(
+            self.portal_url, self.item1_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        item_pod_template_json = json["extra_include_pod_templates"][0]
+        self.assertEqual(item_pod_template_json[u'@type'], u'ConfigurablePODTemplate')
+        self.assertEqual(item_pod_template_json[u'id'], u'itemTemplate')
+        self.assertEqual(item_pod_template_json[u'outputs'][0][u'format'], u'odt')
+        # Meeting
+        endpoint_url = "{0}/@get?UID={1}&extra_include=pod_templates".format(
+            self.portal_url, self.meeting_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        meeting_pod_template_json = json["extra_include_pod_templates"][0]
+        self.assertEqual(meeting_pod_template_json[u'@type'], u'ConfigurablePODTemplate')
+        self.assertEqual(meeting_pod_template_json[u'id'], u'agendaTemplate')
+        self.assertEqual(meeting_pod_template_json[u'outputs'][0][u'format'], u'odt')
 
 def test_suite():
     from unittest import TestSuite, makeSuite

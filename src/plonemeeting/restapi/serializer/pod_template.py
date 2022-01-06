@@ -16,7 +16,6 @@ class SerializePodTemplateToJsonBase(object):
 
     def _include_custom(self, obj, result):
         """Include outputs (format/url)."""
-        import ipdb; ipdb.set_trace()
         if base_hasattr(self, "original_context"):
             output_formats = self.context.get_available_formats()
             result["outputs"] = []
