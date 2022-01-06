@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from imio.restapi.utils import listify
 from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
 from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
+from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from zope.component import adapter
 from zope.interface import implementer
@@ -25,6 +27,14 @@ except ImportError:
 
 class SerializeMeetingToJsonBase(object):
     """ """
+
+    def _extra_include(self, result):
+        """ """
+        extra_include = listify(self.request.form.get("extra_include", []))
+        if "pod_templates" in extra_include:
+            result["extra_include_pod_templates"] = serialize_pod_templates(
+                self.context, self)
+        return result
 
     def _additional_values(self, result, additional_values):
         """ """
