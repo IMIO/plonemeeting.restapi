@@ -57,6 +57,34 @@ class BaseSerializeToJson(object):
         result["@extra_includes"] = []
         return result
 
+    def _get_asked_extra_include(self):
+        """ """
+        extra_include = listify(self.request.form.get("extra_include", []))
+        # filter on _available_extra_includes this make we do not forget
+        # to add an extra_include to _available_extra_includes
+        aeis = self._available_extra_includes({})["@extra_includes"]
+        filtered_extra_include = [
+            ei for ei in extra_include if ei in aeis]
+        # handle available extra_include starting with *
+        starting_available_extra_include = tuple(
+            aei[1:] for aei in aeis if aei.startswith('*'))
+        # handle available extra_include ending with *
+        ending_available_extra_include = tuple(
+            aei[:-1] for aei in aeis if aei.endswith('*'))
+        # handle available extra_include containing something
+        containing_available_extra_include = tuple(
+            aei[1:-1] for aei in aeis
+            if aei.endswith('*') and aei.startswith('*'))
+        if starting_available_extra_include or \
+           ending_available_extra_include or \
+           containing_available_extra_include:
+            filtered_extra_include += [
+                ei for ei in extra_include
+                if ei.startswith(starting_available_extra_include) or
+                ei.endswith(ending_available_extra_include) or
+                [caei for caei in containing_available_extra_include if caei in ei]]
+        return filtered_extra_include
+
     def _extra_include(self, result):
         """ """
         return result

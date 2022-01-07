@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from imio.restapi.utils import listify
 from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
@@ -40,12 +39,15 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
     def _available_extra_includes(self, result):
         """ """
         result["@extra_includes"] = [
-            "groups", "app_groups", "configs", "categories", "classifiers"]
+            "groups",
+            "app_groups",
+            "configs",
+            "categories",
+            "classifiers"]
         return result
 
     def _extra_include(self, result):
-        extra_include = listify(self.request.form.get("extra_include", []))
-
+        extra_include = self._get_asked_extra_include()
         if "groups" in extra_include:
             suffixes = self._get_param("suffixes", default=[], extra_include_name="groups")
             orgs = self.tool.get_orgs_for_user(

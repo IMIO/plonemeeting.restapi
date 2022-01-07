@@ -4,8 +4,9 @@ Changelog
 1.0rc7 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Make sure every `extra_include` are correctly defined in
+  `_available_extra_includes`.  Now if not defined there, it will be ignored.
+  [gbastien]
 
 1.0rc6 (2022-01-07)
 -------------------

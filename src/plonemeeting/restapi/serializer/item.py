@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from imio.restapi.utils import listify
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
@@ -18,14 +17,20 @@ class SerializeItemToJsonBase(object):
     def _available_extra_includes(self, result):
         """ """
         result["@extra_includes"] = [
-            "proposing_group", "category", "classifier", "groups_in_charge",
-            "associated_groups", "meeting", "deliberation*"]
+            "proposing_group",
+            "category",
+            "classifier",
+            "groups_in_charge",
+            "associated_groups",
+            "pod_templates",
+            "meeting",
+            "*deliberation*"]
         return result
 
     def _extra_include(self, result):
         """To be simplified when moving MeetingItem to DX as extra_include name
            will be the same as attribute name defined in MeetingItem schema."""
-        extra_include = listify(self.request.form.get("extra_include", []))
+        extra_include = self._get_asked_extra_include()
         if "proposing_group" in extra_include:
             proposing_group = self.context.getProposingGroup(theObject=True)
             result["extra_include_proposing_group"] = {}
