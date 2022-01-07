@@ -6,6 +6,8 @@ Changelog
 
 - Added `extra_include=pod_templates` for `Meeting` and `MeetingItem`.
   [gbastien]
+- Fixed use of `utils.get_current_user_id` and `adopt_user`.
+  [gbastien]
 
 1.0rc5 (2022-01-03)
 -------------------
