@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc7 (unreleased)
+1.0rc7 (2022-01-14)
 -------------------
 
 - Make sure every `extra_include` are correctly defined in
