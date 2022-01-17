@@ -4,8 +4,8 @@ Changelog
 1.0rc8 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Added HTML clean (enabled by default) when adding an element (AT or DX).
+  [gbastien]
 
 1.0rc7 (2022-01-14)
 -------------------

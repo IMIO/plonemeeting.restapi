@@ -7,4 +7,6 @@
     <adapter factory=".atcontent.DeserializeFromJson" />
   </configure>
 
+  <adapter factory=".atfields.TextFieldDeserializer" />
+
 </configure>

@@ -642,6 +642,41 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(len(meeting_annexes), 1)
         transaction.abort()
 
+    def test_restapi_add_item_clean_html(self):
+        """When creating an item, HTML will be cleaned by default.
+           Adding 'clean_html':false in the body will disable it."""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        dirty_html = '<span class="ms-class">Hello, &#xa0; la d\xc3\xa9cision ' \
+            '\xc3\xa9tait longue!</span><br /><strong>'
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            # some dirty HTML
+            "decision": dirty_html,
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        item1 = pmFolder.objectValues()[-1]
+        # decision was cleaned
+        self.assertEqual(
+            item1.getDecision(),
+            '<p><span class="ms-class">Hello, \xc2\xa0 la d\xc3\xa9cision '
+            '\xc3\xa9tait longue!</span><br /><strong></strong></p>')
+        # create item with clean_html=False
+        json['clean_html'] = False
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        # decision was not cleaned
+        item2 = pmFolder.objectValues()[-1]
+        self.assertEqual(item2.getDecision(), dirty_html)
+        transaction.abort()
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
