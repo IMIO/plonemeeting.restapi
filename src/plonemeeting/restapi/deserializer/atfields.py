@@ -18,6 +18,5 @@ class TextFieldDeserializer(DefaultFieldDeserializer):
         kwargs = {}
         should_clean_html = json_body(self.request).get('clean_html', True)
         if should_clean_html and value:
-            value, warn_wrong_html = clean_html(value)
-            kwargs['warn_wrong_html'] = warn_wrong_html
+            value = clean_html(value)
         return value, kwargs

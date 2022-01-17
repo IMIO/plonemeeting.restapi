@@ -3,6 +3,7 @@
 from collective.iconifiedcategory.utils import calculate_category_id
 from datetime import datetime
 from datetime import timedelta
+from imio.helpers.content import object_values
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
@@ -22,6 +23,7 @@ from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.utils import get_annexes
 
+import pytz
 import transaction
 
 
@@ -676,6 +678,32 @@ class testServiceAddItem(BaseTestCase):
         item2 = pmFolder.objectValues()[-1]
         self.assertEqual(item2.getDecision(), dirty_html)
         transaction.abort()
+
+    def test_restapi_add_meeting(self):
+        """When creating an meeting, HTML will be cleaned by default."""
+        self._enableField("observations", related_to="Meeting")
+        transaction.commit()
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@meeting".format(self.portal_url)
+        dirty_html = '<span class="ms-class">&#xa0; hello h\xc3\xa9h\xc3\xa9'
+        date = datetime.now(tz=pytz.UTC).isoformat().replace("+00:00", "Z")
+        json = {
+            "config_id": cfg.getId(),
+            "date": date,
+            # some dirty HTML
+            "observations": dirty_html,
+            "place": u"other",
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        meeting = object_values(pmFolder, "Meeting")[0]
+        # dirty_html was cleaned
+        self.assertEqual(
+            meeting.observations.raw,
+            u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
 
 
 def test_suite():
