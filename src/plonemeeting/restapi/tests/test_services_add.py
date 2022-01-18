@@ -36,6 +36,7 @@ class testServiceAddItem(BaseTestCase):
 
     def tearDown(self):
         self.api_session.close()
+        transaction.abort()
 
     def test_restapi_add_item_config_id_not_found(self):
         """The 'config_id' parameter must be given"""
@@ -304,7 +305,7 @@ class testServiceAddItem(BaseTestCase):
         )
         transaction.abort()
 
-    def test_restapi_add_item_with_annexes_filename_or_content_type_required(self):
+    def test_restapi_add_item_with_annexes_and_filename_or_content_type_required(self):
         """When creating an item, we may add annexes as __children__,
            one of 'filename' or 'content-type' is required to determinate content_type."""
         transaction.begin()
@@ -679,7 +680,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(item2.getDecision(), dirty_html)
         transaction.abort()
 
-    def test_restapi_add_meeting(self):
+    def test_restapi_add_clean_meeting(self):
         """When creating an meeting, HTML will be cleaned by default."""
         transaction.begin()
         self._enableField("observations", related_to="Meeting")
@@ -706,6 +707,13 @@ class testServiceAddItem(BaseTestCase):
             meeting.observations.raw,
             u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
         transaction.abort()
+
+    def test_restapi_dummy_add(self):
+        """This dummy test avoid test suite failure due to several
+           transaction begin/commit/abort.
+           This test must always be the last executed test
+           (test are executed following alphabetical order)."""
+        pass
 
 
 def test_suite():
