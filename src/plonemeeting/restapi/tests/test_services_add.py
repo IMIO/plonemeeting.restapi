@@ -681,6 +681,7 @@ class testServiceAddItem(BaseTestCase):
 
     def test_restapi_add_meeting(self):
         """When creating an meeting, HTML will be cleaned by default."""
+        transaction.begin()
         self._enableField("observations", related_to="Meeting")
         transaction.commit()
         cfg = self.meetingConfig
@@ -704,6 +705,7 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(
             meeting.observations.raw,
             u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
+        transaction.abort()
 
 
 def test_suite():
