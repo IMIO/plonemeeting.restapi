@@ -7,4 +7,8 @@
     <adapter factory=".atcontent.DeserializeFromJson" />
   </configure>
 
+  <!-- RichText fields deserializer for AT and DX -->
+  <adapter factory=".atfields.TextFieldDeserializer" />
+  <adapter factory=".dxfields.PMRichTextFieldDeserializer" />
+
 </configure>

@@ -3,6 +3,7 @@
 from collective.iconifiedcategory.utils import calculate_category_id
 from datetime import datetime
 from datetime import timedelta
+from imio.helpers.content import object_values
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
@@ -22,6 +23,7 @@ from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.utils import get_annexes
 
+import pytz
 import transaction
 
 
@@ -34,6 +36,7 @@ class testServiceAddItem(BaseTestCase):
 
     def tearDown(self):
         self.api_session.close()
+        transaction.abort()
 
     def test_restapi_add_item_config_id_not_found(self):
         """The 'config_id' parameter must be given"""
@@ -302,7 +305,7 @@ class testServiceAddItem(BaseTestCase):
         )
         transaction.abort()
 
-    def test_restapi_add_item_with_annexes_filename_or_content_type_required(self):
+    def test_restapi_add_item_with_annexes_and_filename_or_content_type_required(self):
         """When creating an item, we may add annexes as __children__,
            one of 'filename' or 'content-type' is required to determinate content_type."""
         transaction.begin()
@@ -641,6 +644,76 @@ class testServiceAddItem(BaseTestCase):
         meeting_annexes = get_annexes(meeting)
         self.assertEqual(len(meeting_annexes), 1)
         transaction.abort()
+
+    def test_restapi_add_item_clean_html(self):
+        """When creating an item, HTML will be cleaned by default.
+           Adding 'clean_html':false in the body will disable it."""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        dirty_html = '<span class="ms-class">Hello, &#xa0; la d\xc3\xa9cision ' \
+            '\xc3\xa9tait longue!</span><br /><strong>'
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            # some dirty HTML
+            "decision": dirty_html,
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        item1 = pmFolder.objectValues()[-1]
+        # decision was cleaned
+        self.assertEqual(
+            item1.getDecision(),
+            '<p><span class="ms-class">Hello, \xc2\xa0 la d\xc3\xa9cision '
+            '\xc3\xa9tait longue!</span><br /><strong></strong></p>')
+        # create item with clean_html=False
+        json['clean_html'] = False
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        # decision was not cleaned
+        item2 = pmFolder.objectValues()[-1]
+        self.assertEqual(item2.getDecision(), dirty_html)
+        transaction.abort()
+
+    def test_restapi_add_clean_meeting(self):
+        """When creating an meeting, HTML will be cleaned by default."""
+        transaction.begin()
+        self._enableField("observations", related_to="Meeting")
+        transaction.commit()
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@meeting".format(self.portal_url)
+        dirty_html = '<span class="ms-class">&#xa0; hello h\xc3\xa9h\xc3\xa9'
+        date = datetime.now(tz=pytz.UTC).isoformat().replace("+00:00", "Z")
+        json = {
+            "config_id": cfg.getId(),
+            "date": date,
+            # some dirty HTML
+            "observations": dirty_html,
+            "place": u"other",
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        meeting = object_values(pmFolder, "Meeting")[0]
+        # dirty_html was cleaned
+        self.assertEqual(
+            meeting.observations.raw,
+            u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
+        transaction.abort()
+
+    def test_restapi_dummy_add(self):
+        """This dummy test avoid test suite failure due to several
+           transaction begin/commit/abort.
+           This test must always be the last executed test
+           (test are executed following alphabetical order)."""
+        pass
 
 
 def test_suite():
