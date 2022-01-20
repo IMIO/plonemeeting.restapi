@@ -147,7 +147,7 @@ class testServiceGetUid(BaseTestCase):
         self.assertTrue("itemReference" in json)
 
     def test_restapi_get_uid_extra_include_pod_templates(self):
-        """ """
+        """Test the extra_include=pod_templates."""
         # MeetingItem
         endpoint_url = "{0}/@get?UID={1}&extra_include=pod_templates".format(
             self.portal_url, self.item1_uid
@@ -168,6 +168,49 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(meeting_pod_template_json[u'@type'], u'ConfigurablePODTemplate')
         self.assertEqual(meeting_pod_template_json[u'id'], u'agendaTemplate')
         self.assertEqual(meeting_pod_template_json[u'outputs'][0][u'format'], u'odt')
+
+    def test_restapi_get_uid_extra_include_annexes(self):
+        """Test the extra_include=annexes."""
+        # configure item1 and meeting
+        self._enable_annex_config(self.item1, param="publishable")
+        self._enable_annex_config(self.meeting, param="publishable")
+        # MetingItem
+        item_annex = self.addAnnex(self.item1, publishable=True)
+        # add a second annex but it will not be retrieved
+        self.addAnnex(self.item1)
+        # Meeting
+        meeting_annex = self.addAnnex(self.meeting, publishable=True)
+        # add a second annex but it will not be retrieved
+        self.addAnnex(self.item1)
+
+        # MeetingItem, just get the publishable annexes and include file
+        endpoint_url_pattern = "{0}/@get?UID={1}&extra_include=annexes" \
+            "&extra_include_annexes_fullobjects" \
+            "&extra_include_annexes_publishable=true" \
+            "&extra_include_annexes_metadata_fields=file"
+        endpoint_url = endpoint_url_pattern.format(
+            self.portal_url, self.item1_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        item_annexes_json = json["extra_include_annexes"]
+        self.assertEqual(len(item_annexes_json), 1)
+        self.assertEqual(item_annexes_json[0][u'@type'], u'annex')
+        self.assertEqual(item_annexes_json[0][u'UID'], item_annex.UID())
+        self.assertEqual(item_annexes_json[0][u'file'][u'filename'], u'FILE.txt')
+
+        # Meeting
+        endpoint_url = endpoint_url_pattern.format(
+            self.portal_url, self.meeting_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        meeting_annexes_json = json["extra_include_annexes"]
+        self.assertEqual(len(meeting_annexes_json), 1)
+        self.assertEqual(meeting_annexes_json[0][u'@type'], u'annex')
+        self.assertEqual(meeting_annexes_json[0][u'UID'], meeting_annex.UID())
+        self.assertEqual(meeting_annexes_json[0][u'file'][u'filename'], u'FILE.txt')
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
