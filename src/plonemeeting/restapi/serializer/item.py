@@ -3,6 +3,7 @@
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
+from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.interfaces import IMeetingItem
@@ -17,6 +18,7 @@ class SerializeItemToJsonBase(object):
     def _available_extra_includes(self, result):
         """ """
         result["@extra_includes"] = [
+            "annexes",
             "proposing_group",
             "category",
             "classifier",
@@ -61,6 +63,8 @@ class SerializeItemToJsonBase(object):
             for associated_group in associated_groups:
                 serializer = self._get_serializer(associated_group, "associated_groups")
                 result["extra_include_associated_groups"].append(serializer())
+        if "annexes" in extra_include:
+            result = serialize_extra_include_annexes(result, self)
         if "pod_templates" in extra_include:
             result["extra_include_pod_templates"] = serialize_pod_templates(
                 self.context, self)

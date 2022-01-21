@@ -6,6 +6,8 @@ Changelog
 
 - Added HTML clean (enabled by default) when adding an element (AT or DX).
   [gbastien]
+- Added `extra_include=annexes` available on item and meeting.
+  [gbastien]
 
 1.0rc7 (2022-01-14)
 -------------------

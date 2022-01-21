@@ -4,6 +4,7 @@ from Acquisition import aq_base
 from Acquisition import aq_inner
 from Acquisition import aq_parent
 from collective.documentgenerator.interfaces import IGenerablePODTemplates
+from collective.iconifiedcategory.utils import get_categorized_elements
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
 from imio.restapi.utils import listify
@@ -12,6 +13,7 @@ from plone.dexterity.interfaces import IDexterityContainer
 from plone.dexterity.interfaces import IDexterityContent
 from plone.dexterity.utils import iterSchemata
 from plone.restapi.batching import HypermediaBatch
+from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.interfaces import IObjectPrimaryFieldTarget
 from plone.restapi.interfaces import ISerializeToJson
@@ -21,6 +23,7 @@ from plone.restapi.serializer.converters import json_compatible
 from plone.restapi.serializer.expansion import expandable_elements
 from plone.restapi.serializer.nextprev import NextPrevious
 from plone.supermodel.utils import mergedTaggedValueDict
+from plonemeeting.restapi.config import ANNEXES_FILTER_VALUES
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.utils import get_param
 from plonemeeting.restapi.utils import get_serializer
@@ -46,6 +49,35 @@ def serialize_pod_templates(context, serializer):
         # to be used to compute url to generate element
         pod_serializer.original_context = context
         result.append(pod_serializer())
+    return result
+
+
+def serialize_annexes(context, filters, extra_include_name=None, base_serializer=None):
+    """Serialize visible annexes regarding filters found in request."""
+    result = []
+    annexes = get_categorized_elements(
+        context, result_type="objects", filters=filters)
+    for annex in annexes:
+        serializer = get_serializer(
+            annex, extra_include_name=extra_include_name, serializer=base_serializer)
+        serialized_annex = serializer()
+        result.append(serialized_annex)
+    return result
+
+
+def serialize_extra_include_annexes(result, serializer):
+    """ """
+    # compute filters to get annexes
+    filters = {}
+    for filter_value in ANNEXES_FILTER_VALUES:
+        value = serializer._get_param(
+            filter_value,
+            default=None,
+            extra_include_name="annexes")
+        if value is not None:
+            filters[filter_value] = boolean_value(value)
+    result["extra_include_annexes"] = serialize_annexes(
+        serializer.context, filters, "annexes", serializer)
     return result
 
 
@@ -131,6 +163,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_base_data(self, obj):
         """ """
         result = {}
+
         if self._get_param("include_base_data", True):
             result = {
                 # '@context': 'http://www.w3.org/ns/hydra/context.jsonld',
@@ -257,7 +290,8 @@ class ContentSerializeToJson(BaseSerializeToJson):
         self.metadata_fields = listify(self._get_param('metadata_fields', []))
         # Include all
         # False if given or if metadata_fields are given
-        self.include_all = self._get_param('include_all', True)
+        self.include_all = self._get_param('include_all', True) and \
+            not self.metadata_fields
 
         # Include base_data
         result = self._include_base_data(obj)
