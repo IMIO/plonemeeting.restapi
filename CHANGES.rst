@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc8 (unreleased)
+1.0rc8 (2022-01-21)
 -------------------
 
 - Added HTML clean (enabled by default) when adding an element (AT or DX).
