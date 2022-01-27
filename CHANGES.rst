@@ -4,8 +4,9 @@ Changelog
 1.0rc9 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Added upgrade step to 2000 that will re-apply the `rolemap` step so we are
+  sure old installations are restricting the service to role `Member`.
+  [gbastien]
 
 1.0rc8 (2022-01-21)
 -------------------
