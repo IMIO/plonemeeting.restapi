@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc9 (unreleased)
+1.0rc9 (2022-01-27)
 -------------------
 
 - Added upgrade step to 2000 that will re-apply the `rolemap` step so we are
