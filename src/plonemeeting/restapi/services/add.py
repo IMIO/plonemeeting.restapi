@@ -5,6 +5,7 @@ from collective.iconifiedcategory.utils import calculate_category_id
 from imio.helpers.content import get_vocab
 from imio.helpers.security import fplog
 from imio.restapi.services.add import FolderPost
+from imio.restapi.utils import get_return_fullobject_after_creation_default
 from plone import api
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
@@ -38,7 +39,7 @@ OPTIONAL_FIELDS_WARNING = 'The following optional fields are not activated in ' 
     'this configuration and were ignored: %s.'
 ORG_FIELD_VALUE_ERROR = 'Error with value "%s" defined for field "%s"! Enter a valid organization id or UID.'
 REQUIRED_FIELDS = ["title", "proposingGroup"]
-UNKNOWN_DATA = "Following field names were ignored: %s"
+UNKNOWN_DATA = "Following field names were ignored: %s."
 
 
 class BasePost(FolderPost):
@@ -243,8 +244,12 @@ class BasePost(FolderPost):
         fplog("create_by_ws_rest", extras=extras)
 
     def _check_unknown_data(self, serialized_obj):
-        ignored = ["ignore_validation_for"]
-        diff = set(self.cleaned_data.keys()).difference(serialized_obj.keys() + ignored)
+        ignored = ["ignore_validation_for", "clean_html"]
+        # if we have the full serialized obj, then we may check unknown data
+        diff = []
+        if get_return_fullobject_after_creation_default():
+            diff = set(self.cleaned_data.keys()).difference(
+                serialized_obj.keys() + ignored)
         if diff:
             self.warnings.append(UNKNOWN_DATA % ", ".join(diff))
 

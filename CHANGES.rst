@@ -4,8 +4,9 @@ Changelog
 1.0rc10 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Only display the `Unknown data` warning when creating an element if returning
+  full obj serialization after creation.
+  [gbastien]
 
 1.0rc9 (2022-01-27)
 -------------------

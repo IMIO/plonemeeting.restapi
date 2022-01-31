@@ -5,8 +5,8 @@ from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
 from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
-from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
+from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from zope.component import adapter
 from zope.interface import implementer
