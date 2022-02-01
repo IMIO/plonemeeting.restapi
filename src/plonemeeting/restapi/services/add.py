@@ -28,7 +28,7 @@ ANNEX_DECISION_RELATED_NOT_ITEM_ERROR = 'The "decision_related" parameter is ' \
 ANNEX_NO_CONTENT_CATEGORY_AVAILABLE_ERROR = 'No annex_type available to create annex, ' \
     'please check configuration!'
 IGNORE_VALIDATION_FOR_REQUIRED_ERROR = \
-    'You can not ignore validation for required fields! Define a value for %s!'
+    'You can not ignore validation for following required fields: "%s"!'
 IGNORE_VALIDATION_FOR_VALUED_ERROR = \
     'You can not ignore validation of a field for which a value ' \
     'is provided, remove "%s" from data!'
@@ -38,11 +38,14 @@ OPTIONAL_FIELD_ERROR = 'The optional field "%s" is not activated in this configu
 OPTIONAL_FIELDS_WARNING = 'The following optional fields are not activated in ' \
     'this configuration and were ignored: %s.'
 ORG_FIELD_VALUE_ERROR = 'Error with value "%s" defined for field "%s"! Enter a valid organization id or UID.'
-REQUIRED_FIELDS = ["title", "proposingGroup"]
 UNKNOWN_DATA = "Following field names were ignored: %s."
 
 
 class BasePost(FolderPost):
+
+    # to be overrided
+    required_fields = []
+
     def prepare_data(self, data):
         data = super(BasePost, self).prepare_data(data)
 
@@ -54,7 +57,6 @@ class BasePost(FolderPost):
             raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
         # type
         self.type = self._prepare_data_type(data)
-
         # main checks
         if data["@type"].startswith("Meeting"):
             # check that given values are useable, will raise if not
@@ -160,10 +162,10 @@ class BasePost(FolderPost):
         if ignore_validation_for:
             # raise if trying to ignore validation of a required field
             ignored_required_fields = set(ignore_validation_for).intersection(
-                REQUIRED_FIELDS)
+                self.required_fields)
             if ignored_required_fields:
                 raise BadRequest(IGNORE_VALIDATION_FOR_REQUIRED_ERROR % u", ".join(
-                    ignored_required_fields))
+                    self.required_fields))
 
             # raise if trying to bypass validation and a value is given
             ignored_valued_fields = [k for k, v in data.items()
@@ -255,6 +257,9 @@ class BasePost(FolderPost):
 
 
 class ItemPost(BasePost):
+
+    required_fields = ["title", "proposingGroup"]
+
     @property
     def _turn_ids_into_uids_fieldnames(self):
         return [
@@ -288,6 +293,9 @@ class ItemPost(BasePost):
 
 
 class MeetingPost(BasePost):
+
+    required_fields = ["date"]
+
     @property
     def _optional_fields(self):
         return self.cfg.listUsedMeetingAttributes()
@@ -297,7 +305,8 @@ class MeetingPost(BasePost):
         return self.cfg.getUsedMeetingAttributes()
 
     def _prepare_data_type(self, data):
-        data["@type"] = self.cfg.getMeetingTypeName()
+        if not data.get("@type"):
+            data["@type"] = self.cfg.getMeetingTypeName()
         return data.get("@type")
 
 

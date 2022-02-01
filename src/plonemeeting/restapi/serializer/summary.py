@@ -32,6 +32,9 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
         """ """
         result = super(PMBrainJSONSummarySerializer, self).__call__()
 
+        # call _init so elements like self.include_all are initialized
+        self._init()
+
         # Include custom
         result.update(self._include_custom(self.context, result))
 

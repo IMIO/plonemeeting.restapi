@@ -181,7 +181,7 @@ class testServiceGetUid(BaseTestCase):
         # Meeting
         meeting_annex = self.addAnnex(self.meeting, publishable=True)
         # add a second annex but it will not be retrieved
-        self.addAnnex(self.item1)
+        self.addAnnex(self.meeting)
 
         # MeetingItem, just get the publishable annexes and include file
         endpoint_url_pattern = "{0}/@get?UID={1}&extra_include=annexes" \
@@ -210,6 +210,21 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(meeting_annexes_json[0][u'@type'], u'annex')
         self.assertEqual(meeting_annexes_json[0][u'UID'], meeting_annex.UID())
         self.assertEqual(meeting_annexes_json[0][u'file'][u'filename'], u'FILE.txt')
+
+        # getting item or meeting annexes without fullobjects also includes
+        # the annex file as annex file is returned in any case
+        endpoint_url_pattern = "{0}/@get?UID={1}&extra_include=annexes"
+        endpoint_url = endpoint_url_pattern.format(
+            self.portal_url, self.item1_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        item_annexes_json = json["extra_include_annexes"]
+        self.assertEqual(len(item_annexes_json), 2)
+        self.assertEqual(item_annexes_json[0][u'@type'], u'annex')
+        self.assertEqual(item_annexes_json[0][u'UID'], item_annex.UID())
+        self.assertEqual(item_annexes_json[0][u'file'][u'filename'], u'FILE.txt')
 
 
 def test_suite():

@@ -2,17 +2,32 @@
 
 from collective.iconifiedcategory.utils import _categorized_elements
 from imio.annex.content.annex import IAnnex
+from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.interfaces import ISerializeToJson
+from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
+from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
+from Products.PloneMeeting.utils import get_dx_field
 from zope.component import adapter
+from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
 
 
-@implementer(ISerializeToJson)
-@adapter(IAnnex, Interface)
-class AnnexSerializeToJson(BaseDXSerializeFolderToJson):
+class BaseSerializeAnnexToJson(object):
     """ """
+
+    def _include_custom(self, obj, result):
+        """Include "file" by default."""
+        if self.include_all or "file" in self.metadata_fields:
+            field = get_dx_field(obj, "file")
+            # serialize the field
+            serializer = queryMultiAdapter(
+                (field, obj, self.request), IFieldSerializer
+            )
+            value = serializer()
+            result["file"] = value
+        return result
 
     def _additional_values(self, result, additional_values):
         """Let include every values available from
@@ -29,3 +44,14 @@ class AnnexSerializeToJson(BaseDXSerializeFolderToJson):
 
         result.update(values)
         return result
+
+@implementer(ISerializeToJson)
+@adapter(IAnnex, Interface)
+class SerializeToJson(BaseSerializeAnnexToJson, BaseDXSerializeFolderToJson):
+    """ """
+
+
+@implementer(ISerializeToJsonSummary)
+@adapter(IAnnex, Interface)
+class SerializeToJsonSummary(BaseSerializeAnnexToJson, PMBrainJSONSummarySerializer):
+    """ """

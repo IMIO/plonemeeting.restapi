@@ -8,6 +8,7 @@ from collective.iconifiedcategory.utils import get_categorized_elements
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
 from imio.restapi.utils import listify
+from plone import api
 from plone.autoform.interfaces import READ_PERMISSIONS_KEY
 from plone.dexterity.interfaces import IDexterityContainer
 from plone.dexterity.interfaces import IDexterityContent
@@ -83,6 +84,11 @@ def serialize_extra_include_annexes(result, serializer):
 
 class BaseSerializeToJson(object):
     """__call__ must be redefined by class heritating from BaseSerializeToJson."""
+
+    def _get_workflow_state(self, obj):
+        wftool = api.portal.get_tool("portal_workflow")
+        review_state = wftool.getInfoFor(obj, name="review_state", default=None)
+        return review_state
 
     def _available_extra_includes(self, result):
         """ """
@@ -192,7 +198,8 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_parent(self, obj):
         """ """
         result = {}
-        if self.include_all or self._get_param('include_parent'):
+        # parent is only included when specifically asked, even when include_all is True
+        if self._get_param('include_parent', False):
             parent = aq_parent(aq_inner(obj))
             parent_summary = getMultiAdapter(
                 (parent, self.request), ISerializeToJsonSummary
@@ -274,6 +281,18 @@ class ContentSerializeToJson(BaseSerializeToJson):
         """Custom part made to be overrided when necessary."""
         return {}
 
+    def getVersion(self, version):
+        """ """
+        return self.context
+
+    def _init(self):
+        """ """
+        self.metadata_fields = listify(self._get_param('metadata_fields', []))
+        # Include all
+        # False if given or if metadata_fields are given
+        self.include_all = self._get_param('include_all', True) and \
+            not self.metadata_fields
+
     def __call__(self, version=None, include_items=False):
         """Change include_items=False by default.
            Override to manage a way to get only what we want :
@@ -286,12 +305,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
            """
         version = "current" if version is None else version
         obj = self.getVersion(version)
-
-        self.metadata_fields = listify(self._get_param('metadata_fields', []))
-        # Include all
-        # False if given or if metadata_fields are given
-        self.include_all = self._get_param('include_all', True) and \
-            not self.metadata_fields
+        self._init()
 
         # Include base_data
         result = self._include_base_data(obj)

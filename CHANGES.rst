@@ -7,6 +7,10 @@ Changelog
 - Only display the `Unknown data` warning when creating an element if returning
   full obj serialization after creation.
   [gbastien]
+- Fixed creation of meeting with annexes.
+  [gbastien]
+- Make the annex serializer include `file` in base data.
+  [gbastien]
 
 1.0rc9 (2022-01-27)
 -------------------

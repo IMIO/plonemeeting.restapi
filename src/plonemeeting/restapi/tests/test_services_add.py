@@ -533,7 +533,8 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(
             response.json(),
             {
-                u"message": IGNORE_VALIDATION_FOR_REQUIRED_ERROR % "title",
+                u"message":
+                    IGNORE_VALIDATION_FOR_REQUIRED_ERROR % "title, proposingGroup",
                 u"type": u"BadRequest",
             }
         )
@@ -680,10 +681,57 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(item2.getDecision(), dirty_html)
         transaction.abort()
 
+    def test_restapi_add_meeting_with_annexes(self):
+        """When creating a meeting, we may add annexes as __children__,
+           we may add several annexes at once."""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "date": "2022-02-02 12:00",
+            "__children__": [
+                {
+                    "@type": "annex",
+                    "title": "My annex 1",
+                    "file": {
+                        "data": "123456",
+                        "encoding": "ascii",
+                        "filename": "file.txt",
+                    },
+                },
+                {
+                    "@type": "annex",
+                    "title": "My annex 2",
+                    "file": {"data": base64_pdf_data, "filename": "file.pdf"},
+                },
+            ],
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        meeting = pmFolder.objectValues()[-1]
+        annex1 = get_annexes(meeting)[0]
+        annex2 = get_annexes(meeting)[1]
+        self.assertEqual(
+            annex1.file.filename, json["__children__"][0]["file"]["filename"]
+        )
+        self.assertEqual(annex1.file.size, 6)
+        self.assertEqual(annex1.file.contentType, "text/plain")
+        self.assertEqual(
+            annex2.file.filename, json["__children__"][1]["file"]["filename"]
+        )
+        self.assertEqual(annex2.file.size, 6475)
+        self.assertEqual(annex2.file.contentType, "application/pdf")
+        transaction.abort()
+
     def test_restapi_add_clean_meeting(self):
         """When creating an meeting, HTML will be cleaned by default."""
         transaction.begin()
         self._enableField("observations", related_to="Meeting")
+        # make sure creating a meeting work when using attendees
+        self._enableField("attendees", related_to="Meeting")
         transaction.commit()
         cfg = self.meetingConfig
         self.changeUser("pmManager")
@@ -695,7 +743,6 @@ class testServiceAddItem(BaseTestCase):
             "date": date,
             # some dirty HTML
             "observations": dirty_html,
-            "place": u"other",
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
@@ -706,6 +753,15 @@ class testServiceAddItem(BaseTestCase):
         self.assertEqual(
             meeting.observations.raw,
             u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
+        # trying to add meeting with same date will fail
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u"[{'message': 'A meeting having the same date and hour "
+                u"already exists. Please choose another date and/or hour.', "
+                u"'error': 'ValidationError'}]",
+             u'type': u'BadRequest'})
         transaction.abort()
 
     def test_restapi_dummy_add(self):

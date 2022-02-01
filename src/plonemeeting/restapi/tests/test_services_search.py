@@ -571,14 +571,15 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue("UID" in resp_json["items"][0])
         self.assertTrue("next_item" in resp_json["items"][0])
         self.assertTrue("previous_item" in resp_json["items"][0])
-        self.assertTrue("parent" in resp_json["items"][0])
+        # parent is only there when specifically asked
+        self.assertFalse("parent" in resp_json["items"][0])
         self.assertTrue("allow_discussion" in resp_json["items"][0])
         self.assertTrue("layout" in resp_json["items"][0])
         self.assertTrue("formatted_itemNumber" in resp_json["items"][0])
         self.assertFalse("items" in resp_json["items"][0])
         # we may get what we want, only get "@components"
         endpoint_url = "{0}/@search?config_id={1}&fullobjects=True" \
-            "&include_base_data=false&additional_values=" \
+            "&include_base_data=false&include_parent=true" \
             "&include_all=false&include_components=true".format(
                 self.portal_url, self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
@@ -590,7 +591,8 @@ class testServiceSearch(BaseTestCase):
         self.assertFalse("UID" in resp_json["items"][0])
         self.assertFalse("next_item" in resp_json["items"][0])
         self.assertFalse("previous_item" in resp_json["items"][0])
-        self.assertFalse("parent" in resp_json["items"][0])
+        # include_parent=true
+        self.assertTrue("parent" in resp_json["items"][0])
         self.assertFalse("allow_discussion" in resp_json["items"][0])
         self.assertFalse("formatted_itemNumber" in resp_json["items"][0])
         self.assertFalse("items" in resp_json["items"][0])
