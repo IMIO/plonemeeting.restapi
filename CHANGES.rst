@@ -11,6 +11,8 @@ Changelog
   [gbastien]
 - Make the annex serializer include `file` in base data.
   [gbastien]
+- Fixed `clean_html=False` when creating DX content, `clean_html` was always applied.
+  [gbastien]
 
 1.0rc9 (2022-01-27)
 -------------------

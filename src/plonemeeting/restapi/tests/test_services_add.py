@@ -20,6 +20,7 @@ from plonemeeting.restapi.testing import PM_REST_TEST_ADD_PROFILE_FUNCTIONAL
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.tests.config import base64_pdf_data
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
+from Products.CMFPlone.utils import safe_unicode
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.utils import get_annexes
 
@@ -748,11 +749,25 @@ class testServiceAddItem(BaseTestCase):
         transaction.commit()
         self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
-        meeting = object_values(pmFolder, "Meeting")[0]
+        meeting = object_values(pmFolder, "Meeting")[-1]
         # dirty_html was cleaned
         self.assertEqual(
             meeting.observations.raw,
             u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
+        # create meeting with clean_html=False
+        json['clean_html'] = False
+        # change date, can not create several meeting with same date
+        date = date[0:3] + str(int(date[3]) + 1) + date[4:]
+        json['date'] = date
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        meeting2 = object_values(pmFolder, "Meeting")[-1]
+        # the "&#xa0;" is replaced by "\xa0" by Plone but could also
+        # be removed while using appy.pod pre processor
+        meeting_dirty_html = safe_unicode(dirty_html).replace(u'&#xa0;', u'\xa0')
+        self.assertEqual(meeting2.observations.raw, meeting_dirty_html)
         # trying to add meeting with same date will fail
         response = self.api_session.post(endpoint_url, json=json)
         self.assertEqual(response.status_code, 400, response.content)
