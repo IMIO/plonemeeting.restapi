@@ -27,11 +27,12 @@ class BaseTestCase(PloneMeetingTestCase):
         self.changeUser("siteadmin")
         self.getMeetingFolder(userId="pmManager")
         # XXX 4.1.x compatibility, to be removed in 4.2+
-        self.meetingConfig.setWorkflowAdaptations(('creator_initiated_decisions', ))
-        self.meetingConfig.at_post_edit_script()
+        if not HAS_MEETING_DX:
+            self.meetingConfig.setWorkflowAdaptations(('creator_initiated_decisions', ))
+            self.meetingConfig.at_post_edit_script()
         try:
             transaction.commit()
-        except:
+        except Exception:
             transaction.begin()
 
     def get_review_state(self, obj):
