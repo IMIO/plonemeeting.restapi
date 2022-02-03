@@ -4,6 +4,7 @@ from Acquisition import aq_base
 from Acquisition import aq_inner
 from Acquisition import aq_parent
 from collective.documentgenerator.interfaces import IGenerablePODTemplates
+from collective.iconifiedcategory.utils import _categorized_elements
 from collective.iconifiedcategory.utils import get_categorized_elements
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
@@ -53,11 +54,33 @@ def serialize_pod_templates(context, serializer):
     return result
 
 
+def _get_annex_uids(data, filters):
+    """Compatibility for PM4.1.x/4.2.x, as filters can not be passed to
+       get_categorized_elements, we manage it manually.
+       So we compute uids to keep and we pass it to get_categorized_elements.
+       XXX to be removed when using 4.2.x+ for everybody."""
+    uids = []
+    for annex_uid, annex_infos in data.items():
+        # check filters
+        keep = True
+        for k, v in filters.items():
+            if annex_infos[k] != v:
+                keep = False
+                break
+        if keep:
+            uids.append(annex_uid)
+    return uids
+
+
 def serialize_annexes(context, filters, extra_include_name=None, base_serializer=None):
     """Serialize visible annexes regarding filters found in request."""
     result = []
+    # can not use parameter filters due to compatibility 4.1.x, use uids instead
+    # XXX to be adapted, just pass filters to get_categorized_elements and
+    # remove uids computation
+    uids = _get_annex_uids(_categorized_elements(context), filters)
     annexes = get_categorized_elements(
-        context, result_type="objects", filters=filters)
+        context, result_type="objects", uids=uids)  # , filters=filters)
     for annex in annexes:
         serializer = get_serializer(
             annex, extra_include_name=extra_include_name, serializer=base_serializer)

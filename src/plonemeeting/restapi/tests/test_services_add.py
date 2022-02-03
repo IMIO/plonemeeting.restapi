@@ -3,6 +3,7 @@
 from collective.iconifiedcategory.utils import calculate_category_id
 from datetime import datetime
 from datetime import timedelta
+from DateTime import DateTime
 from imio.helpers.content import object_values
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
@@ -197,7 +198,10 @@ class testServiceAdd(BaseTestCase):
         cfg = self.meetingConfig
         self.changeUser("pmManager")
         # meeting in the future
-        meeting = self.create("Meeting", date=datetime.now() + timedelta(days=1))
+        date = DateTime() + 1
+        if HAS_MEETING_DX:
+            date = datetime.now() + timedelta(days=1)
+        meeting = self.create("Meeting", date=date)
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
             "config_id": cfg.getId(),
@@ -380,7 +384,10 @@ class testServiceAdd(BaseTestCase):
         self.changeUser("pmManager")
         item = self.create('MeetingItem')
         item_uid = item.UID()
-        meeting = self.create('Meeting', date=datetime.now())
+        date = None
+        if not HAS_MEETING_DX:
+            date = DateTime()
+        meeting = self.create('Meeting', date=date)
         meeting_uid = meeting.UID()
         transaction.commit()
 
@@ -504,29 +511,31 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(
             meeting.observations.raw,
             u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
-        # create meeting with clean_html=False
-        json['clean_html'] = False
-        # change date, can not create several meeting with same date
-        date = date[0:3] + str(int(date[3]) + 1) + date[4:]
-        json['date'] = date
-        response = self.api_session.post(endpoint_url, json=json)
-        transaction.begin()
-        self.assertEqual(response.status_code, 201, response.content)
-        pmFolder = self.getMeetingFolder()
-        meeting2 = object_values(pmFolder, "Meeting")[-1]
-        # the "&#xa0;" is replaced by "\xa0" by Plone but could also
-        # be removed while using appy.pod pre processor
-        meeting_dirty_html = safe_unicode(dirty_html).replace(u'&#xa0;', u'\xa0')
-        self.assertEqual(meeting2.observations.raw, meeting_dirty_html)
-        # trying to add meeting with same date will fail
-        response = self.api_session.post(endpoint_url, json=json)
-        self.assertEqual(response.status_code, 400, response.content)
-        self.assertEqual(
-            response.json(),
-            {u'message': u"[{'message': 'A meeting having the same date and hour "
-                u"already exists. Please choose another date and/or hour.', "
-                u"'error': 'ValidationError'}]",
-             u'type': u'BadRequest'})
+        # this fails with AT Meeting because mimetype is considered text/plain
+        if HAS_MEETING_DX:
+            # create meeting with clean_html=False
+            json['clean_html'] = False
+            # change date, can not create several meeting with same date
+            date = date[0:3] + str(int(date[3]) + 1) + date[4:]
+            json['date'] = date
+            response = self.api_session.post(endpoint_url, json=json)
+            transaction.begin()
+            self.assertEqual(response.status_code, 201, response.content)
+            pmFolder = self.getMeetingFolder()
+            meeting2 = object_values(pmFolder, "Meeting")[-1]
+            # the "&#xa0;" is replaced by "\xa0" by Plone but could also
+            # be removed while using appy.pod pre processor
+            meeting_dirty_html = safe_unicode(dirty_html).replace(u'&#xa0;', u'\xa0')
+            self.assertEqual(meeting2.observations.raw, meeting_dirty_html)
+            # trying to add meeting with same date will fail
+            response = self.api_session.post(endpoint_url, json=json)
+            self.assertEqual(response.status_code, 400, response.content)
+            self.assertEqual(
+                response.json(),
+                {u'message': u"[{'message': 'A meeting having the same date and hour "
+                    u"already exists. Please choose another date and/or hour.', "
+                    u"'error': 'ValidationError'}]",
+                 u'type': u'BadRequest'})
 
 
 class testServiceAddWithAnnexes(BaseTestCase):

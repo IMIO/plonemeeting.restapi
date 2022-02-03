@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from DateTime import DateTime
 from datetime import datetime
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.get import UID_NOT_ACCESSIBLE_ERROR
@@ -23,7 +24,10 @@ class testServiceGetUid(BaseTestCase):
         self.item1_uid = self.item1.UID()
         self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
         self.item2_uid = self.item2.UID()
-        self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
+        if HAS_MEETING_DX:
+            self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
+        else:
+            self.meeting = self.create("Meeting", date=DateTime('2021/09/23 10:0'))
         self.meeting_uid = self.meeting.UID()
         transaction.commit()
 

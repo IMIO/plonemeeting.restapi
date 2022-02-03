@@ -26,6 +26,9 @@ class BaseTestCase(PloneMeetingTestCase):
         self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
         self.changeUser("siteadmin")
         self.getMeetingFolder(userId="pmManager")
+        # XXX 4.1.x compatibility, to be removed in 4.2+
+        self.meetingConfig.setWorkflowAdaptations(('creator_initiated_decisions', ))
+        self.meetingConfig.at_post_edit_script()
         transaction.commit()
 
     def get_review_state(self, obj):

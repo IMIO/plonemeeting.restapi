@@ -4,8 +4,8 @@ Changelog
 1.0rc11 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Restored `Products.PloneMeeting 4.1.x/4.2.x` backward compatibility.
+  [gbastien]
 
 1.0rc10 (2022-02-03)
 --------------------
