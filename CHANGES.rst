@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc10 (unreleased)
+1.0rc10 (2022-02-03)
 --------------------
 
 - Only display the `Unknown data` warning when creating an element if returning
