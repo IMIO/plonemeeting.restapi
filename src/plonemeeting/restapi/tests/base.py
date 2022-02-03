@@ -29,7 +29,10 @@ class BaseTestCase(PloneMeetingTestCase):
         # XXX 4.1.x compatibility, to be removed in 4.2+
         self.meetingConfig.setWorkflowAdaptations(('creator_initiated_decisions', ))
         self.meetingConfig.at_post_edit_script()
-        transaction.commit()
+        try:
+            transaction.commit()
+        except:
+            transaction.begin()
 
     def get_review_state(self, obj):
         """Backward compat method that manage queryState/query_state."""
