@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc12 (unreleased)
+1.0rc12 (2022-02-15)
 --------------------
 
 - Fixed `base.serialize_annexes`, make sure we get no annex if the given filters gives no uids.
