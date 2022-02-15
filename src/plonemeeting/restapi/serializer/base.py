@@ -79,6 +79,8 @@ def serialize_annexes(context, filters, extra_include_name=None, base_serializer
     # XXX to be adapted, just pass filters to get_categorized_elements and
     # remove uids computation
     uids = _get_annex_uids(_categorized_elements(context), filters)
+    # uids must contains something or passing an empty list means do not filter on uids
+    uids = uids or ["dummy_uid"]
     annexes = get_categorized_elements(
         context, result_type="objects", uids=uids)  # , filters=filters)
     for annex in annexes:

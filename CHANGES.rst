@@ -4,8 +4,9 @@ Changelog
 1.0rc12 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Fixed `base.serialize_annexes`, make sure we get no annex if the given filters gives no uids.
+  Passing no uids to get_categorized_elements means `Do not filter on uids`.
+  [gbastien]
 
 1.0rc11 (2022-02-14)
 --------------------

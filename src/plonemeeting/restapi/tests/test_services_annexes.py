@@ -95,6 +95,12 @@ class testServiceAnnexes(BaseTestCase):
         annex_infos = response.json()[0]
         self.assertEqual(annex_infos['UID'], annex.UID())
 
+        # check that it works with one single non publishable annex
+        self.deleteAsManager(annex.UID())
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(len(response.json()), 0)
+
     def test_restapi_annexes_additional_values(self):
         """@annexes, additional_values will actually
         return categorized element infos."""
