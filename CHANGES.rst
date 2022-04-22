@@ -4,8 +4,8 @@ Changelog
 1.0rc13 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Enable environment variable `RESTAPI_DEBUG` in tests.
+  [gbastien]
 
 1.0rc12 (2022-02-15)
 --------------------

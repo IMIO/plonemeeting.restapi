@@ -8,6 +8,7 @@ from Products.PloneMeeting import tests as pm_tests
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import PloneMeetingTestCase
 
+import os
 import transaction
 
 
@@ -26,6 +27,9 @@ class BaseTestCase(PloneMeetingTestCase):
         self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
         self.changeUser("siteadmin")
         self.getMeetingFolder(userId="pmManager")
+        # enable RESTAPI_DEBUG for every tests
+        # this will display the result of a restapi call in the log
+        os.environ['RESTAPI_DEBUG'] = "True"
         # XXX 4.1.x compatibility, to be removed in 4.2+
         if not HAS_MEETING_DX:
             self.meetingConfig.setWorkflowAdaptations(('creator_initiated_decisions', ))
