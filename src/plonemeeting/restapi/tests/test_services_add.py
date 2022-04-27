@@ -544,6 +544,7 @@ class testServiceAdd(BaseTestCase):
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {"config_id": cfg.getId()}
         response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
         self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
@@ -764,7 +765,8 @@ class testServiceAddWithAnnexes(BaseTestCase):
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
             "config_id": cfg.getId(),
-            "date": "2022-02-02 12:00",
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
             "__children__": [
                 {
                     "@type": "annex",
