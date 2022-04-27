@@ -6,6 +6,10 @@ Changelog
 
 - Enable environment variable `RESTAPI_DEBUG` in tests.
   [gbastien]
+- Prevent create an empty item.  Temporarily completely overrided
+  `DeserializeFromJson.__call__` from `plone.restapi` until issue
+  https://github.com/plone/plone.restapi/issues/1386 is fixed.
+  [gbastien]
 
 1.0rc12 (2022-02-15)
 --------------------

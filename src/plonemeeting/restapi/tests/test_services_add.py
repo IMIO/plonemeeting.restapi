@@ -537,6 +537,22 @@ class testServiceAdd(BaseTestCase):
                     u"'error': 'ValidationError'}]",
                  u'type': u'BadRequest'})
 
+    def test_restapi_add_item_can_not_create_empty(self):
+        """Test that an empty item can not be created."""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {"config_id": cfg.getId()}
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message':
+                u"[{'field': 'proposingGroup', 'message': u'A proposing group is required.', "
+                u"'error': 'ValidationError'}, {'field': 'title', 'message': u'Purpose is required, "
+                u"please correct.', 'error': 'ValidationError'}]", u'type': u'BadRequest'}
+        )
+
 
 class testServiceAddWithAnnexes(BaseTestCase):
     """@item/@meeting POST endpoints with annexes."""
