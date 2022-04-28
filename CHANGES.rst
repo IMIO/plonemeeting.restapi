@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc13 (unreleased)
+1.0rc13 (2022-04-28)
 --------------------
 
 - Enable environment variable `RESTAPI_DEBUG` in tests.
