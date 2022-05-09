@@ -17,9 +17,9 @@ class testServiceConfig(BaseTestCase):
         """ """
         endpoint_url = "{0}/@config".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.json(), {u"message": CONFIG_ID_ERROR, u"type": u"Exception"}
+            response.json(), {u"message": CONFIG_ID_ERROR, u"type": u"BadRequest"}
         )
         endpoint_url += "?config_id={0}".format(self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
@@ -29,10 +29,10 @@ class testServiceConfig(BaseTestCase):
         """ """
         endpoint_url = "{0}/@config?config_id=unknown".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
-            {u"message": CONFIG_ID_NOT_FOUND_ERROR % "unknown", u"type": u"Exception"},
+            {u"message": CONFIG_ID_NOT_FOUND_ERROR % "unknown", u"type": u"BadRequest"},
         )
 
     def test_restapi_config_endpoint(self):

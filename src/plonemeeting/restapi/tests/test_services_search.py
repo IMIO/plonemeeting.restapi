@@ -26,10 +26,10 @@ class testServiceSearch(BaseTestCase):
         """Wrong config_id."""
         endpoint_url = "{0}/@search?config_id=unknown".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
-            {u"message": CONFIG_ID_NOT_FOUND_ERROR % "unknown", u"type": u"Exception"},
+            {u"message": CONFIG_ID_NOT_FOUND_ERROR % "unknown", u"type": u"BadRequest"},
         )
 
     def test_restapi_search_config_id_error(self):
@@ -37,18 +37,18 @@ class testServiceSearch(BaseTestCase):
         # item
         endpoint_url = "{0}/@search?type=item".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
-            {u"message": CONFIG_ID_ERROR, u"type": u"Exception"},
+            {u"message": CONFIG_ID_ERROR, u"type": u"BadRequest"},
         )
         # meeting
         endpoint_url = "{0}/@search?type=meeting".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
-            {u"message": CONFIG_ID_ERROR, u"type": u"Exception"},
+            {u"message": CONFIG_ID_ERROR, u"type": u"BadRequest"},
         )
         # works for another type
         endpoint_url = "{0}/@search?type=Folder".format(self.portal_url)

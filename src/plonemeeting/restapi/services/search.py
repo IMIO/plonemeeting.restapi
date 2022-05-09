@@ -6,6 +6,7 @@ from plone.restapi.deserializer import boolean_value
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.utils import check_in_name_of
+from zExceptions import BadRequest
 
 
 class PMSearchGet(SearchGet):
@@ -22,14 +23,14 @@ class PMSearchGet(SearchGet):
         if config_id:
             self.cfg = self.tool.get(config_id, None)
             if not self.cfg:
-                raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
+                raise BadRequest(CONFIG_ID_NOT_FOUND_ERROR % config_id)
 
     @property
     def _config_id(self):
         config_id = self.request.form.get("config_id", None)
         # config_id is required when self.type is "item" or "meeting"
         if config_id is None and self.type in ["item", "meeting"]:
-            raise Exception(CONFIG_ID_ERROR)
+            raise BadRequest(CONFIG_ID_ERROR)
         return config_id
 
     @property

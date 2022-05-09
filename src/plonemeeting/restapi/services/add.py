@@ -54,7 +54,7 @@ class BasePost(FolderPost):
         config_id = self._prepare_data_config_id(data)
         self.cfg = self.tool.get(config_id, None)
         if not self.cfg:
-            raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
+            raise BadRequest(CONFIG_ID_NOT_FOUND_ERROR % config_id)
         # type
         self.type = self._prepare_data_type(data)
         # main checks
@@ -90,7 +90,7 @@ class BasePost(FolderPost):
 
     def _prepare_data_config_id(self, data):
         if "config_id" not in data and "config_id" not in self.parent_data:
-            raise Exception(CONFIG_ID_ERROR)
+            raise BadRequest(CONFIG_ID_ERROR)
         return data.get("config_id", self.parent_data.get("config_id"))
 
     def _get_container(self):

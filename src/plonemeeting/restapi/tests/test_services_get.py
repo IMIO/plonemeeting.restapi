@@ -39,9 +39,9 @@ class testServiceGetUid(BaseTestCase):
         """The 'UID' or 'uid' parameter must be given"""
         endpoint_url = "{0}/@get".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.json(), {u"message": UID_REQUIRED_ERROR, u"type": u"Exception"}
+            response.json(), {u"message": UID_REQUIRED_ERROR, u"type": u"BadRequest"}
         )
         endpoint_url += "?UID={0}".format(self.item1_uid)
         response = self.api_session.get(endpoint_url)

@@ -5,6 +5,7 @@ from plone.restapi.services import Service
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.utils import get_serializer
+from zExceptions import BadRequest
 
 
 class ConfigGet(Service):
@@ -17,12 +18,12 @@ class ConfigGet(Service):
         config_id = self._config_id
         self.cfg = self.tool.get(config_id, None)
         if not self.cfg:
-            raise Exception(CONFIG_ID_NOT_FOUND_ERROR % config_id)
+            raise BadRequest(CONFIG_ID_NOT_FOUND_ERROR % config_id)
 
     @property
     def _config_id(self):
         if "config_id" not in self.request.form:
-            raise Exception(CONFIG_ID_ERROR)
+            raise BadRequest(CONFIG_ID_ERROR)
         return self.request.form.get("config_id")
 
     def reply(self):

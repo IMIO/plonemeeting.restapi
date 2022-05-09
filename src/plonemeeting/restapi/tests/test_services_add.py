@@ -44,10 +44,10 @@ class testServiceAdd(BaseTestCase):
         transaction.begin()
         endpoint_url = "{0}/@item".format(self.portal_url)
         response = self.api_session.post(endpoint_url, json={"config_id": "unknown"})
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
-            {u"message": CONFIG_ID_NOT_FOUND_ERROR % "unknown", u"type": u"Exception"},
+            {u"message": CONFIG_ID_NOT_FOUND_ERROR % "unknown", u"type": u"BadRequest"},
         )
 
     def test_restapi_add_item_required_params(self):
@@ -58,9 +58,9 @@ class testServiceAdd(BaseTestCase):
         endpoint_url = "{0}/@item".format(self.portal_url)
         response = self.api_session.post(endpoint_url)
         transaction.commit()
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.json(), {u"message": CONFIG_ID_ERROR, u"type": u"Exception"}
+            response.json(), {u"message": CONFIG_ID_ERROR, u"type": u"BadRequest"}
         )
         response = self.api_session.post(
             endpoint_url,

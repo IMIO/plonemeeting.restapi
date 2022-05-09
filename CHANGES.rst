@@ -4,8 +4,9 @@ Changelog
 1.0rc14 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Use `BadRequest` instead `Exception` for every errors, this will return
+  an error code `400` instead `500` that is used for internal server errors.
+  [gbastien]
 
 1.0rc13 (2022-04-28)
 --------------------

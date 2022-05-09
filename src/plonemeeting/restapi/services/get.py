@@ -48,7 +48,7 @@ class UidGet(ContentGet):
     @property
     def _uid(self):
         if "UID" not in self.request.form and "uid" not in self.request.form:
-            raise Exception(UID_REQUIRED_ERROR)
+            raise BadRequest(UID_REQUIRED_ERROR)
         return self.request.form.get("UID") or self.request.form.get("uid")
 
     def _check_obj(self):
