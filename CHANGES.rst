@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc14 (unreleased)
+1.0rc14 (2022-05-10)
 --------------------
 
 - Use `BadRequest` instead `Exception` for every errors, this will return
