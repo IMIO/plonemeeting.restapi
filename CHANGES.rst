@@ -4,8 +4,9 @@ Changelog
 1.0rc15 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Removed temporary fix introduced in version `plonemeeting.restapi=1.0rc13`
+  to avoid creating an empty item. This was fixed in `plone.restapi=7.8.0`.
+  [gbastien]
 
 1.0rc14 (2022-05-10)
 --------------------
