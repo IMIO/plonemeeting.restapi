@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc15 (unreleased)
+1.0rc15 (2022-06-14)
 --------------------
 
 - Removed temporary fix introduced in version `plonemeeting.restapi=1.0rc13`
