@@ -69,6 +69,9 @@ def get_param(value, default=False, extra_include_name=None, serializer=None):
         param = default
     elif default in (True, False):
         param = boolean_value(param)
+    # if default is a list, then make sure we return a list
+    elif isinstance(default, (tuple, list)) and not isinstance(param, (tuple, list)):
+        param = [param]
     return param
 
 

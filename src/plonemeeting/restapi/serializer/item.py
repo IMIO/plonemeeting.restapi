@@ -10,6 +10,7 @@ from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
+from plonemeeting.restapi.utils import get_param
 
 
 class SerializeItemToJsonBase(object):
@@ -26,6 +27,7 @@ class SerializeItemToJsonBase(object):
             "associated_groups",
             "pod_templates",
             "meeting",
+            "linked_items",
             "*deliberation*"]
         return result
 
@@ -74,6 +76,42 @@ class SerializeItemToJsonBase(object):
             if meeting:
                 serializer = self._get_serializer(meeting, "meeting")
                 result["extra_include_meeting"] = serializer()
+        if "linked_items" in extra_include:
+            result["extra_include_linked_items"] = []
+            # get the modes so we know which linked items to return
+            modes = get_param("extra_include_linked_items_mode",
+                              default=[],
+                              serializer=self)
+            for mode in modes:
+                # every manually linked items
+                if mode == "manual":
+                    for item in self.context.getManuallyLinkedItems(only_viewable=True):
+                        result["extra_include_linked_items"].append(
+                            self._get_serializer(item, "linked_items")())
+                # every auto linked items, from first predecessor to last successor
+                elif mode == "auto":
+                    for item in self.context.get_predecessors(only_viewable=True):
+                        result["extra_include_linked_items"].append(
+                            self._get_serializer(item, "linked_items")())
+                elif mode == "predecessor":
+                    predecessor = self.context.get_predecessor(unrestricted=False)
+                    if predecessor:
+                        result["extra_include_linked_items"].append(
+                            self._get_serializer(predecessor, "linked_items")())
+                elif mode == "predecessors":
+                    for item in self.context.get_predecessors(
+                            only_viewable=True, include_successors=False):
+                        result["extra_include_linked_items"].append(
+                            self._get_serializer(item, "linked_items")())
+                elif mode == "successors":
+                    for item in self.context.get_successors(unrestricted=False):
+                        result["extra_include_linked_items"].append(
+                            self._get_serializer(item, "linked_items")())
+                elif mode == "every_successors":
+                    for item in self.context.get_every_successors(unrestricted=False):
+                        result["extra_include_linked_items"].append(
+                            self._get_serializer(item, "linked_items")())
+
         # various type of deliberation may be included
         # if we find a key containing "deliberation", we use it
         # add pass it to documentgenerator helper.deliberation_for_restapi
