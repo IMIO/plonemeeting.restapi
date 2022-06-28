@@ -4,8 +4,20 @@ Changelog
 1.0rc16 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Added `extra_include=linked_items` available on item.
+  This will append the item linked items, various `modes` may be asked
+  (`auto` by default): `auto` will return every auto linked items, `manual`
+  will return manually linked items, `predecessor` will return the first
+  predecessor, `predecessors` will return every predecessors,
+  `successors` will return the direct `successors` and
+  `every_successors` will return chain of successors.
+  [gbastien]
+- Added `utils.filter_data` that will let filter given data.
+  [gbastien]
+- Renamed `BaseSerializeToJson._get_param` to `BaseSerializeToJson.get_param`
+  or it is considered as a private method not to use directly but actually
+  it must be used instead `utils.get_param`.
+  [gbastien]
 
 1.0rc15 (2022-06-14)
 --------------------

@@ -69,6 +69,9 @@ def get_param(value, default=False, extra_include_name=None, serializer=None):
         param = default
     elif default in (True, False):
         param = boolean_value(param)
+    # if default is a list, then make sure we return a list
+    elif isinstance(default, (tuple, list)) and not isinstance(param, (tuple, list)):
+        param = [param]
     return param
 
 
@@ -115,4 +118,27 @@ def may_access_config_endpoints(cfg=None):
        tool.userIsAmong(['meetingmanagers']) or \
        _checkPermission(ManagePortal, tool):
         res = True
+    return res
+
+
+def filter_data(filters, data):
+    """Apply given p_filters on elemnts of data (list of results).
+       p_filters is like portal_type|MeetingItemSample or query_state|itemcreated,
+       the first part of the filter may be an element's method or a string attribute."""
+    res = []
+    for elt in data:
+        append_elt = True
+        for filter_def in filters:
+            filter_name, filter_value = filter_def.split('|')
+            filter_fct = getattr(elt, filter_name)
+            if callable(filter_fct):
+                if filter_fct() != filter_value:
+                    append_elt = False
+                    break
+            else:
+                if filter_fct != filter_value:
+                    append_elt = False
+                    break
+        if append_elt:
+            res.append(elt)
     return res

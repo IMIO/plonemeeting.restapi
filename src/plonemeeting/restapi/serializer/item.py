@@ -6,6 +6,7 @@ from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
 from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
+from plonemeeting.restapi.utils import filter_data
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
 from zope.interface import implementer
@@ -26,7 +27,44 @@ class SerializeItemToJsonBase(object):
             "associated_groups",
             "pod_templates",
             "meeting",
+            "linked_items",
             "*deliberation*"]
+        return result
+
+    def _extra_include_linked_items(self, result):
+        """ """
+        result["extra_include_linked_items"] = []
+        # get the modes so we know which linked items to return
+        modes = self.get_param('mode', ["auto"], extra_include_name="linked_items")
+        linked_items = []
+        for mode in modes:
+            # every manually linked items
+            if mode == "manual":
+                linked_items += self.context.getManuallyLinkedItems(only_viewable=True)
+            # every auto linked items, from first predecessor to last successor
+            elif mode == "auto":
+                # by default parameters include_successors=True, this will return
+                # every auto linked items
+                linked_items += self.context.get_predecessors(only_viewable=True)
+            elif mode == "predecessor":
+                predecessor = self.context.get_predecessor(unrestricted=False)
+                if predecessor:
+                    linked_items.append(predecessor)
+            elif mode == "predecessors":
+                linked_items += self.context.get_predecessors(
+                    only_viewable=True, include_successors=False)
+            elif mode == "successors":
+                linked_items += self.context.get_successors(unrestricted=False)
+            elif mode == "every_successors":
+                linked_items += self.context.get_every_successors(unrestricted=False)
+        # now apply extra_include_linked_items_filters
+        filters = self.get_param("filter", [], extra_include_name="linked_items")
+        if filters:
+            linked_items = filter_data(filters, linked_items)
+        result["extra_include_linked_items"] = [
+            self._get_serializer(linked_item, "linked_items")()
+            for linked_item in linked_items]
+        result["extra_include_linked_items_items_total"] = len(linked_items)
         return result
 
     def _extra_include(self, result):
@@ -74,6 +112,9 @@ class SerializeItemToJsonBase(object):
             if meeting:
                 serializer = self._get_serializer(meeting, "meeting")
                 result["extra_include_meeting"] = serializer()
+        if "linked_items" in extra_include:
+            result = self._extra_include_linked_items(result)
+
         # various type of deliberation may be included
         # if we find a key containing "deliberation", we use it
         # add pass it to documentgenerator helper.deliberation_for_restapi

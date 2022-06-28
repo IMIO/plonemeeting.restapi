@@ -230,6 +230,124 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(item_annexes_json[0][u'UID'], item_annex.UID())
         self.assertEqual(item_annexes_json[0][u'file'][u'filename'], u'FILE.txt')
 
+    def test_restapi_get_uid_extra_include_linked_items(self):
+        """Test the extra_include=linked_items."""
+        cfg = self.meetingConfig
+        self._removeConfigObjectsFor(cfg)
+        cfg.setItemManualSentToOtherMCStates(('itemcreated', ))
+        cfg2 = self.meetingConfig2
+        cfg2Id = cfg2.getId()
+        # setup, create item, delay it, send it to cfg2
+        # auto linked items
+        self.changeUser('pmManager')
+        item = self.create('MeetingItem', decision=self.decisionText)
+        item_uid = item.UID()
+        meeting = self.create('Meeting')
+        self.presentItem(item)
+        self.decideMeeting(meeting)
+        self.do(item, 'delay')
+        new_item = item.get_successors()[0]
+        new_item_uid = new_item.UID()
+        new_item.setOtherMeetingConfigsClonableTo((cfg2Id, ))
+        cfg2_item = new_item.cloneToOtherMeetingConfig(cfg2Id)
+        cfg2_item_uid = cfg2_item.UID()
+        # set manually linked items
+        item2 = self.create('MeetingItem', decision=self.decisionText)
+        item2_uid = item2.UID()
+        item3 = self.create('MeetingItem', decision=self.decisionText)
+        item3_uid = item3.UID()
+        item.setManuallyLinkedItems((item2.UID(), item3.UID()))
+        transaction.commit()
+
+        # by default we get the auto linked items
+        endpoint_url_pattern = "{0}/@get?UID={1}&extra_include=linked_items"
+        endpoint_url = endpoint_url_pattern.format(self.portal_url, item_uid)
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 2)
+        self.assertEqual(
+            [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
+            [new_item_uid, cfg2_item_uid])
+        # we may filter values, for example get only the cfg2 item
+        filter_endpoint_url = endpoint_url + "&extra_include_linked_items_filter=portal_type|{0}".format(
+            cfg2.getItemTypeName())
+        response = self.api_session.get(filter_endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 1)
+        self.assertEqual(
+            [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
+            [cfg2_item_uid])
+        # several filters, filter may be a callable method, here "query_state"
+        filter_endpoint_url = filter_endpoint_url + "&extra_include_linked_items_filter=query_state|{0}".format(
+            cfg2_item.query_state())
+        response = self.api_session.get(filter_endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 1)
+        self.assertEqual(
+            [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
+            [cfg2_item_uid])
+
+        # we may ask specific linked items: "manual", "predecessor",
+        # "predecessors", "successors" and every_successors"
+        # manual
+        endpoint_url += "&extra_include_linked_items_mode=manual"
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 2)
+        self.assertEqual(
+            [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
+            [item2_uid, item3_uid])
+        # predecessor, no predecessor for item
+        endpoint_url = endpoint_url.replace("manual", "predecessor")
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 0)
+        self.assertEqual(json["extra_include_linked_items"], [])
+        # get predecessor for cfg2_item
+        endpoint_url = endpoint_url.replace(item_uid, cfg2_item_uid)
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 1)
+        self.assertEqual(
+            [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
+            [new_item_uid])
+        # predecessors
+        endpoint_url = endpoint_url.replace("predecessor", "predecessors")
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 2)
+        self.assertEqual(
+            [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
+            [item_uid, new_item_uid])
+        # successors, no successors for cfg2_item
+        endpoint_url = endpoint_url.replace("predecessors", "successors")
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 0)
+        self.assertEqual(json["extra_include_linked_items"], [])
+        # get successors for item
+        endpoint_url = endpoint_url.replace(cfg2_item_uid, item_uid)
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 1)
+        self.assertEqual(
+            [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
+            [new_item_uid])
+        # every_successors
+        endpoint_url = endpoint_url.replace("successors", "every_successors")
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json['extra_include_linked_items_items_total'], 2)
+        self.assertEqual(
+            [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
+            [new_item_uid, cfg2_item_uid])
+        # the extra_include_linked_items_fullobjects works as well, by default we get the summary
+        self.assertFalse('proposingGroup' in json["extra_include_linked_items"][0])
+        endpoint_url += "&extra_include_linked_items_fullobjects"
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertTrue('proposingGroup' in json["extra_include_linked_items"][0])
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
