@@ -7,7 +7,6 @@ from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from plonemeeting.restapi.utils import filter_data
-from plonemeeting.restapi.utils import get_param
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
 from zope.interface import implementer
@@ -36,7 +35,7 @@ class SerializeItemToJsonBase(object):
         """ """
         result["extra_include_linked_items"] = []
         # get the modes so we know which linked items to return
-        modes = get_param("extra_include_linked_items_mode", default=["auto"])
+        modes = self._get_param('mode', ["auto"], extra_include_name="linked_items")
         linked_items = []
         for mode in modes:
             # every manually linked items
@@ -59,7 +58,7 @@ class SerializeItemToJsonBase(object):
             elif mode == "every_successors":
                 linked_items += self.context.get_every_successors(unrestricted=False)
         # now apply extra_include_linked_items_filters
-        filters = get_param("extra_include_linked_items_filter", default=[])
+        filters = self._get_param("filter", [], extra_include_name="linked_items")
         if filters:
             linked_items = filter_data(filters, linked_items)
         result["extra_include_linked_items"] = [
