@@ -14,6 +14,10 @@ Changelog
   [gbastien]
 - Added `utils.filter_data` that will let filter given data.
   [gbastien]
+- Renamed `BaseSerializeToJson._get_param` to `BaseSerializeToJson.get_param`
+  or it is considered as a private method not to use directly but actually
+  it must be used instead `utils.get_param`.
+  [gbastien]
 
 1.0rc15 (2022-06-14)
 --------------------

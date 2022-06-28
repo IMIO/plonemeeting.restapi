@@ -49,7 +49,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
     def _extra_include(self, result):
         extra_include = self._get_asked_extra_include()
         if "groups" in extra_include:
-            suffixes = self._get_param("suffixes", default=[], extra_include_name="groups")
+            suffixes = self.get_param("suffixes", default=[], extra_include_name="groups")
             orgs = self.tool.get_orgs_for_user(
                 user_id=self.context.id, suffixes=suffixes, the_objects=True)
             result["extra_include_groups"] = []
@@ -77,7 +77,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
         if "categories" in extra_include:
             result["extra_include_categories"] = {}
             cfgs = self._configs_for_user()
-            config_ids = self._get_param("configs", default=[], extra_include_name="categories")
+            config_ids = self.get_param("configs", default=[], extra_include_name="categories")
             for cfg in cfgs:
                 cfg_id = cfg.getId()
                 if config_ids and cfg_id not in config_ids:
@@ -91,7 +91,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
         if "classifiers" in extra_include:
             result["extra_include_classifiers"] = {}
             cfgs = self._configs_for_user()
-            config_ids = self._get_param("configs", default=[], extra_include_name="classifiers")
+            config_ids = self.get_param("configs", default=[], extra_include_name="classifiers")
             for cfg in cfgs:
                 cfg_id = cfg.getId()
                 if config_ids and cfg_id not in config_ids:

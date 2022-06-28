@@ -8,7 +8,6 @@ from collective.iconifiedcategory.utils import _categorized_elements
 from collective.iconifiedcategory.utils import get_categorized_elements
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
-from imio.restapi.utils import listify
 from plone import api
 from plone.autoform.interfaces import READ_PERMISSIONS_KEY
 from plone.dexterity.interfaces import IDexterityContainer
@@ -96,7 +95,7 @@ def serialize_extra_include_annexes(result, serializer):
     # compute filters to get annexes
     filters = {}
     for filter_value in ANNEXES_FILTER_VALUES:
-        value = serializer._get_param(
+        value = serializer.get_param(
             filter_value,
             default=None,
             extra_include_name="annexes")
@@ -122,7 +121,7 @@ class BaseSerializeToJson(object):
 
     def _get_asked_extra_include(self):
         """ """
-        extra_include = self._get_param("extra_include", [])
+        extra_include = self.get_param("extra_include", [])
         # filter on _available_extra_includes this make we do not forget
         # to add an extra_include to _available_extra_includes
         aeis = self._available_extra_includes({})["@extra_includes"]
@@ -160,15 +159,15 @@ class BaseSerializeToJson(object):
         """ """
         # only call _extra_include if relevant
         result = self._available_extra_includes(result)
-        if self._get_param("extra_include", []):
+        if self.get_param("extra_include", []):
             result = self._extra_include(result)
 
         # when fullobjects, additional_values default is ["*"] except if include_all=False
         # otherwise additional_values default is []
-        if self._get_param("fullobjects", False) and self._get_param('include_all', True):
-            additional_values = self._get_param("additional_values", ["*"])
+        if self.get_param("fullobjects", False) and self.get_param('include_all', True):
+            additional_values = self.get_param("additional_values", ["*"])
         else:
-            additional_values = self._get_param("additional_values", [])
+            additional_values = self.get_param("additional_values", [])
         if additional_values:
             result = self._additional_values(result, additional_values)
 
@@ -180,7 +179,7 @@ class BaseSerializeToJson(object):
                               extra_include_name,
                               serializer=self)
 
-    def _get_param(self, value, default=False, extra_include_name=None):
+    def get_param(self, value, default=False, extra_include_name=None):
         """ """
         return get_param(value,
                          default=default,
@@ -195,7 +194,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
         """ """
         result = {}
 
-        if self._get_param("include_base_data", True):
+        if self.get_param("include_base_data", True):
             result = {
                 # '@context': 'http://www.w3.org/ns/hydra/context.jsonld',
                 "@id": obj.absolute_url(),
@@ -213,7 +212,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_nextprev(self, obj):
         """ """
         result = {}
-        if self.include_all or self._get_param('include_nextprev'):
+        if self.include_all or self.get_param('include_nextprev'):
             nextprevious = NextPrevious(obj)
             result.update(
                 {"previous_item": nextprevious.previous, "next_item": nextprevious.next}
@@ -224,7 +223,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
         """ """
         result = {}
         # parent is only included when specifically asked, even when include_all is True
-        if self._get_param('include_parent', False):
+        if self.get_param('include_parent', False):
             parent = aq_parent(aq_inner(obj))
             parent_summary = getMultiAdapter(
                 (parent, self.request), ISerializeToJsonSummary
@@ -235,7 +234,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_components(self, obj):
         """ """
         result = {}
-        if self.include_all or self._get_param('include_components'):
+        if self.include_all or self.get_param('include_components'):
             result.update(expandable_elements(self.context, self.request))
         return result
 
@@ -246,7 +245,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_items(self, obj, include_items):
         """ """
         result = {}
-        include_items = self._get_param("include_items", include_items)
+        include_items = self.get_param("include_items", include_items)
         if include_items:
             query = self._build_query()
 
@@ -273,7 +272,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_target_url(self, obj):
         """ """
         result = {}
-        if self.include_all or self._get_param('include_target_url'):
+        if self.include_all or self.get_param('include_target_url'):
             target_url = None
             try:
                 target_url = getMultiAdapter(
@@ -289,7 +288,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_allow_discussion(self, obj):
         """ """
         result = {}
-        if self.include_all or self._get_param('include_allow_discussion'):
+        if self.include_all or self.get_param('include_allow_discussion'):
             result["allow_discussion"] = getMultiAdapter(
                 (self.context, self.request), name="conversation_view"
             ).enabled()
@@ -298,7 +297,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_layout(self, obj):
         """ """
         result = {}
-        if self.include_all or self._get_param('include_layout'):
+        if self.include_all or self.get_param('include_layout'):
             result["layout"] = self.context.getLayout()
         return result
 
@@ -312,10 +311,10 @@ class ContentSerializeToJson(BaseSerializeToJson):
 
     def _init(self):
         """ """
-        self.metadata_fields = listify(self._get_param('metadata_fields', []))
+        self.metadata_fields = self.get_param('metadata_fields', [])
         # Include all
         # False if given or if metadata_fields are given
-        self.include_all = self._get_param('include_all', True) and \
+        self.include_all = self.get_param('include_all', True) and \
             not self.metadata_fields
 
     def __call__(self, version=None, include_items=False):
