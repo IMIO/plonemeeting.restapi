@@ -122,7 +122,7 @@ class BaseSerializeToJson(object):
 
     def _get_asked_extra_include(self):
         """ """
-        extra_include = listify(self.request.form.get("extra_include", []))
+        extra_include = self._get_param("extra_include", [])
         # filter on _available_extra_includes this make we do not forget
         # to add an extra_include to _available_extra_includes
         aeis = self._available_extra_includes({})["@extra_includes"]
