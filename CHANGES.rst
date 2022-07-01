@@ -4,8 +4,8 @@ Changelog
 1.0rc17 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Redo broken release...
+  [gbastien]
 
 1.0rc16 (2022-07-01)
 --------------------
