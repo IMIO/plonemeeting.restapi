@@ -5,12 +5,11 @@ Changelog
 --------------------
 
 - Added `extra_include=linked_items` available on item.
-  This will append the item linked items, various `modes` may be asked
-  (`auto` by default): `auto` will return every auto linked items, `manual`
-  will return manually linked items, `predecessor` will return the first
-  predecessor, `predecessors` will return every predecessors,
-  `successors` will return the direct `successors` and
-  `every_successors` will return chain of successors.
+  This will append the item linked items, various `modes` may be asked:
+  `auto` (by default) will return every auto linked items, `manual` will return
+  manually linked items, `predecessor` will return the first predecessor,
+  `predecessors` will return every predecessors, `successors` will return the
+  direct `successors` and `every_successors` will return chain of successors.
   [gbastien]
 - Added `utils.filter_data` that will let filter given data.
   [gbastien]
