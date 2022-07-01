@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc17 (unreleased)
+1.0rc17 (2022-07-01)
 --------------------
 
 - Redo broken release...
