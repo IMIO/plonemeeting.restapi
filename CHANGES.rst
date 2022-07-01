@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0rc16 (unreleased)
+1.0rc16 (2022-07-01)
 --------------------
 
 - Added `extra_include=linked_items` available on item.
