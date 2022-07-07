@@ -4,8 +4,9 @@ Changelog
 1.0rc18 (unreleased)
 --------------------
 
-- Nothing changed yet.
-
+- Fixed `BasePost._turn_ids_into_uids` to manage organizations outside
+  `My organization` this is the case for field `MeetingItem.associatedGroups`.
+  [gbastien]
 
 1.0rc17 (2022-07-01)
 --------------------

@@ -186,7 +186,10 @@ class BasePost(FolderPost):
         return []
 
     def _turn_ids_into_uids(self, data):
-        org_uids = get_organizations(only_selected=False, the_objects=False)
+        # this will also include organizations outside "My org"
+        org_uids = get_vocab(
+            self.cfg,
+            "Products.PloneMeeting.vocabularies.everyorganizationsvocabulary").by_token
 
         def _get_org_uid(field_name, field_value):
             """Get org UID as given field_value may be an UID or an id."""

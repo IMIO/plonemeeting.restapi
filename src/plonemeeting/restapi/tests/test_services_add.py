@@ -171,7 +171,11 @@ class testServiceAdd(BaseTestCase):
             "config_id": cfg.getId(),
             "proposingGroup": self.developers.getId(),
             "groupsInCharge": [self.vendors.getId(), self.developers.getId()],
-            "associatedGroups": [self.vendors.getId(), self.developers.getId()],
+            # use internal and external organizations by id and UID
+            "associatedGroups": [self.vendors.getId(),
+                                 self.developers_uid,
+                                 "../{0}".format(self.orgOutside2.getId()),
+                                 self.orgOutside1_uid, ],
             "optionalAdvisers": [self.vendors.getId()],
             "title": "My item",
         }
@@ -187,10 +191,53 @@ class testServiceAdd(BaseTestCase):
             item.getGroupsInCharge(), [self.vendors_uid, self.developers_uid]
         )
         self.assertEqual(
-            item.getAssociatedGroups(), (self.vendors_uid, self.developers_uid)
+            item.getAssociatedGroups(),
+            (self.vendors_uid, self.developers_uid, self.orgOutside2_uid, self.orgOutside1_uid)
         )
         self.assertEqual(item.getOptionalAdvisers(), (self.vendors_uid,))
         self.assertTrue(self.vendors_uid in item.adviceIndex)
+
+    def test_restapi_add_item_can_not_use_org_outside_own_org(self):
+        """Can not use an external org UID in relevant fields, excepted for the
+           associatedGroups field (tested in test_restapi_add_item_org_fields)."""
+        cfg = self.meetingConfig
+        cfg.setOrderedGroupsInCharge([self.vendors_uid])
+        self._enableField("groupsInCharge")
+        self._enableField("associatedGroups")
+        self.changeUser("pmManager")
+        transaction.commit()
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "optionalAdvisers": [self.vendors.getId(), self.orgOutside1_uid],
+            "groupsInCharge": [self.vendors.getId(), self.orgOutside1_uid],
+            "title": "My item",
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'[{\'field\': \'groupsInCharge\', \'message\': u"Values [\'%s\'] '
+             u'are not allowed for vocabulary of element Groups in charge.", \'error\': \'ValidationError\'}, '
+             u'{\'field\': \'optionalAdvisers\', \'message\': u"Values [\'%s\'] are not allowed for '
+             u'vocabulary of element Optional advisers.", \'error\': \'ValidationError\'}]' % (
+                 self.orgOutside1_uid, self.orgOutside1_uid),
+             u'type': u'BadRequest'})
+        # check for groupsInCharge
+        json["optionalAdvisers"] = [self.vendors.getId()]
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'[{\'field\': \'groupsInCharge\', \'message\': u"Values [\'%s\'] '
+             u'are not allowed for vocabulary of element Groups in charge.", '
+             u'\'error\': \'ValidationError\'}]' % self.orgOutside1_uid,
+             u'type': u'BadRequest'})
+        # fix everything
+        json["groupsInCharge"] = [self.vendors.getId()]
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201, response.content)
 
     def test_restapi_add_item_wf_transitions_present(self):
         """When creating an item, we may define "wf_transitions"
@@ -399,7 +446,7 @@ class testServiceAdd(BaseTestCase):
                 "data": "123456",
                 "encoding": "ascii",
                 "filename": "file.txt"}
-            }
+        }
         endpoint_url = "{0}/@annex/{1}".format(self.portal_url, item_uid)
         # wrong content_category
         response = self.api_session.post(endpoint_url, json=json)
