@@ -110,14 +110,13 @@ class testServiceAnnexes(BaseTestCase):
         transaction.commit()
         item_url = item.absolute_url()
         # category_id
-        endpoint_url = "{0}/@annexes?fullobjects&include_all=false&" \
-            "additional_values=category_id".format(item_url)
+        endpoint_url = "{0}/@annexes?additional_values=category_id".format(item_url)
         response = self.api_session.get(endpoint_url)
         resp_json = response.json()
         self.assertFalse("category_title" in resp_json[0])
         self.assertEqual(resp_json[0]["category_id"], u'financial-analysis')
         # *
-        endpoint_url = "{0}/@annexes?fullobjects&include_all=false&additional_values=*".format(
+        endpoint_url = "{0}/@annexes?additional_values=*".format(
             item_url)
         response = self.api_session.get(endpoint_url)
         resp_json = response.json()

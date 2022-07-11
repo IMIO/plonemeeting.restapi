@@ -133,15 +133,15 @@ class testServiceGetUid(BaseTestCase):
             [u'@extra_includes', u'@id', u'@type', u'UID', u'created',
              u'description', u'enabled', u'id',
              u'modified', u'review_state', u'title'])
-        # passing an extra_include will work and still use summary
+        # passing an extra_include will make it use the fullobjects serializer
         endpoint_url += "&extra_include=proposing_group"
         response = self.api_session.get(endpoint_url)
         json = response.json()
         self.assertEqual(
             sorted(json.keys()),
             [u'@extra_includes', u'@id', u'@type', u'UID', u'created',
-             u'description', u'enabled', u'extra_include_proposing_group',
-             u'id', u'modified', u'review_state', u'title'])
+             u'extra_include_proposing_group', u'id', u'modified',
+             u'review_state', u'title'])
         # fullobject is possible too
         endpoint_url += "&fullobjects"
         response = self.api_session.get(endpoint_url)

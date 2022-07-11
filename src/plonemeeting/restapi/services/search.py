@@ -62,6 +62,12 @@ class PMSearchGet(SearchGet):
         # config_id is actually the getConfigId index
         if "config_id" in form:
             query["getConfigId"] = form["config_id"]
+        # convenience "state" is actually "review_state"
+        if "state" in form:
+            query["review_state"] = form["state"]
+        # convenience "uid" is actually "UID"
+        if "uid" in form:
+            query["UID"] = form["uid"]
 
         # extend batch? DEFAULT_BATCH_SIZE = 25
         # self.request.form['b_size'] = 50
@@ -74,6 +80,9 @@ class PMSearchGet(SearchGet):
             query["portal_type"] = self.cfg.getMeetingTypeName()
             query["sort_on"] = form.get("sort_on", "sortable_title")
             query["sort_order"] = form.get("sort_order", "reverse")
+        elif self.type == "config":
+            query["portal_type"] = "MeetingConfig"
+            query["sort_on"] = form.get("sort_on", "sortable_title")
         elif self.type is not None:
             query["portal_type"] = self.type
             query["sort_on"] = form.get("sort_on", "sortable_title")

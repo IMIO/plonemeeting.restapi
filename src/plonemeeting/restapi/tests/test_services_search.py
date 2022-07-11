@@ -543,7 +543,7 @@ class testServiceSearch(BaseTestCase):
         """Several includes may be passed as parameter when "fullobjects" is used.
            By default, "fullobjects" behavior is like in plone.restapi, it retuens every infos.
            But we may pass additional includes:
-           - include_all: when set to false, nothing else but base data (id, uid, ...) are returned;
+           - fullobjects: when given, every is returned, if not only base data is returnerd;
            - include_base_data: will include base data like id, uid, review_state, ...;
            - include_components: will include the "@components" section;
            - include_nextprev: will include next/previous infos;
@@ -578,9 +578,9 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue("formatted_itemNumber" in resp_json["items"][0])
         self.assertFalse("items" in resp_json["items"][0])
         # we may get what we want, only get "@components"
-        endpoint_url = "{0}/@search?config_id={1}&fullobjects=True" \
+        endpoint_url = "{0}/@search?config_id={1}" \
             "&include_base_data=false&include_parent=true" \
-            "&include_all=false&include_components=true".format(
+            "&include_components=true".format(
                 self.portal_url, self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
@@ -599,11 +599,11 @@ class testServiceSearch(BaseTestCase):
 
     def test_restapi_search_extra_includes_parameters(self):
         """Every parameters may be passed to extra_includes:
-           Example: extra_include=category, enable fullobjects and include_all=true:
+           Example: extra_include=category, enable fullobjects and include_base_data=false:
            Parameters would be the following:
            - extra_include=category;
            - extra_include_category_fullobjects;
-           - extra_include_category_include_all=false.
+           - extra_include_category_include_base_data=false.
         """
         cfg = self.meetingConfig
         cfg.setUseGroupsAsCategories(False)
@@ -613,9 +613,7 @@ class testServiceSearch(BaseTestCase):
         transaction.commit()
 
         endpoint_url = "{0}/@search?config_id={1}&extra_include=category" \
-            "&extra_include_category_fullobjects" \
-            "&extra_include_category_include_components=true" \
-            "&extra_include_category_include_all=false".format(
+            "&extra_include_category_include_components=true".format(
                 self.portal_url, self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
@@ -628,8 +626,8 @@ class testServiceSearch(BaseTestCase):
                           u'@type',
                           u'UID',
                           u'created',
+                          u'enabled',
                           u'id',
-                          u'is_folderish',
                           u'modified',
                           u'review_state',
                           u'title'])
@@ -648,10 +646,8 @@ class testServiceSearch(BaseTestCase):
 
         # get item base data + getItemNumber and category enabled and category_id
         endpoint_url = "{0}/@search?config_id={1}" \
-            "&metadata_fields=getItemNumber" \
+            "&metadata_fields=itemNumber" \
             "&extra_include=category" \
-            "&extra_include_category_fullobjects" \
-            "&extra_include_category_include_all=false" \
             "&extra_include_category_include_base_data=false" \
             "&extra_include_category_metadata_fields=enabled" \
             "&extra_include_category_metadata_fields=category_id".format(
@@ -662,10 +658,9 @@ class testServiceSearch(BaseTestCase):
         # item
         self.assertEqual(sorted(resp_json["items"][0].keys()),
                          [u'@extra_includes', u'@id', u'@type', u'UID',
-                          u'created', u'description',
-                          u'enabled', u'extra_include_category', u'getItemNumber',
-                          u'id', u'modified', u'review_state', u'title'])
-        self.assertEqual(resp_json["items"][0]["getItemNumber"], 0)
+                          u'created', u'extra_include_category', u'id',
+                          u'itemNumber', u'modified', u'review_state', u'title'])
+        self.assertEqual(resp_json["items"][0]["itemNumber"], 0)
         # category
         self.assertEqual(resp_json["items"][0]["extra_include_category"],
                          {u'@extra_includes': [],
@@ -727,9 +722,7 @@ class testServiceSearch(BaseTestCase):
         transaction.commit()
 
         # query to get meeting and item description
-        endpoint_url = "{0}/@search?fullobjects" \
-            "&include_all=false" \
-            "&extra_include=public_deliberation" \
+        endpoint_url = "{0}/@search?extra_include=public_deliberation" \
             "&metadata_fields=observations" \
             "&UID={2}&UID={3}&sort_on=getId".format(
                 self.portal_url, self.meetingConfig.getId(),

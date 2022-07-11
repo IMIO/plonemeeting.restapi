@@ -11,6 +11,7 @@ from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plone.restapi.serializer.catalog import LazyCatalogResultSerializer
 from plonemeeting.restapi import logger
+from plonemeeting.restapi.utils import use_obj_serializer
 from Products.ZCatalog.Lazy import LazyMap
 from zope.component import adapter
 from zope.component import getMultiAdapter
@@ -27,12 +28,13 @@ log = logger
 class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
     """ """
 
-    def _use_own_summary_serializer(self, fullobjects):
+    def _use_obj_serializer(self, fullobjects):
         """Check if we need to use our own implementation of the summary serializer,
            necessary to manage additional_values and extra_include."""
-        return bool(fullobjects or
-                    self.request.form.get("extra_include", []) or
-                    self.request.form.get("additional_values", []))
+        # if we have any parameter that ask for something else in the result
+        # then we use our serializer, the summary serializer will only be used
+        # to receive basic summary informations
+        return fullobjects or use_obj_serializer(self.request.form)
 
     def __call__(self, fullobjects=False):
         batch = HypermediaBatch(self.request, self.lazy_resultset)
@@ -45,10 +47,10 @@ class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
             results["batching"] = links
 
         results["items"] = []
-        use_own_summary = self._use_own_summary_serializer(fullobjects)
+        use_obj_serializer = self._use_obj_serializer(fullobjects)
         for brain in batch:
             try:
-                obj = use_own_summary and brain.getObject() or brain
+                obj = use_obj_serializer and brain.getObject() or brain
             except AttributeError:
                 # Guard in case the brain returned refers to an object that doesn't
                 # exists because it failed to uncatalog itself or the catalog has
@@ -60,7 +62,7 @@ class PMLazyCatalogResultSerializer(LazyCatalogResultSerializer):
                 )
                 continue
 
-            if fullobjects:
+            if use_obj_serializer:
                 result = getMultiAdapter(
                     (obj, self.request), ISerializeToJson
                 )(include_items=False)

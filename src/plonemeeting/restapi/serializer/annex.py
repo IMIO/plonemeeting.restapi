@@ -19,7 +19,9 @@ class BaseSerializeAnnexToJson(object):
 
     def _include_custom(self, obj, result):
         """Include "file" by default."""
-        if self.include_all or "file" in self.metadata_fields:
+        if self.fullobjects or \
+           "file" in self.metadata_fields or \
+           self.get_param('include_base_data', True):
             field = get_dx_field(obj, "file")
             # serialize the field
             serializer = queryMultiAdapter(
@@ -37,8 +39,8 @@ class BaseSerializeAnnexToJson(object):
         infos = _categorized_elements(parent)[self.context.UID()]
         values = {
             k: v for k, v in infos.items()
-            if k not in result and not (k.endswith("_url") or k in ignored_values)
-            and ("*" in additional_values or k in additional_values)
+            if k not in result and not (k.endswith("_url") or k in ignored_values) and
+            ("*" in additional_values or k in additional_values)
         }
 
         result.update(values)

@@ -17,8 +17,12 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
     def __call__(self):
         result = super(PMBaseUserSerializer, self).__call__()
         self.tool = api.portal.get_tool("portal_plonemeeting")
+
+        # call _init so elements like self.fullobjects are initialized
+        self._init()
+
         # call _after__call__ that manages additional_values and extra_includes
-        result = self._after__call__(result)
+        result = self._after__call__(self.context, result)
         return result
 
     def _configs_for_user(self):

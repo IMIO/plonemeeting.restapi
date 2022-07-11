@@ -1,33 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from plone import api
-from plone.restapi.services import Service
-from plonemeeting.restapi.config import CONFIG_ID_ERROR
-from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.utils import get_serializer
-from zExceptions import BadRequest
+from plonemeeting.restapi.services.search import PMSearchGet
 
 
-class ConfigGet(Service):
+class ConfigSearchGet(PMSearchGet):
     """Returns a serialized content object.
     """
 
-    def __init__(self, context, request):
-        super(ConfigGet, self).__init__(context, request)
-        self.tool = api.portal.get_tool("portal_plonemeeting")
-        config_id = self._config_id
-        self.cfg = self.tool.get(config_id, None)
-        if not self.cfg:
-            raise BadRequest(CONFIG_ID_NOT_FOUND_ERROR % config_id)
-
     @property
-    def _config_id(self):
-        if "config_id" not in self.request.form:
-            raise BadRequest(CONFIG_ID_ERROR)
-        return self.request.form.get("config_id")
+    def _type(self):
+        # forced to "config"
+        return "config"
 
     def reply(self):
-        # set context to MeetingConfig
-        self.context = self.cfg
-        serializer = get_serializer(self.context)
-        return serializer()
+        res = self._process_reply()
+        if res["items"] and hasattr(self, "cfg"):
+            # we asked for one single MeetingConfig, return it (not a list of result)
+            res = res["items"][0]
+        return res
