@@ -7,6 +7,12 @@ Changelog
 - Fixed `BasePost._turn_ids_into_uids` to manage organizations outside
   `My organization` this is the case for field `MeetingItem.associatedGroups`.
   [gbastien]
+- Refactored behavior so we use the `ISerializeToJson` serializer when
+  any parameter is given.
+  [gbastien]
+- Completed the `@config` service (that now uses a `SearchGet`)
+  to return every `MeetingConfigs` when `config_id=*`.
+  [gbastien]
 
 1.0rc17 (2022-07-01)
 --------------------

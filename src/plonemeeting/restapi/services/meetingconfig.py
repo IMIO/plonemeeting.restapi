@@ -33,6 +33,9 @@ class ConfigSearchGet(BaseSearchGet):
             query['id'] = self.cfg.id
         else:
             query['sort_on'] = self.request.form.get('sort_on', 'getId')
+        # by default only return active MeetingConfigs excepted if aksed
+        if "review_state" not in query:
+            query["review_state"] = "active"
         return query
 
     def reply(self):

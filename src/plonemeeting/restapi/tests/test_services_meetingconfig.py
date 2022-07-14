@@ -48,6 +48,37 @@ class testServiceConfig(BaseTestCase):
         self.assertEqual(json["id"], cfg_id)
         self.assertEqual(json["UID"], cfg.UID())
 
+    def test_restapi_config_every_configs_endpoint(self):
+        """@config when config_id=*"""
+        cfg = self.meetingConfig
+        cfg2 = self.meetingConfig2
+        endpoint_url = "{0}/@config?config_id=*".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json["items_total"], 2)
+        # configs are returned alphabetically
+        cfg_titles = sorted((cfg.Title(), cfg2.Title()))
+        self.assertEqual(json["items"][0]["title"], cfg_titles[0])
+        self.assertEqual(json["items"][1]["title"], cfg_titles[1])
+        # by default, only active configs are returned
+        self.changeUser('siteadmin')
+        self.do(cfg, 'deactivate')
+        transaction.commit()
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json["items_total"], 1)
+        self.assertEqual(json["items"][0]["title"], cfg2.Title())
+        # as this endpoint is a SearchGet we can pass any index
+        # so we can get inactive MeetingConfigs
+        endpoint_url += "&state=inactive"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json["items_total"], 1)
+        self.assertEqual(json["items"][0]["title"], cfg.Title())
+
     def test_restapi_config_extra_include_categories(self):
         """@config"""
         # cfg2 uses disabled categories
