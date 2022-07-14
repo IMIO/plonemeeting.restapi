@@ -12,6 +12,8 @@ from zExceptions import BadRequest
 class BaseSearchGet(SearchGet):
     """ """
 
+    config_id_optional = True
+
     def __init__(self, context, request):
         """ """
         super(BaseSearchGet, self).__init__(context, request)
@@ -21,7 +23,7 @@ class BaseSearchGet(SearchGet):
 
     @property
     def _config_id(self):
-        if "config_id" not in self.request.form:
+        if not self.config_id_optional and "config_id" not in self.request.form:
             raise BadRequest(CONFIG_ID_ERROR)
         return self.request.form.get("config_id")
 
@@ -48,13 +50,13 @@ class BaseSearchGet(SearchGet):
 
     def reply(self):
         """Override to handle in_name_of."""
-        in_name_of = check_in_name_of(self, self.request.form)
-        if in_name_of:
+        self.in_name_of = check_in_name_of(self, self.request.form)
+        if self.in_name_of:
             # remove AUTHENTICATED_USER during adopt_user
             auth_user = self.request.get("AUTHENTICATED_USER")
             if auth_user:
                 self.request["AUTHENTICATED_USER"] = None
-            with api.env.adopt_user(username=in_name_of):
+            with api.env.adopt_user(username=self.in_name_of):
                 res = self._process_reply()
             if auth_user:
                 self.request["AUTHENTICATED_USER"] = auth_user
@@ -68,7 +70,9 @@ class BaseSearchGet(SearchGet):
         query.pop("config_id", None)
         query.pop("extra_include", None)
         query.pop("in_name_of", None)
+        query.pop("state", None)
         query.pop("type", None)
+        query.pop("uid", None)
 
 
 class PMSearchGet(BaseSearchGet):

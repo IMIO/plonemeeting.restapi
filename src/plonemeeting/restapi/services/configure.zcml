@@ -7,7 +7,7 @@
   <plone:service
     method="GET"
     for="Products.CMFCore.interfaces.IFolderish"
-    factory=".get.UidGet"
+    factory=".get.UidSearchGet"
     name="@get"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />

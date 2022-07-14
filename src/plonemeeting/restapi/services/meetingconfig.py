@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from plone import api
-from plonemeeting.restapi.services.search import BaseSearchGet
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.services.search import BaseSearchGet
 from zExceptions import BadRequest
 
 
 class ConfigSearchGet(BaseSearchGet):
     """Returns a serialized content object.
     """
+
+    config_id_optional = False
 
     def __init__(self, context, request):
         super(ConfigSearchGet, self).__init__(context, request)

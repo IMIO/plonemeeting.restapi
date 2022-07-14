@@ -3,6 +3,8 @@
 from AccessControl import Unauthorized
 from BeautifulSoup import BeautifulSoup
 from HTMLParser import HTMLParser
+from imio.helpers.content import base_hasattr
+from imio.helpers.content import uuidToObject
 from lxml.html.clean import Cleaner
 from plone import api
 from plone.restapi.deserializer import boolean_value
@@ -18,13 +20,18 @@ from zope.component import queryMultiAdapter
 from zope.globalrequest import getRequest
 
 
+IN_NAME_OF_CONFIG_ID_ERROR = 'When using "in_name_of", the "config_id" parameter must be given!'
 IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
+UID_NOT_ACCESSIBLE_ERROR = ('Element with UID "%s" was found but user "%s" can not access it!')
+UID_NOT_FOUND_ERROR = 'No element found with UID "%s"!'
 
 
 def check_in_name_of(instance, data):
     """ """
     in_name_of = data.get("in_name_of", None)
     if in_name_of:
+        if not base_hasattr(instance, "cfg"):
+            raise BadRequest(IN_NAME_OF_CONFIG_ID_ERROR)
         if not bool(may_access_config_endpoints(instance.cfg)):
             raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
         user = api.user.get(in_name_of)
@@ -157,3 +164,22 @@ def use_obj_serializer(form, prefix=''):
         form.get(prefix + "extra_include", []) or
         form.get(prefix + "metadata_fields", []) or
         form.get(prefix + "additional_values", []))
+
+
+def rest_uuid_to_object(uid, try_restricted=True, in_name_of=None):
+    """Return the object corresponding to given p_uid but manage cases when
+       it was not found or is not available to current user."""
+    obj = None
+    if try_restricted:
+        obj = uuidToObject(uid)
+    if obj is None:
+        # try to get it unrestricted
+        obj = uuidToObject(uid, unrestricted=True)
+        if obj:
+            raise BadRequest(
+                UID_NOT_ACCESSIBLE_ERROR
+                % (uid, in_name_of or api.user.get_current().getId())
+            )
+        else:
+            raise BadRequest(UID_NOT_FOUND_ERROR % uid)
+    return obj
