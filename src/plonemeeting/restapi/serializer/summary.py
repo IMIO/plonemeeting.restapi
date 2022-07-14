@@ -28,17 +28,22 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
             name = "extra_include_{0}_metadata_fields".format(extra_include_name)
         return name
 
+    def _init(self):
+        """ """
+        self.metadata_fields = []
+        self.asked_extra_include = []
+        self.asked_additional_values = []
+        self.asked_includes = []
+        self.fullobjects = False
+
     def __call__(self):
         """ """
         result = super(PMBrainJSONSummarySerializer, self).__call__()
 
-        # call _init so elements like self.include_all are initialized
+        # call _init so elements like self.fullobjects are initialized
         self._init()
 
-        # Include custom
-        result.update(self._include_custom(self.context, result))
-
-        result = self._after__call__(result)
+        result = self._after__call__(self.context, result)
         return result
 
 

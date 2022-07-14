@@ -85,7 +85,7 @@
     for="zope.interface.Interface"
     accept="application/json,application/schema+json"
     name="@config"
-    factory=".meetingconfig.ConfigGet"
+    factory=".meetingconfig.ConfigSearchGet"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 

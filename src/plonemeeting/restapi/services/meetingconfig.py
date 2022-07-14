@@ -1,33 +1,46 @@
 # -*- coding: utf-8 -*-
 
 from plone import api
-from plone.restapi.services import Service
-from plonemeeting.restapi.config import CONFIG_ID_ERROR
+from plonemeeting.restapi.services.search import BaseSearchGet
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.utils import get_serializer
 from zExceptions import BadRequest
 
 
-class ConfigGet(Service):
+class ConfigSearchGet(BaseSearchGet):
     """Returns a serialized content object.
     """
 
     def __init__(self, context, request):
-        super(ConfigGet, self).__init__(context, request)
-        self.tool = api.portal.get_tool("portal_plonemeeting")
-        config_id = self._config_id
-        self.cfg = self.tool.get(config_id, None)
-        if not self.cfg:
-            raise BadRequest(CONFIG_ID_NOT_FOUND_ERROR % config_id)
+        super(ConfigSearchGet, self).__init__(context, request)
+        # we may ask for every configs by using config_id=*
+        if self.config_id != "*":
+            self.tool = api.portal.get_tool("portal_plonemeeting")
+            self.cfg = self.tool.get(self.config_id, None)
+            if not self.cfg:
+                raise BadRequest(CONFIG_ID_NOT_FOUND_ERROR % self.config_id)
 
     @property
-    def _config_id(self):
-        if "config_id" not in self.request.form:
-            raise BadRequest(CONFIG_ID_ERROR)
-        return self.request.form.get("config_id")
+    def _type(self):
+        # force to MeetingConfig
+        return "MeetingConfig"
+
+    def _set_query_additional_params(self):
+        """ """
+        query = super(ConfigSearchGet, self)._set_query_additional_params()
+        query.pop('getConfigId')
+        query['portal_type'] = self.type
+        if self.config_id != "*":
+            query['id'] = self.cfg.id
+        else:
+            query['sort_on'] = self.request.form.get('sort_on', 'getId')
+        # by default only return active MeetingConfigs excepted if aksed
+        if "review_state" not in query:
+            query["review_state"] = "active"
+        return query
 
     def reply(self):
-        # set context to MeetingConfig
-        self.context = self.cfg
-        serializer = get_serializer(self.context)
-        return serializer()
+        res = super(ConfigSearchGet, self).reply()
+        if res["items"] and hasattr(self, "cfg"):
+            # we asked for one single MeetingConfig, return it (not a list of result)
+            res = res["items"][0]
+        return res

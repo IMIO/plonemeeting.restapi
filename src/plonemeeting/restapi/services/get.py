@@ -2,10 +2,10 @@
 
 from imio.helpers.content import uuidsToObjects
 from plone import api
-from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plone.restapi.services.content.get import ContentGet
+from plonemeeting.restapi.utils import use_obj_serializer
 from zExceptions import BadRequest
 from zope.component import queryMultiAdapter
 
@@ -59,12 +59,8 @@ class UidGet(ContentGet):
         obj = _get_obj_from_uid(self.uid)
         self.context = obj
         self._check_obj()
-        # set include_items=False by default in request
-        if not self.request.form.get("include_items", None):
-            self.request.form["include_items"] = False
 
-        # boolean_value of "" is True
-        fullobjects = boolean_value(self.request.form.get("fullobjects", False))
+        fullobjects = use_obj_serializer(self.request.form)
         if fullobjects:
             serializer = queryMultiAdapter((self.context, self.request), ISerializeToJson)
         else:

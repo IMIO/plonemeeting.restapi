@@ -37,7 +37,10 @@ def get_serializer(obj, extra_include_name=None, serializer=None):
     """ """
     request = getRequest()
     interface = ISerializeToJsonSummary
-    if get_param("fullobjects", extra_include_name=extra_include_name, serializer=serializer):
+    prefix = ''
+    if extra_include_name:
+        prefix = "extra_include_{0}_".format(extra_include_name)
+    if use_obj_serializer(request.form, prefix=prefix):
         interface = ISerializeToJson
     serializer = queryMultiAdapter((obj, request), interface)
     if extra_include_name:
@@ -51,7 +54,7 @@ def get_param(value, default=False, extra_include_name=None, serializer=None):
        else information are directly available.
        For extra_include, a parameter is passed like :
        ?extra_include=extra_include_name:parameter_name:value so
-       ?extra_include_category_include_all=false."""
+       ?extra_include_category_fullobjects or ?extra_include_category_metadata_fields=acronym."""
     request = getRequest()
     # extra_include_name is stored on serializer or passed as parameter when serializer
     # still not initialized, this is the case for parameter "fullobjects" as from this
@@ -142,3 +145,15 @@ def filter_data(filters, data):
         if append_elt:
             res.append(elt)
     return res
+
+
+def use_obj_serializer(form, prefix=''):
+    """Methods that will determinate if regarding values in the request,
+       the ISerializeToJson serializer should be used."""
+    # boolean_value of "" is True
+    return bool(
+        boolean_value(form.get(prefix + 'fullobjects', False)) or
+        [v for v in form if v.startswith(prefix + 'include_')] or
+        form.get(prefix + "extra_include", []) or
+        form.get(prefix + "metadata_fields", []) or
+        form.get(prefix + "additional_values", []))
