@@ -107,13 +107,12 @@ class PMSearchGet(BaseSearchGet):
 
     def _set_query_meetings_accepting_items(self):
         """ """
-        # when using meetings_accepting_items, a config_id is required
-        if not self.config_id:
-            raise BadRequest(CONFIG_ID_ERROR)
-
         query = {}
         form = self.request.form
         if boolean_value(form.get("meetings_accepting_items", False)):
+            # when using meetings_accepting_items, a config_id is required
+            if not self.config_id:
+                raise BadRequest(CONFIG_ID_ERROR)
             query.update(self.cfg._getMeetingsAcceptingItemsQuery())
             # we can call endpoint with just meetings_accepting_items=1
             self.type = "meeting"

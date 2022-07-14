@@ -24,9 +24,9 @@ class ConfigSearchGet(BaseSearchGet):
         # force to MeetingConfig
         return "MeetingConfig"
 
-    def _set_query_additional_params(self):
+    def _set_query_before_hook(self):
         """ """
-        query = super(ConfigSearchGet, self)._set_query_additional_params()
+        query = super(ConfigSearchGet, self)._set_query_before_hook()
         query.pop('getConfigId')
         query['portal_type'] = self.type
         if self.config_id != "*":
