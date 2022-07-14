@@ -29,7 +29,7 @@ class BaseSearchGet(SearchGet):
     def _type(self):
         return self.request.form.get("type", None)
 
-    def _set_query_additional_params(self):
+    def _set_query_before_hook(self):
         """ """
         query = {}
         form = self.request.form
@@ -101,16 +101,22 @@ class PMSearchGet(BaseSearchGet):
         return self.request.form.get("type")
 
     def _set_query_before_hook(self):
-        return self._set_query_meetings_accepting_items()
+        query = super(PMSearchGet, self)._set_query_before_hook()
+        query.update(self._set_query_meetings_accepting_items())
+        return query
 
     def _set_query_meetings_accepting_items(self):
         """ """
+        # when using meetings_accepting_items, a config_id is required
+        if not self.config_id:
+            raise BadRequest(CONFIG_ID_ERROR)
+
         query = {}
         form = self.request.form
-        if self.type == "meeting" and boolean_value(
-            form.get("meetings_accepting_items", False)
-        ):
+        if boolean_value(form.get("meetings_accepting_items", False)):
             query.update(self.cfg._getMeetingsAcceptingItemsQuery())
+            # we can call endpoint with just meetings_accepting_items=1
+            self.type = "meeting"
         return query
 
     def _set_query_additional_params(self):

@@ -405,7 +405,17 @@ class testServiceSearch(BaseTestCase):
         endpoint_url += "&meetings_accepting_items=True"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(response.json()[u"items_total"], 1)
+        json = response.json()
+        self.assertEqual(json[u"items_total"], 1)
+
+        # we can ask for more details, like meeting date
+        self.assertFalse("date" in json["items"][0])
+        endpoint_url += "&metadata_fields=date"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json[u"items_total"], 1)
+        self.assertEqual(json["items"][0]["date"], u'2020-05-10T00:00:00')
 
     def test_restapi_search_in_name_of(self):
         """ """
