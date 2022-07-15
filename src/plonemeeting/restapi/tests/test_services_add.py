@@ -335,9 +335,10 @@ class testServiceAdd(BaseTestCase):
            is protected by specific permission/role."""
         cfg = self.meetingConfig
         self._enableField("internalNotes")
-        self._activate_config('itemInternalNotesEditableBy',
-                              'suffix_proposing_group_creators',
-                              keep_existing=False)
+        if HAS_MEETING_DX:
+            self._activate_config('itemInternalNotesEditableBy',
+                                  'suffix_proposing_group_creators',
+                                  keep_existing=False)
         transaction.commit()
         self.changeUser("pmCreator1")
         endpoint_url = "{0}/@item".format(self.portal_url)
