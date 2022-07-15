@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from collective.contact.plonegroup.utils import get_organizations
 from collective.iconifiedcategory.utils import calculate_category_id
 from imio.helpers.content import get_vocab
 from imio.helpers.security import fplog
@@ -9,8 +8,8 @@ from imio.restapi.utils import get_return_fullobject_after_creation_default
 from plone import api
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.services.get import _get_obj_from_uid
 from plonemeeting.restapi.utils import check_in_name_of
+from plonemeeting.restapi.utils import rest_uuid_to_object
 from Products.PloneMeeting.utils import add_wf_history_action
 from Products.PloneMeeting.utils import get_annexes_config
 from Products.PloneMeeting.utils import org_id_to_uid
@@ -140,9 +139,9 @@ class BasePost(FolderPost):
             # and that has a value (contains data), we warn if
             # ignore_not_used_data or we raise
             if (
-                field_name in optional_fields
-                and field_name not in active_fields
-                and field_value
+                field_name in optional_fields and
+                field_name not in active_fields and
+                field_value
             ):
                 if ignore_not_used_data:
                     inactive_fields.append(field_name)
@@ -331,7 +330,7 @@ class AnnexPost(BasePost):
     @property
     def container(self):
         if not self._container:
-            self._container = _get_obj_from_uid(self.container_uid)
+            self._container = rest_uuid_to_object(self.container_uid)
             self.context = self._container
         return self.context
 

@@ -13,6 +13,8 @@ Changelog
 - Completed the `@config` service (that now uses a `SearchGet`)
   to return every `MeetingConfigs` when `config_id=*`.
   [gbastien]
+- Refactored the `@get` endpoint to use a `SearchGet` so we can use `in_name_of`.
+  [gbastien]
 
 1.0rc17 (2022-07-01)
 --------------------

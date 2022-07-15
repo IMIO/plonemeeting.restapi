@@ -5,6 +5,7 @@ from Acquisition import aq_parent
 from collective.documentgenerator.interfaces import IGenerablePODTemplates
 from collective.iconifiedcategory.utils import _categorized_elements
 from collective.iconifiedcategory.utils import get_categorized_elements
+from imio.helpers.content import base_hasattr
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
 from plone import api
@@ -36,7 +37,6 @@ from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.schema import getFields
-from imio.helpers.content import base_hasattr
 
 
 def serialize_pod_templates(context, serializer):

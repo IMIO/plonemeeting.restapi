@@ -408,6 +408,15 @@ class testServiceSearch(BaseTestCase):
         json = response.json()
         self.assertEqual(json[u"items_total"], 1)
 
+        # type=meeting is optional
+        endpoint_url = endpoint_url.replace("&type=meeting", "")
+        response = self.api_session.get(endpoint_url)
+        # excepted the @id that contains the query, the response is the same
+        new_json = response.json()
+        json.pop('@id')
+        new_json.pop('@id')
+        self.assertEqual(json, new_json)
+
         # we can ask for more details, like meeting date
         self.assertFalse("date" in json["items"][0])
         endpoint_url += "&metadata_fields=date"
