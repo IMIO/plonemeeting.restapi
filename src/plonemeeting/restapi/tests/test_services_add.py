@@ -330,6 +330,45 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].UID, item.UID())
 
+    def test_restapi_add_item_internal_notes(self):
+        """Make sure we can create an item with internalNotes, as this field
+           is protected by specific permission/role."""
+        cfg = self.meetingConfig
+        self._enableField("internalNotes")
+        self._activate_config('itemInternalNotesEditableBy',
+                              'suffix_proposing_group_creators',
+                              keep_existing=False)
+        transaction.commit()
+        self.changeUser("pmCreator1")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            "internalNotes": u"<p>My internal notes.</p>"
+        }
+        self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(
+            response.json()["internalNotes"],
+            {u'data': u"<p>My internal notes.</p>",
+             u'content-type': u'text/html'})
+        # as we need proposingGroup in data when using internalNotes
+        # check that the code handles proposingGroup not being in data
+        json.pop("proposingGroup")
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {
+                u'message':
+                    u"[{'field': 'proposingGroup', 'message': u'A proposing group is required.', "
+                    u"'error': 'ValidationError'}]",
+                u'type':
+                    u'BadRequest'}
+        )
+
     def test_restapi_add_item_ignore_validation_for(self):
         """When creating an item, it is possible to define
            a list of fields to bypass validation for if it is empty."""

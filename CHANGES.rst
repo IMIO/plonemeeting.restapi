@@ -15,6 +15,11 @@ Changelog
   [gbastien]
 - Refactored the `@get` endpoint to use a `SearchGet` so we can use `in_name_of`.
   [gbastien]
+- Added `DeserializeFromJson._need_update_local_roles` that will
+  `update_local_roles` when creating an item when required, this is needed in
+  some case like when creating an item with `internalNotes` because this field
+  relies on `local_role/permission` that need to be setup to be writeable.
+  [gbastien]
 
 1.0rc17 (2022-07-01)
 --------------------

@@ -22,12 +22,26 @@ class DeserializeFromJson(ATDeserializeFromJson):
         self.context = context
         self.request = request
 
+    def _need_update_local_roles(self, data):
+        """Do we need to update_local_roles before setting data on element?"""
+        return "internalNotes" in data
+
     def __call__(self, validate_all=False, data=None, create=False):
 
         if create:
             wfTool = api.portal.get_tool("portal_workflow")
             wf = wfTool.getWorkflowsFor(self.context)[0]
             wf.updateRoleMappingsFor(self.context)
+            # some fields like "internalNotes" need local_roles to be set up
+            # to be writable, so check if we need to update_local_roles
+            # we do it only if required
+            if data is None:
+                data = json_body(self.request)
+                if "proposingGroup" in data and self._need_update_local_roles(data):
+                    # for now self.context does not have any field set, we need
+                    # to set proposingGroup so update_local_roles works
+                    self.context.setProposingGroup(data["proposingGroup"])
+                    self.context.update_local_roles()
 
         return super(DeserializeFromJson, self).__call__(
             validate_all=validate_all, data=data, create=create)
