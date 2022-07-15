@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from DateTime import DateTime
 from datetime import datetime
+from DateTime import DateTime
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.get import UID_REQUIRED_ERROR
