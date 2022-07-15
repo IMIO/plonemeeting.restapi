@@ -13,6 +13,7 @@ from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
+import unittest
 
 
 class testServiceGetUid(BaseTestCase):
@@ -271,6 +272,7 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(item_annexes_json[0][u'UID'], item_annex.UID())
         self.assertEqual(item_annexes_json[0][u'file'][u'filename'], u'FILE.txt')
 
+    @unittest.skipIf(not HAS_MEETING_DX, "linked_items only works with PloneMeeting 4.2+")  # noqa
     def test_restapi_get_uid_extra_include_linked_items(self):
         """Test the extra_include=linked_items."""
         cfg = self.meetingConfig

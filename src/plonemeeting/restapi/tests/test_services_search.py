@@ -424,7 +424,10 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertEqual(json[u"items_total"], 1)
-        self.assertEqual(json["items"][0]["date"], u'2020-05-10T00:00:00')
+        if HAS_MEETING_DX:
+            self.assertEqual(json["items"][0]["date"], u'2020-05-10T00:00:00')
+        else:
+            self.assertEqual(json["items"][0]["date"], u'2020-05-10T00:00:00+00:00')
 
     def test_restapi_search_in_name_of(self):
         """ """
