@@ -20,6 +20,8 @@ Changelog
   some case like when creating an item with `internalNotes` because this field
   relies on `local_role/permission` that need to be setup to be writeable.
   [gbastien]
+- Register `@get GET` endpoint for `IPloneSiteRoot` instead `IFolderish`.
+  [gbastien]
 
 1.0rc17 (2022-07-01)
 --------------------

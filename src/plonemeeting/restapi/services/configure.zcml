@@ -6,7 +6,7 @@
   <!-- get UID -->
   <plone:service
     method="GET"
-    for="Products.CMFCore.interfaces.IFolderish"
+    for="Products.CMFPlone.interfaces.IPloneSiteRoot"
     factory=".get.UidSearchGet"
     name="@get"
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
