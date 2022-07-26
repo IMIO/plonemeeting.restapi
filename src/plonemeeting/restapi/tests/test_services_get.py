@@ -391,6 +391,51 @@ class testServiceGetUid(BaseTestCase):
         json = response.json()
         self.assertTrue('proposingGroup' in json["extra_include_linked_items"][0])
 
+    def test_restapi_get_uid_include_choices_for(self):
+        """Test parameter include_choices_for that receives a list of field names
+           and will append the related vocabulary values to the response."""
+        # MeetingItem + include_choices on organization (DX)
+        endpoint_url_pattern = "{0}/@get?UID={1}&include_choices_for=category" \
+            "&include_choices_for=associatedGroups" \
+            "&include_choices_for=title" \
+            "&extra_include=proposing_group" \
+            "&extra_include_proposing_group_include_choices_for=item_advice_states" \
+            "&extra_include_proposing_group_include_choices_for=organization_type"
+
+        endpoint_url = endpoint_url_pattern.format(
+            self.portal_url, self.item1_uid)
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual([elt['token'] for elt in json["category__choices"]],
+                         [u'development', u'events', u'research'])
+        self.assertEqual([elt['title'] for elt in json["associatedGroups__choices"]],
+                         [u'Developers', u'Vendors'])
+        # fields that do not have a vocabulary are ignored
+        self.assertFalse("title__choices" in json)
+        # field organization.item_advice_states is not readable so not returned
+        self.assertFalse("item_advice_states__choices" in
+                         json["extra_include_proposing_group"])
+        # but field organization_type is readable so included
+        self.assertEqual(
+            json["extra_include_proposing_group"]["organization_type__choices"],
+            [{u'token': u'default', u'title': u'D\xe9faut'}])
+
+        # query the MeetingConfig (include_choices on an AT)
+        endpoint_url_pattern = "{0}/@get?UID={1}&include_choices_for=usedItemAttributes"
+        endpoint_url = endpoint_url_pattern.format(
+            self.portal_url, self.meetingConfig.UID())
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertTrue(
+            {u'title': u'Description (description)', u'token': u'description'}
+            in json["usedItemAttributes__choices"])
+        self.assertTrue(
+            {u'title': u'Classifier (classifier)', u'token': u'classifier'}
+            in json["usedItemAttributes__choices"])
+        self.assertTrue(
+            {u'title': u'Checklist (textCheckList)', u'token': u'textCheckList'}
+            in json["usedItemAttributes__choices"])
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

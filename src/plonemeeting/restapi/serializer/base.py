@@ -6,6 +6,7 @@ from collective.documentgenerator.interfaces import IGenerablePODTemplates
 from collective.iconifiedcategory.utils import _categorized_elements
 from collective.iconifiedcategory.utils import get_categorized_elements
 from imio.helpers.content import base_hasattr
+from imio.helpers.content import get_vocab
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
 from plone import api
@@ -24,6 +25,7 @@ from plone.restapi.serializer.converters import json_compatible
 from plone.restapi.serializer.expansion import expandable_elements
 from plone.restapi.serializer.nextprev import NextPrevious
 from plone.supermodel.utils import mergedTaggedValueDict
+from plonemeeting.restapi import logger
 from plonemeeting.restapi.config import ANNEXES_FILTER_VALUES
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.utils import get_param
@@ -37,6 +39,10 @@ from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.schema import getFields
+
+
+NO_VOCAB_ERROR = "Trying to get vocabulary for field %s but it is None"
+SUFFIXED_CHOICES_PATTERN = "%s__choices"
 
 
 def serialize_pod_templates(context, serializer):
@@ -281,6 +287,10 @@ class ContentSerializeToJson(BaseSerializeToJson):
         """ """
         raise NotImplementedError
 
+    def _include_choices_for(self, obj):
+        """ """
+        raise NotImplementedError
+
     def _include_items(self, obj, include_items):
         """ """
         result = {}
@@ -369,8 +379,11 @@ class ContentSerializeToJson(BaseSerializeToJson):
         # Include expandable elements (@components)
         result.update(self._include_components(obj))
 
-        # Include metadta_fields
+        # Include metadata_fields
         result.update(self._include_fields(obj))
+
+        # Include vocabulary values
+        result.update(self._include_choices_for(obj))
 
         # Include items
         result.update(self._include_items(obj, include_items))
@@ -394,27 +407,51 @@ class ContentSerializeToJson(BaseSerializeToJson):
 class BaseATSerializeFolderToJson(ContentSerializeToJson, ATSerializeFolderToJson):
     """ """
 
+    def _get_readable_fields(self, obj, field_names=[]):
+        """ """
+        fields = []
+        for field in obj.Schema().fields():
+            field_name = field.getName()
+            if field_names and field_name not in field_names:
+                continue
+            if "r" not in field.mode or not field.checkPermission(
+                "r", obj
+            ):  # noqa: E501
+                continue
+            fields.append((field_name, field))
+        return fields
+
+    def _include_choices_for(self, obj):
+        """ """
+        result = {}
+        choices_for = self.get_param('include_choices_for', [])
+        if choices_for:
+            for field_name, field in self._get_readable_fields(
+                    obj, field_names=choices_for):
+                if not field.vocabulary and not field.vocabulary_factory:
+                    logger.warning(NO_VOCAB_ERROR % field_name)
+                    continue
+                vocab = field.Vocabulary(obj)
+                data_name = SUFFIXED_CHOICES_PATTERN % field_name
+                result[data_name] = []
+                for term_id, term_title in vocab.items():
+                    if term_id not in ['', '_none_']:
+                        result[data_name].append(
+                            {'token': term_id, 'title': term_title})
+        return result
+
     def _include_fields(self, obj):
         """ """
         result = {}
         # Compute fields if fullobjects or metadata_fields
         if self.fullobjects or self.metadata_fields:
-
-            for field in obj.Schema().fields():
-
-                name = field.getName()
-                # only keep relevant fields
-                if (self.fullobjects and not self.metadata_fields) or name in self.metadata_fields:
-                    if "r" not in field.mode or not field.checkPermission(
-                        "r", obj
-                    ):  # noqa: E501
-                        continue
-
-                    serializer = queryMultiAdapter(
-                        (field, self.context, self.request), IFieldSerializer
-                    )
-                    if serializer is not None:
-                        result[name] = serializer()
+            for field_name, field in self._get_readable_fields(
+                    obj, field_names=self.metadata_fields or []):
+                serializer = queryMultiAdapter(
+                    (field, self.context, self.request), IFieldSerializer
+                )
+                if serializer is not None:
+                    result[field_name] = serializer()
         return result
 
 
@@ -423,28 +460,55 @@ class BaseATSerializeFolderToJson(ContentSerializeToJson, ATSerializeFolderToJso
 class BaseDXSerializeToJson(ContentSerializeToJson, IMIODXSerializeToJson):
     """ """
 
+    def _get_readable_fields(self, obj, field_names=[]):
+        """ """
+        fields = []
+        for schema in iterSchemata(self.context):
+            read_permissions = mergedTaggedValueDict(schema, READ_PERMISSIONS_KEY)
+            for field_name, field in getFields(schema).items():
+                if field_names and field_name not in field_names:
+                    continue
+                if not self.check_permission(read_permissions.get(field_name), obj):
+                    continue
+                fields.append((field_name, field))
+        return fields
+
+    def _include_choices_for(self, obj):
+        """ """
+        result = {}
+        choices_for = self.get_param('include_choices_for', [])
+        if choices_for:
+            for field_name, field in self._get_readable_fields(
+                    obj, field_names=choices_for):
+                if base_hasattr(field, "value_type"):
+                    vocab_name = field.value_type.vocabularyName
+                else:
+                    vocab_name = field.vocabularyName
+                if vocab_name is None:
+                    logger.warning(NO_VOCAB_ERROR % field_name)
+                    continue
+                vocab = get_vocab(obj, vocab_name)
+                data_name = SUFFIXED_CHOICES_PATTERN % field_name
+                result[data_name] = []
+                for term in vocab._terms:
+                    serializer = getMultiAdapter(
+                        (term, self.request), interface=ISerializeToJson)
+                    result[data_name].append(serializer())
+        return result
+
     def _include_fields(self, obj):
         """ """
         result = {}
         # Compute fields if fullobjects or metadata_fields
         if self.fullobjects or self.metadata_fields:
-            for schema in iterSchemata(self.context):
-                read_permissions = mergedTaggedValueDict(schema, READ_PERMISSIONS_KEY)
-
-                for name, field in getFields(schema).items():
-
-                    # only keep relevant fields
-                    if (self.fullobjects and not self.metadata_fields) or name in self.metadata_fields:
-
-                        if not self.check_permission(read_permissions.get(name), obj):
-                            continue
-
-                        # serialize the field
-                        serializer = queryMultiAdapter(
-                            (field, obj, self.request), IFieldSerializer
-                        )
-                        value = serializer()
-                        result[json_compatible(name)] = value
+            for field_name, field in self._get_readable_fields(
+                    obj, field_names=self.metadata_fields or []):
+                # serialize the field
+                serializer = queryMultiAdapter(
+                    (field, obj, self.request), IFieldSerializer
+                )
+                value = serializer()
+                result[json_compatible(field_name)] = value
 
         return result
 
