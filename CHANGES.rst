@@ -22,6 +22,11 @@ Changelog
   [gbastien]
 - Register `@get GET` endpoint for `IPloneSiteRoot` instead `IFolderish`.
   [gbastien]
+- Added possibility to get the selectable choices of a field in the response.
+  Parameter `include_choices_for=field_name` may be given, in this case,
+  a key `field_name__choices` is added to the result with `token/title` of
+  the selectable values.
+  [gbastien]
 
 1.0rc17 (2022-07-01)
 --------------------
