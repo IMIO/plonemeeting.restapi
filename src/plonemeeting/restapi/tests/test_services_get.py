@@ -155,16 +155,12 @@ class testServiceGetUid(BaseTestCase):
 
     def test_restapi_get_uid_in_name_of(self):
         """Check when using parameter in_name_of"""
+        # with an uid the element is correctly returned
         endpoint_url = "{0}/@get?UID={1}&in_name_of=pmCreator1".format(
             self.portal_url, self.item1_uid
         )
         response = self.api_session.get(endpoint_url)
-        # config_id is required when using in_name_of
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(
-            response.json(), {u"message": IN_NAME_OF_CONFIG_ID_ERROR, u"type": u"BadRequest"}
-        )
-        # with config_id the element is correctly returned
+        # with config_id in addition the element is correctly returned
         endpoint_url += "&config_id=%s" % self.meetingConfig.getId()
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
