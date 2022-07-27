@@ -20,7 +20,7 @@ from zope.component import queryMultiAdapter
 from zope.globalrequest import getRequest
 
 
-IN_NAME_OF_CONFIG_ID_ERROR = 'When using "in_name_of", the "config_id" parameter must be given!'
+IN_NAME_OF_CONFIG_ID_ERROR = 'When using "in_name_of", "config_id" or "uid" parameter must be given!'
 IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
 UID_NOT_ACCESSIBLE_ERROR = ('Element with UID "%s" was found but user "%s" can not access it!')
 UID_NOT_FOUND_ERROR = 'No element found with UID "%s"!'
@@ -30,8 +30,12 @@ def check_in_name_of(instance, data):
     """ """
     in_name_of = data.get("in_name_of", None)
     if in_name_of:
-        if not base_hasattr(instance, "cfg"):
+        if not base_hasattr(instance, "cfg") and not base_hasattr(instance, "uid"):
             raise BadRequest(IN_NAME_OF_CONFIG_ID_ERROR)
+        if not base_hasattr(instance, "cfg"):
+            tool = api.portal.get_tool("portal_plonemeeting")
+            obj = rest_uuid_to_object(instance.uid)
+            instance.cfg = tool.getMeetingConfig(obj)
         if not bool(may_access_config_endpoints(instance.cfg)):
             raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
         user = api.user.get(in_name_of)
