@@ -11,6 +11,7 @@ from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from plonemeeting.restapi.config import INDEX_CORRESPONDENCES
 from Products.CMFCore.permissions import ManagePortal
 from Products.CMFCore.utils import _checkPermission
 from Products.CMFPlone.utils import safe_unicode
@@ -131,29 +132,6 @@ def may_access_config_endpoints(cfg=None):
     return res
 
 
-def filter_data(filters, data):
-    """Apply given p_filters on elemnts of data (list of results).
-       p_filters is like portal_type|MeetingItemSample or query_state|itemcreated,
-       the first part of the filter may be an element's method or a string attribute."""
-    res = []
-    for elt in data:
-        append_elt = True
-        for filter_def in filters:
-            filter_name, filter_value = filter_def.split('|')
-            filter_fct = getattr(elt, filter_name)
-            if callable(filter_fct):
-                if filter_fct() != filter_value:
-                    append_elt = False
-                    break
-            else:
-                if filter_fct != filter_value:
-                    append_elt = False
-                    break
-        if append_elt:
-            res.append(elt)
-    return res
-
-
 def use_obj_serializer(form, prefix=''):
     """Methods that will determinate if regarding values in the request,
        the ISerializeToJson serializer should be used."""
@@ -183,3 +161,23 @@ def rest_uuid_to_object(uid, try_restricted=True, in_name_of=None):
         else:
             raise BadRequest(UID_NOT_FOUND_ERROR % uid)
     return obj
+
+
+def build_catalog_query(serializer, extra_include_name=None):
+    """ """
+
+    # filters may be any portal_catalog index
+    catalog = api.portal.get_tool('portal_catalog')
+    query = {}
+    for index in catalog.Indexes:
+        value = serializer.get_param(
+            index, None, extra_include_name=extra_include_name)
+        if value is None:
+            # try to get an index by it's correspondance name
+            easy_index = INDEX_CORRESPONDENCES.get(index, None)
+            if easy_index is not None:
+                value = serializer.get_param(
+                    easy_index, None, extra_include_name=extra_include_name)
+        if value is not None:
+            query[index] = value
+    return query

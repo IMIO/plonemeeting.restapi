@@ -8,3 +8,8 @@ IN_NAME_OF_UNAUTHORIZED = (
 )
 ANNEXES_FILTER_VALUES = [
     "to_print", "confidential", "publishable", "to_sign", "signed"]
+INDEX_CORRESPONDENCES = {
+    'getConfigId': 'config_id',
+    'review_state': 'state',
+    'portal_type': 'type',
+    'UID': 'uid'}
