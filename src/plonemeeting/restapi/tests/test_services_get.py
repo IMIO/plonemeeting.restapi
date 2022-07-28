@@ -22,6 +22,9 @@ class testServiceGetUid(BaseTestCase):
     def setUp(self):
         """ """
         super(testServiceGetUid, self).setUp()
+        # especially necessary for branch 4.1.x where proposingGroup/category
+        # was mixed and MeetingItem.getCategory would return the proposingGroup or the category
+        self.meetingConfig.setUseGroupsAsCategories(False)
         self.changeUser("pmManager")
         self.item1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
         self.item1_uid = self.item1.UID()
