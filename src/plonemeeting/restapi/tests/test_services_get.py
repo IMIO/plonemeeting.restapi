@@ -213,7 +213,7 @@ class testServiceGetUid(BaseTestCase):
             response.json(),
             {
                 u"message": IN_NAME_OF_CONFIG_ID_UNAUTHORIZED % (
-                    cfg_id, "pmCreator1", "pmManager2"),
+                    cfg_id, "pmManager2", "pmCreator1"),
                 u"type": u"BadRequest",
             },
         )
