@@ -214,7 +214,7 @@ class testServiceGetUid(BaseTestCase):
             {
                 u"message": IN_NAME_OF_CONFIG_ID_UNAUTHORIZED % (
                     "pmManager2", cfg_id, "pmCreator1"),
-                u"type": u"BadRequest",
+                u"type": u"Unauthorized",
             },
         )
 
