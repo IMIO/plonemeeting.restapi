@@ -283,7 +283,7 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(
             response.json(),
             {
-                u"message": IN_NAME_OF_UNAUTHORIZED % "pmCreator2",
+                u"message": IN_NAME_OF_UNAUTHORIZED % ("pmCreator1", "pmCreator2"),
                 u"type": u"Unauthorized",
             },
         )
