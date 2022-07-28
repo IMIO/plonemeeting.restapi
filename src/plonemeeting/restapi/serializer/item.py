@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from imio.helpers.content import uuidsToObjects
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
 from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
-from plonemeeting.restapi.utils import filter_data
+from plonemeeting.restapi.utils import build_catalog_query
 from Products.PloneMeeting.interfaces import IMeetingItem
 from zope.component import adapter
 from zope.interface import implementer
@@ -57,10 +58,12 @@ class SerializeItemToJsonBase(object):
                 linked_items += self.context.get_successors(unrestricted=False)
             elif mode == "every_successors":
                 linked_items += self.context.get_every_successors(unrestricted=False)
-        # now apply extra_include_linked_items_filters
-        filters = self.get_param("filter", [], extra_include_name="linked_items")
-        if filters:
-            linked_items = filter_data(filters, linked_items)
+        query = build_catalog_query(self, extra_include_name="linked_items")
+        if query:
+            linked_item_uids = [linked_item.UID() for linked_item in linked_items]
+            # we may unrestricted=True as we get linked items with unrestricted=False here above
+            linked_items = uuidsToObjects(
+                linked_item_uids, ordered=True, query=query, unrestricted=True)
         result["extra_include_linked_items"] = [
             self._get_serializer(linked_item, "linked_items")()
             for linked_item in linked_items]

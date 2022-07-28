@@ -5,6 +5,7 @@ from plone import api
 from plone.restapi.deserializer import boolean_value
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
+from plonemeeting.restapi.config import INDEX_CORRESPONDENCES
 from plonemeeting.restapi.utils import check_in_name_of
 from zExceptions import BadRequest
 
@@ -36,15 +37,10 @@ class BaseSearchGet(SearchGet):
         query = {}
         form = self.request.form
 
-        # config_id is actually the getConfigId index
-        if "config_id" in form:
-            query["getConfigId"] = form["config_id"]
-        # convenience "state" is actually "review_state"
-        if "state" in form:
-            query["review_state"] = form["state"]
-        # convenience "uid" is actually "UID"
-        if "uid" in form:
-            query["UID"] = form["uid"]
+        # turn convenience indexes names into real index names
+        for real_index_name, easy_index_name in INDEX_CORRESPONDENCES.items():
+            if easy_index_name in form:
+                query[real_index_name] = form[easy_index_name]
 
         return query
 
@@ -67,12 +63,10 @@ class BaseSearchGet(SearchGet):
     def _clean_query(self, query):
         """Remove parameters that are not indexes names to avoid warnings like :
            WARNING plone.restapi.search.query No such index: 'extra_include'"""
-        query.pop("config_id", None)
         query.pop("extra_include", None)
         query.pop("in_name_of", None)
-        query.pop("state", None)
-        query.pop("type", None)
-        query.pop("uid", None)
+        for easy_index_name in INDEX_CORRESPONDENCES.values():
+            query.pop(easy_index_name, None)
 
 
 class PMSearchGet(BaseSearchGet):

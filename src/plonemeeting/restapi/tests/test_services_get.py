@@ -314,8 +314,9 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(
             [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
             [new_item_uid, cfg2_item_uid])
-        # we may filter values, for example get only the cfg2 item
-        filter_endpoint_url = endpoint_url + "&extra_include_linked_items_filter=portal_type|{0}".format(
+        # we may filter values by providing some catalog indexes
+        # for example get only the cfg2 item, we can use real index name or easy name
+        filter_endpoint_url = endpoint_url + "&extra_include_linked_items_type={0}".format(
             cfg2.getItemTypeName())
         response = self.api_session.get(filter_endpoint_url)
         json = response.json()
@@ -323,8 +324,8 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(
             [linked_item['UID'] for linked_item in json["extra_include_linked_items"]],
             [cfg2_item_uid])
-        # several filters, filter may be a callable method, here "query_state"
-        filter_endpoint_url = filter_endpoint_url + "&extra_include_linked_items_filter=query_state|{0}".format(
+        # several filters
+        filter_endpoint_url = filter_endpoint_url + "&extra_include_linked_items_review_state={0}".format(
             cfg2_item.query_state())
         response = self.api_session.get(filter_endpoint_url)
         json = response.json()
