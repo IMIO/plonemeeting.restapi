@@ -33,6 +33,9 @@ Changelog
   Formalized convienence catalog index names substitution (passing parameter `type`
   corresponds to index `portal_type` or `state` corresponds to `review_state`).
   [gbastien]
+- Parameter `config_id` is no more required when using `in_name_of`
+  in `@get` or `@search`.
+  [gbastien]
 
 1.0rc17 (2022-07-01)
 --------------------

@@ -3,7 +3,6 @@
 from AccessControl import Unauthorized
 from BeautifulSoup import BeautifulSoup
 from HTMLParser import HTMLParser
-from imio.helpers.content import base_hasattr
 from imio.helpers.content import uuidToObject
 from lxml.html.clean import Cleaner
 from plone import api
@@ -15,30 +14,35 @@ from plonemeeting.restapi.config import INDEX_CORRESPONDENCES
 from Products.CMFCore.permissions import ManagePortal
 from Products.CMFCore.utils import _checkPermission
 from Products.CMFPlone.utils import safe_unicode
+from Products.PloneMeeting.config import MEETINGMANAGERS_GROUP_SUFFIX
 from Products.PloneMeeting.utils import convert2xhtml
 from zExceptions import BadRequest
 from zope.component import queryMultiAdapter
 from zope.globalrequest import getRequest
 
 
-IN_NAME_OF_CONFIG_ID_ERROR = 'When using "in_name_of", the "config_id" parameter must be given!'
 IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
-UID_NOT_ACCESSIBLE_ERROR = ('Element with UID "%s" was found but user "%s" can not access it!')
+UID_NOT_ACCESSIBLE_ERROR = 'Element with UID "%s" was found in config "%s" but ' \
+    'user "%s" can not access it!'
+UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR = 'Element with UID "%s" was found in config ' \
+    '"%s" but user "%s" can not access it (using "in_name_of" original power user "%s")!'
 UID_NOT_FOUND_ERROR = 'No element found with UID "%s"!'
 
 
-def check_in_name_of(instance, data):
+def check_in_name_of(cfg_id, data):
     """ """
     in_name_of = data.get("in_name_of", None)
-    if in_name_of:
-        if not base_hasattr(instance, "cfg"):
-            raise BadRequest(IN_NAME_OF_CONFIG_ID_ERROR)
-        if not bool(may_access_config_endpoints(instance.cfg)):
+    access_cfg_ids = None
+    if in_name_of is not None:
+        access_cfg_ids = get_poweraccess_configs()
+        # if user not a (Meeting)Manager or a cfg_id is given and user is not
+        # MeetingManager for it, raise Unauthorized
+        if not access_cfg_ids or (cfg_id and cfg_id not in access_cfg_ids):
             raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
         user = api.user.get(in_name_of)
         if not user:
             raise BadRequest(IN_NAME_OF_USER_NOT_FOUND % in_name_of)
-    return in_name_of
+    return in_name_of, access_cfg_ids
 
 
 def get_serializer(obj, extra_include_name=None, serializer=None):
@@ -118,18 +122,22 @@ def handle_html(obj, data):
                          use_appy_pod_preprocessor=True)
 
 
-def may_access_config_endpoints(cfg=None):
+def get_poweraccess_configs():
     '''
+      Return the MeetingConfig ids the current user can access,
+      so the active configs for which user is MeetingManager or every
+      if user is Manager.
       This will be used to protect access to some config endpoints or
       functionnalities like "in_name_of".
     '''
-    res = False
     tool = api.portal.get_tool('portal_plonemeeting')
-    if (cfg is not None and tool.isManager(cfg)) or \
-       tool.userIsAmong(['meetingmanagers']) or \
-       _checkPermission(ManagePortal, tool):
-        res = True
-    return res
+    if _checkPermission(ManagePortal, tool):
+        cfg_ids = [cfg.id for cfg in tool.getActiveConfigs(check_using_groups=False, check_access=False)]
+    else:
+        cfg_ids = [
+            group_id.split('_')[0] for group_id in
+            tool.get_filtered_plone_groups_for_user(suffixes=[MEETINGMANAGERS_GROUP_SUFFIX])]
+    return cfg_ids
 
 
 def use_obj_serializer(form, prefix=''):
@@ -154,10 +162,15 @@ def rest_uuid_to_object(uid, try_restricted=True, in_name_of=None):
         # try to get it unrestricted
         obj = uuidToObject(uid, unrestricted=True)
         if obj:
-            raise BadRequest(
-                UID_NOT_ACCESSIBLE_ERROR
-                % (uid, in_name_of or api.user.get_current().getId())
-            )
+            tool = api.portal.get_tool('portal_plonemeeting')
+            cfg = tool.getMeetingConfig(obj)
+            if in_name_of:
+                msg = UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
+                    uid, cfg.getId(), in_name_of, api.user.get_current().getId())
+            else:
+                msg = UID_NOT_ACCESSIBLE_ERROR % (
+                    uid, cfg.getId(), in_name_of or api.user.get_current().getId())
+            raise BadRequest(msg)
         else:
             raise BadRequest(UID_NOT_FOUND_ERROR % uid)
     return obj

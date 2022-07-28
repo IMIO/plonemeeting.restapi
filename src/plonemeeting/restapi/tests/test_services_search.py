@@ -460,8 +460,14 @@ class testServiceSearch(BaseTestCase):
         item1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
         item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
         transaction.commit()
-        # both found by default
+        # can not pass an empty in_name_of
         response = self.api_session.get(endpoint_url_pattern % "")
+        self.assertEqual(
+            response.json(),
+            {u"message": IN_NAME_OF_USER_NOT_FOUND % "", u"type": u"BadRequest"},
+        )
+        # both found by default
+        response = self.api_session.get((endpoint_url_pattern % "").replace('&in_name_of=', ''))
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 2)
         # as pmCreator1, only item1 found

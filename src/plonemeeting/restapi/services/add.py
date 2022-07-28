@@ -107,7 +107,7 @@ class BasePost(FolderPost):
         return serialized_obj
 
     def _reply(self):
-        in_name_of = check_in_name_of(self, self.data)
+        in_name_of, access_cfg_ids = check_in_name_of(self.data['config_id'], self.data)
         if in_name_of:
             # remove AUTHENTICATED_USER during adopt_user
             auth_user = self.request.get("AUTHENTICATED_USER")
