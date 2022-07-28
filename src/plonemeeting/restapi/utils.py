@@ -9,7 +9,6 @@ from plone import api
 from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.config import INDEX_CORRESPONDENCES
 from Products.CMFCore.permissions import ManagePortal
 from Products.CMFCore.utils import _checkPermission
@@ -21,6 +20,9 @@ from zope.component import queryMultiAdapter
 from zope.globalrequest import getRequest
 
 
+IN_NAME_OF_CONFIG_ID_UNAUTHORIZED = 'User "%s" must be Manager/MeetingManager for ' \
+    'config "%s" to use "in_name_of=%s" option!'
+IN_NAME_OF_UNAUTHORIZED = 'User "%s" must be Manager/MeetingManager to use "in_name_of=%s" option!'
 IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
 UID_NOT_ACCESSIBLE_ERROR = 'Element with UID "%s" was found in config "%s" but ' \
     'user "%s" can not access it!'
@@ -37,8 +39,13 @@ def check_in_name_of(cfg_id, data):
         access_cfg_ids = get_poweraccess_configs()
         # if user not a (Meeting)Manager or a cfg_id is given and user is not
         # MeetingManager for it, raise Unauthorized
-        if not access_cfg_ids or (cfg_id and cfg_id not in access_cfg_ids):
-            raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
+        if not access_cfg_ids:
+            raise Unauthorized(IN_NAME_OF_UNAUTHORIZED %
+                               (api.user.get_current().getId(), in_name_of))
+        elif cfg_id and cfg_id not in access_cfg_ids:
+            # not MeetingManager for the given cfg_id
+            raise Unauthorized(IN_NAME_OF_CONFIG_ID_UNAUTHORIZED %
+                               (api.user.get_current().getId(), cfg_id, in_name_of))
         user = api.user.get(in_name_of)
         if not user:
             raise BadRequest(IN_NAME_OF_USER_NOT_FOUND % in_name_of)

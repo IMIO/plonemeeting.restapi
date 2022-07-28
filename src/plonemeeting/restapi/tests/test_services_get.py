@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
 from DateTime import DateTime
-from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from datetime import datetime
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.get import UID_REQUIRED_ERROR
 from plonemeeting.restapi.services.get import UID_WRONG_TYPE_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
+from plonemeeting.restapi.utils import IN_NAME_OF_CONFIG_ID_UNAUTHORIZED
+from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_ERROR
 from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR
 from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
@@ -186,7 +187,7 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(
             response.json(),
             {
-                u"message": IN_NAME_OF_UNAUTHORIZED % "pmCreator1",
+                u"message": IN_NAME_OF_UNAUTHORIZED % ("pmCreator1", "pmCreator1"),
                 u"type": u"Unauthorized",
             },
         )
@@ -200,6 +201,19 @@ class testServiceGetUid(BaseTestCase):
             {
                 u"message": UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
                     self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager2"),
+                u"type": u"BadRequest",
+            },
+        )
+        # when using a config_id the power user is not MeetingManager for,
+        # we get a clear message
+        cfg_id = self.meetingConfig.getId()
+        response = self.api_session.get(endpoint_url + "&config_id={0}".format(cfg_id))
+        self.assertEqual(response.status_code, 401, response.content)
+        self.assertEqual(
+            response.json(),
+            {
+                u"message": IN_NAME_OF_CONFIG_ID_UNAUTHORIZED % (
+                    cfg_id, "pmCreator1", "pmManager2"),
                 u"type": u"BadRequest",
             },
         )

@@ -7,7 +7,6 @@ from DateTime import DateTime
 from imio.helpers.content import object_values
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import ANNEX_DECISION_RELATED_NOT_ITEM_ERROR
@@ -21,6 +20,7 @@ from plonemeeting.restapi.testing import PM_REST_TEST_ADD_ANNEXES_PROFILE_FUNCTI
 from plonemeeting.restapi.testing import PM_REST_TEST_ADD_PROFILE_FUNCTIONAL
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.tests.config import base64_pdf_data
+from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.CMFPlone.utils import safe_unicode
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
