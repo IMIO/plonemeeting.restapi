@@ -3,42 +3,54 @@
 from AccessControl import Unauthorized
 from BeautifulSoup import BeautifulSoup
 from HTMLParser import HTMLParser
-from imio.helpers.content import base_hasattr
 from imio.helpers.content import uuidToObject
 from lxml.html.clean import Cleaner
 from plone import api
 from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from plonemeeting.restapi.bbb import getActiveConfigs
 from plonemeeting.restapi.config import INDEX_CORRESPONDENCES
 from Products.CMFCore.permissions import ManagePortal
 from Products.CMFCore.utils import _checkPermission
 from Products.CMFPlone.utils import safe_unicode
+from Products.PloneMeeting.config import MEETINGMANAGERS_GROUP_SUFFIX
 from Products.PloneMeeting.utils import convert2xhtml
 from zExceptions import BadRequest
 from zope.component import queryMultiAdapter
 from zope.globalrequest import getRequest
 
 
-IN_NAME_OF_CONFIG_ID_ERROR = 'When using "in_name_of", the "config_id" parameter must be given!'
+IN_NAME_OF_CONFIG_ID_UNAUTHORIZED = 'User "%s" must be Manager/MeetingManager for ' \
+    'config "%s" to use "in_name_of=%s" option!'
+IN_NAME_OF_UNAUTHORIZED = 'User "%s" must be Manager/MeetingManager to use "in_name_of=%s" option!'
 IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
-UID_NOT_ACCESSIBLE_ERROR = ('Element with UID "%s" was found but user "%s" can not access it!')
+UID_NOT_ACCESSIBLE_ERROR = 'Element with UID "%s" was found in config "%s" but ' \
+    'user "%s" can not access it!'
+UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR = 'Element with UID "%s" was found in config ' \
+    '"%s" but user "%s" can not access it (using "in_name_of" original power user "%s")!'
 UID_NOT_FOUND_ERROR = 'No element found with UID "%s"!'
 
 
-def check_in_name_of(instance, data):
+def check_in_name_of(cfg_id, data):
     """ """
     in_name_of = data.get("in_name_of", None)
-    if in_name_of:
-        if not base_hasattr(instance, "cfg"):
-            raise BadRequest(IN_NAME_OF_CONFIG_ID_ERROR)
-        if not bool(may_access_config_endpoints(instance.cfg)):
-            raise Unauthorized(IN_NAME_OF_UNAUTHORIZED % in_name_of)
+    access_cfg_ids = None
+    if in_name_of is not None:
+        access_cfg_ids = get_poweraccess_configs()
+        # if user not a (Meeting)Manager or a cfg_id is given and user is not
+        # MeetingManager for it, raise Unauthorized
+        if not access_cfg_ids:
+            raise Unauthorized(IN_NAME_OF_UNAUTHORIZED %
+                               (api.user.get_current().getId(), in_name_of))
+        elif cfg_id and cfg_id not in access_cfg_ids:
+            # not MeetingManager for the given cfg_id
+            raise Unauthorized(IN_NAME_OF_CONFIG_ID_UNAUTHORIZED %
+                               (api.user.get_current().getId(), cfg_id, in_name_of))
         user = api.user.get(in_name_of)
         if not user:
             raise BadRequest(IN_NAME_OF_USER_NOT_FOUND % in_name_of)
-    return in_name_of
+    return in_name_of, access_cfg_ids
 
 
 def get_serializer(obj, extra_include_name=None, serializer=None):
@@ -118,18 +130,22 @@ def handle_html(obj, data):
                          use_appy_pod_preprocessor=True)
 
 
-def may_access_config_endpoints(cfg=None):
+def get_poweraccess_configs():
     '''
+      Return the MeetingConfig ids the current user can access,
+      so the active configs for which user is MeetingManager or every
+      if user is Manager.
       This will be used to protect access to some config endpoints or
       functionnalities like "in_name_of".
     '''
-    res = False
     tool = api.portal.get_tool('portal_plonemeeting')
-    if (cfg is not None and tool.isManager(cfg)) or \
-       tool.userIsAmong(['meetingmanagers']) or \
-       _checkPermission(ManagePortal, tool):
-        res = True
-    return res
+    if _checkPermission(ManagePortal, tool):
+        cfg_ids = [cfg.id for cfg in getActiveConfigs(check_using_groups=False, check_access=False)]
+    else:
+        cfg_ids = [
+            group_id.split('_')[0] for group_id in
+            get_filtered_plone_groups_for_user(suffixes=[MEETINGMANAGERS_GROUP_SUFFIX])]
+    return cfg_ids
 
 
 def use_obj_serializer(form, prefix=''):
@@ -154,10 +170,15 @@ def rest_uuid_to_object(uid, try_restricted=True, in_name_of=None):
         # try to get it unrestricted
         obj = uuidToObject(uid, unrestricted=True)
         if obj:
-            raise BadRequest(
-                UID_NOT_ACCESSIBLE_ERROR
-                % (uid, in_name_of or api.user.get_current().getId())
-            )
+            tool = api.portal.get_tool('portal_plonemeeting')
+            cfg = tool.getMeetingConfig(obj)
+            if in_name_of:
+                msg = UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
+                    uid, cfg.getId(), in_name_of, api.user.get_current().getId())
+            else:
+                msg = UID_NOT_ACCESSIBLE_ERROR % (
+                    uid, cfg.getId(), in_name_of or api.user.get_current().getId())
+            raise BadRequest(msg)
         else:
             raise BadRequest(UID_NOT_FOUND_ERROR % uid)
     return obj
@@ -181,3 +202,22 @@ def build_catalog_query(serializer, extra_include_name=None):
         if value is not None:
             query[index] = value
     return query
+
+
+def get_filtered_plone_groups_for_user(org_uids=[], userId=None, suffixes=[], the_objects=False):
+    """Copy from ToolPloneMeeting.get_filtered_plone_groups_for_user so it is available
+       when using PloneMeeting 4.1.x.
+       XXX to be removed when support for PloneMeeting 4.1.x will be removed."""
+
+    tool = api.portal.get_tool('portal_plonemeeting')
+    user_groups = tool.get_plone_groups_for_user(
+        userId=userId, the_objects=the_objects)
+    if the_objects:
+        user_groups = [plone_group for plone_group in user_groups
+                       if (not org_uids or plone_group.id.split('_')[0] in org_uids) and
+                       (not suffixes or '_' in plone_group.id and plone_group.id.split('_')[1] in suffixes)]
+    else:
+        user_groups = [plone_group_id for plone_group_id in user_groups
+                       if (not org_uids or plone_group_id.split('_')[0] in org_uids) and
+                       (not suffixes or '_' in plone_group_id and plone_group_id.split('_')[1] in suffixes)]
+    return sorted(user_groups)

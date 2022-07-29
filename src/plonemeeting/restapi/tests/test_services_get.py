@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
 from DateTime import DateTime
-from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
+from datetime import datetime
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.services.get import UID_REQUIRED_ERROR
 from plonemeeting.restapi.services.get import UID_WRONG_TYPE_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
-from plonemeeting.restapi.utils import IN_NAME_OF_CONFIG_ID_ERROR
+from plonemeeting.restapi.utils import IN_NAME_OF_CONFIG_ID_UNAUTHORIZED
+from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_ERROR
+from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR
 from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
@@ -45,7 +46,7 @@ class testServiceGetUid(BaseTestCase):
         """The 'UID' or 'uid' parameter must be given"""
         endpoint_url = "{0}/@get".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(), {u"message": UID_REQUIRED_ERROR, u"type": u"BadRequest"}
         )
@@ -71,7 +72,8 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(
             response.json(),
             {
-                u"message": UID_NOT_ACCESSIBLE_ERROR % (self.item2_uid, "pmCreator1"),
+                u"message": UID_NOT_ACCESSIBLE_ERROR % (
+                    self.item2_uid, self.meetingConfig.getId(), "pmCreator1"),
                 u"type": u"BadRequest",
             },
         )
@@ -158,39 +160,60 @@ class testServiceGetUid(BaseTestCase):
 
     def test_restapi_get_uid_in_name_of(self):
         """Check when using parameter in_name_of"""
+        # config_id is no more required (was the case before)
         endpoint_url = "{0}/@get?UID={1}&in_name_of=pmCreator1".format(
             self.portal_url, self.item1_uid
         )
         response = self.api_session.get(endpoint_url)
-        # config_id is required when using in_name_of
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(
-            response.json(), {u"message": IN_NAME_OF_CONFIG_ID_ERROR, u"type": u"BadRequest"}
-        )
-        # with config_id the element is correctly returned
-        endpoint_url += "&config_id=%s" % self.meetingConfig.getId()
-        response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()["UID"], self.item1_uid)
+
         # try to get an inaccessible element
         endpoint_url = endpoint_url.replace(self.item1_uid, self.item2_uid)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
             {
-                u"message": UID_NOT_ACCESSIBLE_ERROR % (self.item2_uid, "pmCreator1"),
+                u"message": UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
+                    self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager"),
                 u"type": u"BadRequest",
             },
         )
         # must be MeetingManager to use in_name_of
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 401, response.content)
         self.assertEqual(
             response.json(),
             {
-                u"message": IN_NAME_OF_UNAUTHORIZED % "pmCreator1",
+                u"message": IN_NAME_OF_UNAUTHORIZED % ("pmCreator1", "pmCreator1"),
+                u"type": u"Unauthorized",
+            },
+        )
+        # when using in_name_of, the queried configs will be restricted to the
+        # MeetingConfigs the power user may access
+        self.api_session.auth = ("pmManager2", DEFAULT_USER_PASSWORD)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {
+                u"message": UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
+                    self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager2"),
+                u"type": u"BadRequest",
+            },
+        )
+        # when using a config_id the power user is not MeetingManager for,
+        # we get a clear message
+        cfg_id = self.meetingConfig.getId()
+        response = self.api_session.get(endpoint_url + "&config_id={0}".format(cfg_id))
+        self.assertEqual(response.status_code, 401, response.content)
+        self.assertEqual(
+            response.json(),
+            {
+                u"message": IN_NAME_OF_CONFIG_ID_UNAUTHORIZED % (
+                    "pmManager2", cfg_id, "pmCreator1"),
                 u"type": u"Unauthorized",
             },
         )

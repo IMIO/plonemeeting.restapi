@@ -24,18 +24,25 @@ class BaseSearchGet(SearchGet):
 
     @property
     def _config_id(self):
-        if not self.config_id_optional and "config_id" not in self.request.form:
+        if not self.config_id_optional and \
+           ("config_id" not in self.request.form and
+                "getConfigId" not in self.request.form):
             raise BadRequest(CONFIG_ID_ERROR)
-        return self.request.form.get("config_id")
+        return self.request.form.get("config_id") or \
+            self.request.form.get("getConfigId")
 
     @property
     def _type(self):
-        return self.request.form.get("type", None)
+        return self.request.form.get("type")
 
     def _set_query_before_hook(self):
         """ """
         query = {}
         form = self.request.form
+
+        # fix getConfigId to be unable to search outside self.access_cfg_ids
+        if self.access_cfg_ids:
+            query['getConfigId'] = self.access_cfg_ids
 
         # turn convenience indexes names into real index names
         for real_index_name, easy_index_name in INDEX_CORRESPONDENCES.items():
@@ -46,7 +53,7 @@ class BaseSearchGet(SearchGet):
 
     def reply(self):
         """Override to handle in_name_of."""
-        self.in_name_of = check_in_name_of(self, self.request.form)
+        self.in_name_of, self.access_cfg_ids = check_in_name_of(self.config_id, self.request.form)
         if self.in_name_of:
             # remove AUTHENTICATED_USER during adopt_user
             auth_user = self.request.get("AUTHENTICATED_USER")

@@ -5,9 +5,9 @@ from imio.helpers.content import richtextval
 from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.config import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
+from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.PloneMeeting.MeetingItem import MeetingItem
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
@@ -442,7 +442,7 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(
             response.json(),
             {
-                u"message": IN_NAME_OF_UNAUTHORIZED % "pmCreator2",
+                u"message": IN_NAME_OF_UNAUTHORIZED % ("pmCreator1", "pmCreator2"),
                 u"type": u"Unauthorized",
             },
         )
@@ -460,8 +460,14 @@ class testServiceSearch(BaseTestCase):
         item1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
         item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
         transaction.commit()
-        # both found by default
+        # can not pass an empty in_name_of
         response = self.api_session.get(endpoint_url_pattern % "")
+        self.assertEqual(
+            response.json(),
+            {u"message": IN_NAME_OF_USER_NOT_FOUND % "", u"type": u"BadRequest"},
+        )
+        # both found by default
+        response = self.api_session.get((endpoint_url_pattern % "").replace('&in_name_of=', ''))
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()[u"items_total"], 2)
         # as pmCreator1, only item1 found
