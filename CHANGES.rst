@@ -35,6 +35,9 @@ Changelog
   [gbastien]
 - Parameter `config_id` is no more required when using `in_name_of`
   in `@get` or `@search`.
+  Added `bbb.py` to backport methods `get_filtered_plone_groups_for_user` and
+  `getActiveConfigs` from `ToolPloneMeeting` so it is avaible when using
+  `PloneMeeting 4.1.x`.
   [gbastien]
 
 1.0rc17 (2022-07-01)

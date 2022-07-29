@@ -4,6 +4,7 @@ from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plone.restapi.serializer.user import BaseSerializer as BaseUserSerializer
+from plonemeeting.restapi.bbb import getActiveConfigs
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.serializer.base import BaseSerializeToJson
 from Products.CMFCore.interfaces._tools import IMemberData
@@ -34,7 +35,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
             if auth_user:
                 self.request["AUTHENTICATED_USER"] = None
             with api.env.adopt_user(username=self.context.id):
-                self.cfgs = self.tool.getActiveConfigs()
+                self.cfgs = getActiveConfigs()
                 cfgs = self.cfgs
             if auth_user:
                 self.request["AUTHENTICATED_USER"] = auth_user

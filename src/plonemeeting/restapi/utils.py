@@ -9,6 +9,7 @@ from plone import api
 from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
+from plonemeeting.restapi.bbb import getActiveConfigs
 from plonemeeting.restapi.config import INDEX_CORRESPONDENCES
 from Products.CMFCore.permissions import ManagePortal
 from Products.CMFCore.utils import _checkPermission
@@ -139,11 +140,11 @@ def get_poweraccess_configs():
     '''
     tool = api.portal.get_tool('portal_plonemeeting')
     if _checkPermission(ManagePortal, tool):
-        cfg_ids = [cfg.id for cfg in tool.getActiveConfigs(check_using_groups=False, check_access=False)]
+        cfg_ids = [cfg.id for cfg in getActiveConfigs(check_using_groups=False, check_access=False)]
     else:
         cfg_ids = [
             group_id.split('_')[0] for group_id in
-            tool.get_filtered_plone_groups_for_user(suffixes=[MEETINGMANAGERS_GROUP_SUFFIX])]
+            get_filtered_plone_groups_for_user(suffixes=[MEETINGMANAGERS_GROUP_SUFFIX])]
     return cfg_ids
 
 
@@ -201,3 +202,22 @@ def build_catalog_query(serializer, extra_include_name=None):
         if value is not None:
             query[index] = value
     return query
+
+
+def get_filtered_plone_groups_for_user(org_uids=[], userId=None, suffixes=[], the_objects=False):
+    """Copy from ToolPloneMeeting.get_filtered_plone_groups_for_user so it is available
+       when using PloneMeeting 4.1.x.
+       XXX to be removed when support for PloneMeeting 4.1.x will be removed."""
+
+    tool = api.portal.get_tool('portal_plonemeeting')
+    user_groups = tool.get_plone_groups_for_user(
+        userId=userId, the_objects=the_objects)
+    if the_objects:
+        user_groups = [plone_group for plone_group in user_groups
+                       if (not org_uids or plone_group.id.split('_')[0] in org_uids) and
+                       (not suffixes or '_' in plone_group.id and plone_group.id.split('_')[1] in suffixes)]
+    else:
+        user_groups = [plone_group_id for plone_group_id in user_groups
+                       if (not org_uids or plone_group_id.split('_')[0] in org_uids) and
+                       (not suffixes or '_' in plone_group_id and plone_group_id.split('_')[1] in suffixes)]
+    return sorted(user_groups)
