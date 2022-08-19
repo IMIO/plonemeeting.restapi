@@ -4,6 +4,8 @@ Changelog
 1.0rc18 (unreleased)
 --------------------
 
+- Allow usage of `type` parameter with `in_name_of` when `config_id` is not specified
+  [mpeeters]
 - Fixed `BasePost._turn_ids_into_uids` to manage organizations outside
   `My organization` this is the case for field `MeetingItem.associatedGroups`.
   [gbastien]

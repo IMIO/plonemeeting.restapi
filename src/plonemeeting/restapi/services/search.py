@@ -92,8 +92,9 @@ class PMSearchGet(BaseSearchGet):
     @property
     def _config_id(self):
         config_id = self.request.form.get("config_id", None)
-        # config_id is required when self.type is "item" or "meeting"
-        if config_id is None and self.type in ["item", "meeting"]:
+        in_name_of = self.request.form.get("in_name_of", None)
+        # config_id or in_name_of is required when self.type is "item" or "meeting"
+        if config_id is None and in_name_of is None and self.type in ["item", "meeting"]:
             raise BadRequest(CONFIG_ID_ERROR)
         return config_id
 
@@ -127,16 +128,20 @@ class PMSearchGet(BaseSearchGet):
         """ """
         query = super(PMSearchGet, self)._set_query_additional_params()
         form = self.request.form
+        if hasattr(self, "cfg") and self.cfg:
+            mConfigs = [self.cfg]
+        elif self.access_cfg_ids:
+            mConfigs = [self.tool.get(e) for e in self.access_cfg_ids]
 
         # extend batch? DEFAULT_BATCH_SIZE = 25
         # self.request.form['b_size'] = 50
 
         # setup portal_type based on received 'type' parameter
         if self.type == "item":
-            query["portal_type"] = self.cfg.getItemTypeName()
+            query["portal_type"] = [cfg.getItemTypeName() for cfg in mConfigs]
             query["sort_on"] = form.get("sort_on", "sortable_title")
         elif self.type == "meeting":
-            query["portal_type"] = self.cfg.getMeetingTypeName()
+            query["portal_type"] = [cfg.getMeetingTypeName() for cfg in mConfigs]
             query["sort_on"] = form.get("sort_on", "sortable_title")
             query["sort_order"] = form.get("sort_order", "reverse")
             query["sort_on"] = form.get("sort_on", "sortable_title")

@@ -481,6 +481,32 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(response.json()[u"items_total"], 1)
         self.assertEqual(response.json()["items"][0][u"UID"], item2.UID())
 
+    def test_restapi_search_in_name_of_accross_configs(self):
+        """Ensure that when in_name_of parameter is used but no config_id is given,
+        the search is made accross all user configs"""
+        self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
+        endpoint_url_pattern = "{0}/@search?in_name_of={1}&type=item".format(
+            self.portal_url, "pmCreator2"
+        )
+        self._addPrincipalToGroup("pmManager", self.vendors_creators)
+        self.changeUser("pmManager")
+        item1 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
+        self.setMeetingConfig(self.cfg2_id)
+        item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
+        transaction.commit()
+        response = self.api_session.get(endpoint_url_pattern)
+        self.assertEqual(response.status_code, 200, response.content)
+        result = response.json()
+        self.assertEqual(2, result["items_total"])
+        self.assertEqual(
+            sorted([item1.UID(), item2.UID()]),
+            sorted([r["UID"] for r in result["items"]]),
+        )
+        self.assertEqual(
+            sorted(["MeetingItemPma", "MeetingItemPga"]),
+            sorted([r["@type"] for r in result["items"]]),
+        )
+
     def test_restapi_search_base_search_uid(self):
         """A collection UID may be given as base search."""
         cfg = self.meetingConfig
