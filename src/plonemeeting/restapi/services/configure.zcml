@@ -108,4 +108,16 @@
       layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
       name="@users" />
 
+  <!-- get attendees -->
+  <plone:service
+    method="GET"
+    for="zope.interface.Interface"
+    accept="application/json,application/schema+json"
+    name="@attendees"
+    factory=".attendees.AttendeesGet"
+    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+    permission="zope2.View" />
+
+  <adapter factory=".attendees.Attendees" name="attendees" />
+
 </configure>

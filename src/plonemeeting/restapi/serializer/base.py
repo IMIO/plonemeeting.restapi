@@ -91,9 +91,32 @@ def serialize_annexes(context, filters, extra_include_name=None, base_serializer
     for annex in annexes:
         serializer = get_serializer(
             annex, extra_include_name=extra_include_name, serializer=base_serializer)
-        serialized_annex = serializer()
-        result.append(serialized_annex)
+        result.append(serializer())
     return result
+
+
+def serialize_attendees(context, extra_include_name=None, base_serializer=None):
+    """ """
+    result = []
+    meeting = context.__class__.__name__ == "Meeting" and context or context.getMeeting()
+    attendee_types = {}
+    attendee_types.update({attendee_uid: 'present' for attendee_uid in meeting.get_attendees()})
+    attendee_types.update({absent_uid: 'absent' for absent_uid in meeting.get_absents()})
+    attendee_types.update({excused_uid: 'excused' for excused_uid in meeting.get_excused()})
+    for attendee in context.get_all_attendees(the_objects=True):
+        serializer = get_serializer(
+            attendee, extra_include_name=extra_include_name, serializer=base_serializer)
+        serialized = serializer()
+        # manage attendee_type
+        serialized["attendee_type"] = attendee_types[serialized['UID']]
+        result.append(serialized)
+    return result
+
+
+def serialize_person(held_position, serializer):
+    """ """
+
+    return {}
 
 
 def serialize_extra_include_annexes(result, serializer):
