@@ -10,3 +10,9 @@ INDEX_CORRESPONDENCES = {
     'review_state': 'state',
     'portal_type': 'type',
     'UID': 'uid'}
+HAS_MEETING_DX = False
+try:
+    from Products.PloneMeeting.content.meeting import IMeeting
+    HAS_MEETING_DX = True
+except ImportError:
+    pass

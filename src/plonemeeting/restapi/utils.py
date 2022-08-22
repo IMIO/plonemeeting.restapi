@@ -10,6 +10,7 @@ from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.bbb import getActiveConfigs
+from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.config import INDEX_CORRESPONDENCES
 from Products.CMFCore.permissions import ManagePortal
 from Products.CMFCore.utils import _checkPermission
@@ -204,14 +205,18 @@ def build_catalog_query(serializer, extra_include_name=None):
     return query
 
 
-def get_filtered_plone_groups_for_user(org_uids=[], userId=None, suffixes=[], the_objects=False):
+def get_filtered_plone_groups_for_user(org_uids=[], user_id=None, suffixes=[], the_objects=False):
     """Copy from ToolPloneMeeting.get_filtered_plone_groups_for_user so it is available
        when using PloneMeeting 4.1.x.
        XXX to be removed when support for PloneMeeting 4.1.x will be removed."""
 
     tool = api.portal.get_tool('portal_plonemeeting')
-    user_groups = tool.get_plone_groups_for_user(
-        userId=userId, the_objects=the_objects)
+    if HAS_MEETING_DX:
+        user_groups = tool.get_plone_groups_for_user(
+            user_id=user_id, the_objects=the_objects)
+    else:
+        user_groups = tool.get_plone_groups_for_user(
+            userId=user_id, the_objects=the_objects)
     if the_objects:
         user_groups = [plone_group for plone_group in user_groups
                        if (not org_uids or plone_group.id.split('_')[0] in org_uids) and

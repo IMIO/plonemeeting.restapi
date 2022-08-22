@@ -7,7 +7,7 @@ from DateTime import DateTime
 from imio.helpers.content import object_values
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
+from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import ANNEX_DECISION_RELATED_NOT_ITEM_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_REQUIRED_ERROR
@@ -279,7 +279,7 @@ class testServiceAdd(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 401, response.content)
         self.assertEqual(
             response.json(),
             {

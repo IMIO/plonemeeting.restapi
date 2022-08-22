@@ -2,7 +2,7 @@
 
 from DateTime import DateTime
 from datetime import datetime
-from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
+from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.services.get import UID_REQUIRED_ERROR
 from plonemeeting.restapi.services.get import UID_WRONG_TYPE_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase

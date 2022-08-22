@@ -4,7 +4,7 @@ from plone import api
 from plone.restapi.deserializer import json_body
 from plone.restapi.deserializer.atcontent import DeserializeFromJson as ATDeserializeFromJson
 from plone.restapi.interfaces import IDeserializeFromJson
-from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
+from plonemeeting.restapi.config import HAS_MEETING_DX
 from Products.PloneMeeting.interfaces import IATMeetingContent
 from zope.component import adapter
 from zope.interface import implementer

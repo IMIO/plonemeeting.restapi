@@ -3,6 +3,7 @@
 from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
+from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
 from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
 from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
@@ -15,14 +16,12 @@ from zope.interface import Interface
 
 # until every Products.PloneMeeting are not using version 4.2
 # we need to keep backward compatibility between Meeting using AT (4.1) and DX (4.2)
-HAS_MEETING_DX = False
-MeetingBaseClass = BaseATSerializeFolderToJson
-try:
+if HAS_MEETING_DX:
     from Products.PloneMeeting.content.meeting import IMeeting
-    HAS_MEETING_DX = True
     MeetingBaseClass = BaseDXSerializeFolderToJson
-except ImportError:
+else:
     from Products.PloneMeeting.interfaces import IMeeting
+    MeetingBaseClass = BaseATSerializeFolderToJson
 
 
 class SerializeMeetingToJsonBase(object):

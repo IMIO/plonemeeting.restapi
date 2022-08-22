@@ -2,7 +2,7 @@
 
 from os import path
 from plone.restapi.testing import RelativeSession
-from plonemeeting.restapi.serializer.meeting import HAS_MEETING_DX
+from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.testing import PM_REST_TEST_PROFILE_FUNCTIONAL
 from Products.PloneMeeting import tests as pm_tests
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
