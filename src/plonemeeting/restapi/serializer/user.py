@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from imio.helpers.cache import get_plone_groups_for_user
 from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
@@ -67,7 +68,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
         if "app_groups" in extra_include:
             # XXX backward compat for PM 4.1.x, to be removed
             if HAS_MEETING_DX:
-                groups = self.tool.get_plone_groups_for_user(
+                groups = get_plone_groups_for_user(
                     user_id=self.context.id, the_objects=True)
             else:
                 groups = self.tool.get_plone_groups_for_user(

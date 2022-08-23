@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
-from plonemeeting.restapi.serializer.base import serialize_person
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.content.held_position import IPMHeldPosition
 from zope.component import adapter
@@ -24,8 +22,9 @@ class SerializeHeldPositionToJsonBase(object):
         """ """
         extra_include = self._get_asked_extra_include()
         if "person" in extra_include:
-            result["extra_include_person"] = serialize_person(
-                self.context, self)
+            person = self.context.get_person()
+            serializer = self._get_serializer(person, "person")
+            result["extra_include_person"] = serializer()
         return result
 
 

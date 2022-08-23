@@ -7,6 +7,8 @@ from Products.PloneMeeting.interfaces import IMeetingContent
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
+from zope.publisher.interfaces import IPublishTraverse
+from zope.publisher.interfaces import NotFound
 
 
 @implementer(IExpandableElement)
@@ -24,7 +26,7 @@ class Attendees(object):
         # extend batch? DEFAULT_BATCH_SIZE = 25
         # self.request.form['b_size'] = 50
 
-        result = serialize_attendees(self.context, self)
+        result = serialize_attendees(self.context)
         return result
 
 
@@ -32,3 +34,22 @@ class AttendeesGet(Service):
     def reply(self):
         attendees = Attendees(self.context, self.request)
         return attendees(expand=True)
+
+
+@implementer(IPublishTraverse)
+class AttendeeGet(Service):
+
+    def __init__(self, context, request):
+        super(AttendeeGet, self).__init__(context, request)
+        self.attendee_uid = None
+
+    def publishTraverse(self, request, name):
+        if self.attendee_uid is None:
+            self.attendee_uid = name
+        else:
+            raise NotFound(self, name, request)
+        return self
+
+    def reply(self):
+        result = serialize_attendees(self.context, attendee_uid=self.attendee_uid)
+        return result and result[0]

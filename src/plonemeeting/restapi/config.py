@@ -12,7 +12,7 @@ INDEX_CORRESPONDENCES = {
     'UID': 'uid'}
 HAS_MEETING_DX = False
 try:
-    from Products.PloneMeeting.content.meeting import IMeeting
+    import Products.PloneMeeting.content.meeting.IMeeting  # noqa
     HAS_MEETING_DX = True
 except ImportError:
     pass
