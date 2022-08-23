@@ -2,6 +2,8 @@
 
 from imio.restapi.serializer.base import DefaultJSONSummarySerializer
 from OFS.interfaces import IItem
+from plone.app.contentlisting.contentlisting import BaseContentListingObject
+from plone.app.contentlisting.interfaces import IContentListingObject
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import ContentSerializeToJson
 from Products.ZCatalog.interfaces import ICatalogBrain
