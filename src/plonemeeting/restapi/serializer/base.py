@@ -112,11 +112,6 @@ def serialize_extra_include_annexes(result, serializer):
     return result
 
 
-def serialize_extra_include_attendees(result, serializer):
-    """ """
-    return result
-
-
 class BaseSerializeToJson(object):
     """__call__ must be redefined by class heritating from BaseSerializeToJson."""
 
