@@ -1,7 +1,13 @@
 Changelog
 =========
 
-1.0rc18 (unreleased)
+1.0rc19 (unreleased)
+--------------------
+
+- Nothing changed yet.
+
+
+1.0rc18 (2022-08-26)
 --------------------
 
 - Allow usage of `type` parameter with `in_name_of` when `config_id` is not specified
