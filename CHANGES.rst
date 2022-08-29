@@ -38,7 +38,7 @@ Changelog
 - Refactored `@item extra_include=linked_items` to filter results using a
   catalog query so parameters and functionnality is similar to other endpoints.
   Removed `utils.filter_data` that could be dangerous and build a catalog query.
-  Formalized convienence catalog index names substitution (passing parameter `type`
+  Formalized convenience catalog index names substitution (passing parameter `type`
   corresponds to index `portal_type` or `state` corresponds to `review_state`).
   [gbastien]
 - Parameter `config_id` is no more required when using `in_name_of`
