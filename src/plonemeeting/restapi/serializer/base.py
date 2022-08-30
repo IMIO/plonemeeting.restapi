@@ -100,9 +100,16 @@ def serialize_attendees(context, attendee_uid=None, extra_include_name=None, bas
     result = []
     meeting = context.__class__.__name__ == "Meeting" and context or context.getMeeting()
     attendee_types = {}
-    attendee_types.update({attendee_uid: 'present' for attendee_uid in meeting.get_attendees()})
-    attendee_types.update({absent_uid: 'absent' for absent_uid in meeting.get_absents()})
-    attendee_types.update({excused_uid: 'excused' for excused_uid in meeting.get_excused()})
+    if context.__class__.__name__ == "Meeting":
+        attendee_types.update({attendee_uid: 'present' for attendee_uid in context.get_attendees()})
+        attendee_types.update({absent_uid: 'absent' for absent_uid in context.get_absents()})
+        attendee_types.update({excused_uid: 'excused' for excused_uid in context.get_excused()})
+    else:
+        # MeetingItem
+        attendee_types.update({attendee_uid: 'present' for attendee_uid in context.get_attendees()})
+        attendee_types.update({absent_uid: 'absent' for absent_uid in meeting.get_absents() + context.get_item_absents()})
+        attendee_types.update({excused_uid: 'excused' for excused_uid in meeting.get_excused() + context.get_item_excused()})
+
     voters = meeting.get_voters()
     for attendee in context.get_all_attendees(the_objects=True):
         if attendee_uid is not None and attendee.UID() != attendee_uid:

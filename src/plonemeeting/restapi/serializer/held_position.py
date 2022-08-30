@@ -27,6 +27,14 @@ class SerializeHeldPositionToJsonBase(object):
             result["extra_include_person"] = serializer()
         return result
 
+    def _include_custom(self, obj, result):
+        """Include "full_title" by default."""
+        if self.fullobjects or \
+           "full_title" in self.metadata_fields or \
+           self.get_param('include_base_data', True):
+            result["full_title"] = self.context.get_full_title()
+        return result
+
 
 @implementer(ISerializeToJson)
 @adapter(IPMHeldPosition, Interface)
