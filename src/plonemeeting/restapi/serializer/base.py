@@ -30,7 +30,6 @@ from plonemeeting.restapi.config import ANNEXES_FILTER_VALUES
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.utils import get_param
 from plonemeeting.restapi.utils import get_serializer
-from Products.CMFCore.utils import getToolByName
 from zope.component import adapter
 from zope.component import ComponentLookupError
 from zope.component import getAdapter
@@ -98,18 +97,24 @@ def serialize_annexes(context, filters, extra_include_name=None, base_serializer
 def serialize_attendees(context, attendee_uid=None, extra_include_name=None, base_serializer=None):
     """ """
     result = []
-    meeting = context.__class__.__name__ == "Meeting" and context or context.getMeeting()
+    tool = api.portal.get_tool("portal_plonemeeting")
+    cfg = tool.getMeetingConfig(context)
     attendee_types = {}
-    if context.__class__.__name__ == "Meeting":
+    is_meeting = context.__class__.__name__ == "Meeting"
+    meeting = context if is_meeting else context.getMeeting()
+    if is_meeting:
         attendee_types.update({attendee_uid: 'present' for attendee_uid in context.get_attendees()})
         attendee_types.update({absent_uid: 'absent' for absent_uid in context.get_absents()})
         attendee_types.update({excused_uid: 'excused' for excused_uid in context.get_excused()})
     else:
         # MeetingItem
         attendee_types.update({attendee_uid: 'present' for attendee_uid in context.get_attendees()})
-        attendee_types.update({absent_uid: 'absent' for absent_uid in meeting.get_absents() + context.get_item_absents()})
-        attendee_types.update({excused_uid: 'excused' for excused_uid in meeting.get_excused() + context.get_item_excused()})
+        attendee_types.update({absent_uid: 'absent' for absent_uid in
+                               meeting.get_absents() + context.get_item_absents()})
+        attendee_types.update({excused_uid: 'excused' for excused_uid in
+                               meeting.get_excused() + context.get_item_excused()})
 
+    # initialize voter
     voters = meeting.get_voters()
     for attendee in context.get_all_attendees(the_objects=True):
         if attendee_uid is not None and attendee.UID() != attendee_uid:
@@ -122,6 +127,11 @@ def serialize_attendees(context, attendee_uid=None, extra_include_name=None, bas
         # manage "voter"
         serialized["voter"] = serialized['UID'] in voters
         result.append(serialized)
+        # manage hp title that could change for on item
+        if is_meeting:
+            serialized["title"] = attendee.get_short_title()
+        else:
+            serialized["title"] = context.get_attendee_short_title(attendee, cfg)
     return result
 
 
@@ -333,7 +343,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
         if include_items:
             query = self._build_query()
 
-            catalog = getToolByName(self.context, "portal_catalog")
+            catalog = api.portal.get_tool("portal_catalog")
             brains = catalog(query)
 
             batch = HypermediaBatch(self.request, brains)
