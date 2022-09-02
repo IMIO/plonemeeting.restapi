@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
+from plone.restapi.deserializer import json_body
 from plone.restapi.interfaces import IExpandableElement
 from plone.restapi.services import Service
 from plonemeeting.restapi.serializer.base import serialize_attendees
 from Products.PloneMeeting.interfaces import IMeetingContent
+from Products.PloneMeeting.utils import _itemNumber_to_storedItemNumber
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.publisher.interfaces import IPublishTraverse
 from zope.publisher.interfaces import NotFound
-from plone.restapi.deserializer import json_body
-from Products.PloneMeeting.utils import _itemNumber_to_storedItemNumber
 
 
 @implementer(IExpandableElement)
