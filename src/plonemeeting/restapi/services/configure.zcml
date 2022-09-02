@@ -128,4 +128,13 @@
 
   <adapter factory=".attendees.Attendees" name="attendees" />
 
+  <!-- update attendees -->
+  <plone:service
+      method="PATCH"
+      factory=".attendees.AttendeePatch"
+      for="zope.interface.Interface"
+      layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+      permission="zope2.View"
+      name="@attendee" />
+
 </configure>
