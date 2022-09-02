@@ -29,39 +29,90 @@ class testServiceAttendees(BaseTestCase):
         self.meeting_uid = self.meeting.UID()
         self.meeting_url = self.meeting.absolute_url()
         self.presentItem(self.item1)
+        self.presentItem(self.item2)
+        # setUp absent/excused on meeting and item
+        self.hp1_uid = self.meeting.get_attendees()[0]
+        self.hp2_uid = self.meeting.get_attendees()[1]
+        self.hp3_uid = self.meeting.get_attendees()[2]
+        self.hp4_uid = self.meeting.get_attendees()[3]
+        self.meeting.ordered_contacts[self.hp2_uid]['attendee'] = False
+        self.meeting.ordered_contacts[self.hp2_uid]['excused'] = True
+        # absent on item
+        self.meeting.item_absents[self.item1_uid] = [self.hp3_uid]
+        # non_attendee on item
+        self.meeting.item_non_attendees[self.item1_uid] = [self.hp4_uid]
+        self.meeting._p_changed = True
         transaction.commit()
 
     def tearDown(self):
         self.api_session.close()
         transaction.abort()
 
-    def test_restapi_get_attendees_item(self):
-        """The @attendees GET on item."""
-        # setUp absent/excused on meeting and item
-        hp1_uid = self.meeting.get_attendees()[0]
-        hp2_uid = self.meeting.get_attendees()[1]
-        hp3_uid = self.meeting.get_attendees()[2]
-        hp4_uid = self.meeting.get_attendees()[3]
-        self.meeting.ordered_contacts[hp1_uid]['attendee'] = False
-        self.meeting.ordered_contacts[hp1_uid]['absent'] = True
-        self.meeting.ordered_contacts[hp2_uid]['attendee'] = False
-        self.meeting.ordered_contacts[hp2_uid]['excused'] = True
-        self.meeting.item_absents[self.item1_uid] = [hp3_uid]
-        self.meeting._p_changed = True
-        transaction.commit()
-
+    def test_restapi_get_attendees_endpoint(self):
+        """The @attendees GET on meeting and item."""
         # check response, especially order and attendee_type
+        # Meeting
+        endpoint_url = "{0}/@attendees".format(self.meeting_url)
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json[0]['UID'], self.hp1_uid)
+        self.assertEqual(json[0]['attendee_type'], 'present')
+        self.assertEqual(json[0]['signatory'], u'1')
+        self.assertEqual(json[1]['UID'], self.hp2_uid)
+        self.assertEqual(json[1]['attendee_type'], 'excused')
+        self.assertEqual(json[1]['signatory'], None)
+        self.assertEqual(json[2]['UID'], self.hp3_uid)
+        self.assertEqual(json[2]['attendee_type'], 'present')
+        self.assertEqual(json[2]['signatory'], None)
+        self.assertEqual(json[3]['UID'], self.hp4_uid)
+        self.assertEqual(json[3]['attendee_type'], 'present')
+        self.assertEqual(json[3]['signatory'], u'2')
+        # MeetingItem
         endpoint_url = "{0}/@attendees".format(self.item1_url)
         response = self.api_session.get(endpoint_url)
         json = response.json()
-        self.assertEqual(json[0]['UID'], hp1_uid)
-        self.assertEqual(json[0]['attendee_type'], 'absent')
-        self.assertEqual(json[1]['UID'], hp2_uid)
+        self.assertEqual(json[0]['UID'], self.hp1_uid)
+        self.assertEqual(json[0]['attendee_type'], 'present')
+        self.assertEqual(json[0]['signatory'], u'1')
+        self.assertEqual(json[1]['UID'], self.hp2_uid)
         self.assertEqual(json[1]['attendee_type'], 'excused')
-        self.assertEqual(json[2]['UID'], hp3_uid)
+        self.assertEqual(json[1]['signatory'], None)
+        self.assertEqual(json[2]['UID'], self.hp3_uid)
         self.assertEqual(json[2]['attendee_type'], 'absent')
-        self.assertEqual(json[3]['UID'], hp4_uid)
-        self.assertEqual(json[3]['attendee_type'], 'present')
+        self.assertEqual(json[2]['signatory'], None)
+        self.assertEqual(json[3]['UID'], self.hp4_uid)
+        self.assertEqual(json[3]['attendee_type'], 'non_attendee')
+        # a non_attendee can not be signatory
+        self.assertEqual(json[3]['signatory'], None)
+
+    def test_restapi_get_attendee_endpoint(self):
+        """The @attendee GET on meeting and item."""
+        # check response, especially order and attendee_type
+        data = {
+            self.meeting_url: {
+                # hp_uid: (attendee_type, signatory)
+                self.hp1_uid: ('present', '1'),
+                self.hp2_uid: ('excused', None),
+                self.hp3_uid: ('present', None),
+                self.hp4_uid: ('present', '2'), },
+            self.item1_url: {
+                self.hp1_uid: ('present', '1'),
+                self.hp2_uid: ('excused', None),
+                self.hp3_uid: ('absent', None),
+                self.hp4_uid: ('non_attendee', None), },
+            self.item2_url: {
+                self.hp1_uid: ('present', '1'),
+                self.hp2_uid: ('excused', None),
+                self.hp3_uid: ('present', None),
+                self.hp4_uid: ('present', '2'), }, }
+        for url in (self.meeting_url, self.item1_url, self.item2_url):
+            for hp_uid in (self.hp1_uid, self.hp2_uid, self.hp3_uid, self.hp4_uid):
+                endpoint_url = "{0}/@attendee/{1}".format(url, hp_uid)
+                response = self.api_session.get(endpoint_url)
+                json = response.json()
+                self.assertEqual(json['UID'], hp_uid)
+                self.assertEqual(json['attendee_type'], data[url][hp_uid][0])
+                self.assertEqual(json['signatory'], data[url][hp_uid][1])
 
 
 def test_suite():

@@ -116,22 +116,28 @@ def serialize_attendees(context, attendee_uid=None, extra_include_name=None, bas
 
     # initialize voter
     voters = meeting.get_voters()
+    signatories = context.get_signatories() if is_meeting else context.get_item_signatories()
+    non_attendees = context.get_item_non_attendees()
     for attendee in context.get_all_attendees(the_objects=True):
         if attendee_uid is not None and attendee.UID() != attendee_uid:
             continue
         serializer = get_serializer(
             attendee, extra_include_name=extra_include_name, serializer=base_serializer)
         serialized = serializer()
+        serialized_uid = serialized['UID']
         # manage "attendee_type"
-        serialized["attendee_type"] = attendee_types[serialized['UID']]
+        serialized["attendee_type"] = "non_attendee" if \
+            serialized_uid in non_attendees else attendee_types[serialized_uid]
+        # manage "signatory"
+        serialized["signatory"] = signatories.get(serialized_uid, None)
         # manage "voter"
-        serialized["voter"] = serialized['UID'] in voters
+        serialized["voter"] = serialized_uid in voters
         result.append(serialized)
         # manage hp title that could change for on item
-        if is_meeting:
-            serialized["title"] = attendee.get_short_title()
-        else:
-            serialized["title"] = context.get_attendee_short_title(attendee, cfg)
+        item = None
+        if not is_meeting:
+            item = context
+        serialized["title"] = meeting.get_attendee_short_title(attendee, cfg, item=item)
     return result
 
 
