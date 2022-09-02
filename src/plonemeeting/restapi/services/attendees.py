@@ -75,19 +75,24 @@ class AttendeePatch(Service):
         json = json_body(self.request)
         is_meeting = self.context.__class__.__name__ == "Meeting"
         meeting = self.context if is_meeting else self.context.getMeeting()
+        attendee_type_mappings = {'present': '@@item_welcome_attendee_form',
+                                  'absent': '@@item_byebye_attendee_form',
+                                  'excused': '@@item_byebye_attendee_form',
+                                  'non_attendee': '@@item_byebye_nonattendee_form',
+                                  'attendee': None}
+
+        attendee_type = json.get('attendee_type')
+        if attendee_type not in attendee_type_mappings:
+            raise Exception("Wrong attendee_type : \"%s\"" % attendee_type)
+
         if is_meeting:
-            pass
+            if attendee_type == 'present':
+                attendee_type = 'attendee'
+            self.context._update_attendee_type(
+                self.attendee_uid, attendee_type, force_clear=True)
         else:
             # MeetingItem
-            attendee_type_mappings = {'present': '@@item_welcome_attendee_form',
-                                      'absent': '@@item_byebye_attendee_form',
-                                      'excused': '@@item_byebye_attendee_form',
-                                      'non_attendee': '@@item_byebye_nonattendee_form'}
-
-            attendee_type = json.get('attendee_type')
             form_name = attendee_type_mappings.get(attendee_type)
-            if not form_name:
-                raise Exception("Wrong attendee_type : \"%s\"" % attendee_type)
             form = self.context.restrictedTraverse(form_name)
             form.person_uid = self.attendee_uid
             form.not_present_type = attendee_type
