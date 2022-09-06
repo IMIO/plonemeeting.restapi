@@ -4,6 +4,8 @@ from DateTime import DateTime
 from datetime import datetime
 from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
+from Products.CMFCore.permissions import View
+from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
 
@@ -85,6 +87,16 @@ class testServiceAttendees(BaseTestCase):
         # a non_attendee can not be signatory
         self.assertEqual(json[3]['signatory'], None)
 
+        # must be able to view the item to get attendees
+        self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
+        self.changeUser("pmCreator1")
+        self.assertTrue(self.hasPermission(View, self.item1))
+        self.assertEqual(self.api_session.get(endpoint_url).status_code, 200)
+        self.api_session.auth = ("pmCreator2", DEFAULT_USER_PASSWORD)
+        self.changeUser("pmCreator2")
+        self.assertFalse(self.hasPermission(View, self.item1))
+        self.assertEqual(self.api_session.get(endpoint_url).status_code, 401)
+
     def test_restapi_get_attendee_endpoint(self):
         """The @attendee GET on meeting and item."""
         # check response, especially order and attendee_type
@@ -113,6 +125,42 @@ class testServiceAttendees(BaseTestCase):
                 self.assertEqual(json['UID'], hp_uid)
                 self.assertEqual(json['attendee_type'], data[url][hp_uid][0])
                 self.assertEqual(json['signatory'], data[url][hp_uid][1])
+
+    def test_restapi_patch_attendee_endpoint(self):
+        """The @attendee PATCH on meeting and item."""
+        # Meeting
+        # test an attendee that is present
+        self.assertTrue(self.hp1_uid in self.meeting.get_attendees())
+        # set it absent
+        json = {"attendee_type": "absent", }
+        endpoint_url = "{0}/@attendee/{1}".format(self.meeting_url, self.hp1_uid)
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.json()["attendee_type"], "absent")
+        # set it excused
+        json = {"attendee_type": "excused", }
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.json()["attendee_type"], "excused")
+        # set it present
+        json = {"attendee_type": "present", }
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.json()["attendee_type"], "present")
+        # will raise Unauthorized if user not able to edit meeting
+        self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
+        json = {"attendee_type": "absent", }
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 401)
+
+        # MeetingItem
+        import ipdb; ipdb.set_trace()
+        # test an attendee that is excused on the meeting
+        # not possible to change it's attendee_type on item
+        self.assertTrue(self.hp2_uid in self.meeting.get_excused())
+        # try to set it absent
+        self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
+        json = {"attendee_type": "absent", }
+        endpoint_url = "{0}/@attendee/{1}".format(self.item1_url, self.hp2_uid)
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.json()["attendee_type"], "absent")
 
 
 def test_suite():

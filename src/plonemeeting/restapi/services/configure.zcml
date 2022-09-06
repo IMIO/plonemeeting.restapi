@@ -129,12 +129,22 @@
   <adapter factory=".attendees.Attendees" name="attendees" />
 
   <!-- update attendees -->
+  <!-- MeetingItem, we rely on code permission check -->
   <plone:service
       method="PATCH"
       factory=".attendees.AttendeePatch"
-      for="zope.interface.Interface"
+      for="Products.PloneMeeting.MeetingItem.IMeetingItem"
       layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
       permission="zope2.View"
+      name="@attendee" />
+
+  <!-- Meeting, available when Meeting editable -->
+  <plone:service
+      method="PATCH"
+      factory=".attendees.AttendeePatch"
+      for="Products.PloneMeeting.content.meeting.IMeeting"
+      layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+      permission="cmf.ModifyPortalContent"
       name="@attendee" />
 
 </configure>
