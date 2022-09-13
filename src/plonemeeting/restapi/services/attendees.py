@@ -1,21 +1,32 @@
 # -*- coding: utf-8 -*-
 
+from AccessControl import Unauthorized
 from imio.helpers.content import uuidToObject
+from plone import api
 from plone.restapi.deserializer import json_body
 from plone.restapi.interfaces import IExpandableElement
 from plone.restapi.services import Service
 from plonemeeting.restapi.serializer.base import serialize_attendees
+from plonemeeting.restapi.utils import rest_uuid_to_object
+from Products.CMFCore.permissions import ModifyPortalContent
+from Products.CMFCore.utils import _checkPermission
 from Products.CMFPlone.utils import safe_unicode
 from Products.PloneMeeting.content.meeting import _validate_attendees_removed_and_order
 from Products.PloneMeeting.content.meeting import _validate_attendees_signatories
 from Products.PloneMeeting.interfaces import IMeetingContent
 from Products.PloneMeeting.utils import _itemNumber_to_storedItemNumber
+from zExceptions import BadRequest
 from zope.component import adapter
 from zope.i18n import translate
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.publisher.interfaces import IPublishTraverse
 from zope.publisher.interfaces import NotFound
+
+
+FIRST_UID_ITEM_OR_MEETING = "The first provided UID must be the UID of an item or a meeting!"
+URL_UID_REQUIRED_ERROR = "The object UID must be provided in the URL!"
+URL_ATTENDEE_UID_REQUIRED_ERROR = "The attendee UID must be provided in the URL!"
 
 
 @implementer(IExpandableElement)
@@ -37,8 +48,30 @@ class Attendees(object):
         return result
 
 
+@implementer(IPublishTraverse)
 class AttendeesGet(Service):
+
+    def __init__(self, context, request):
+        super(AttendeesGet, self).__init__(context, request)
+        self.uid = None
+        self.tool = api.portal.get_tool("portal_plonemeeting")
+
+    def publishTraverse(self, request, name):
+        if self.uid is None:
+            self.uid = name
+        else:
+            raise NotFound(self, name, request)
+        return self
+
     def reply(self):
+
+        # initialize self.context
+        if self.uid is None:
+            raise Exception("UID_REQUIRED_ERROR")
+        json = json_body(self.request)
+        self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
+
+        # process
         attendees = Attendees(self.context, self.request)
         return attendees(expand=True)
 
@@ -48,16 +81,28 @@ class AttendeeGet(Service):
 
     def __init__(self, context, request):
         super(AttendeeGet, self).__init__(context, request)
+        self.uid = None
         self.attendee_uid = None
 
     def publishTraverse(self, request, name):
-        if self.attendee_uid is None:
-            self.attendee_uid = name
+        if self.uid is None:
+            self.uid = name
         else:
-            raise NotFound(self, name, request)
+            if self.attendee_uid is None:
+                self.attendee_uid = name
+            else:
+                raise NotFound(self, name, request)
         return self
 
     def reply(self):
+
+        # initialize self.context
+        if self.uid is None:
+            raise Exception("UID_REQUIRED_ERROR")
+        json = json_body(self.request)
+        self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
+
+        # process
         result = serialize_attendees(self.context, attendee_uid=self.attendee_uid)
         return result and result[0]
 
@@ -67,13 +112,17 @@ class AttendeePatch(Service):
 
     def __init__(self, context, request):
         super(AttendeePatch, self).__init__(context, request)
+        self.uid = None
         self.attendee_uid = None
 
     def publishTraverse(self, request, name):
-        if self.attendee_uid is None:
-            self.attendee_uid = name
+        if self.uid is None:
+            self.uid = name
         else:
-            raise NotFound(self, name, request)
+            if self.attendee_uid is None:
+                self.attendee_uid = name
+            else:
+                raise NotFound(self, name, request)
         return self
 
     def _manage_attendee_type(self, json, is_meeting, meeting):
@@ -163,7 +212,22 @@ class AttendeePatch(Service):
                 raise ValueError(msg)
 
     def reply(self):
+
+        # initialize self.context
+        if self.uid is None:
+            raise Exception(URL_UID_REQUIRED_ERROR)
+        if self.attendee_uid is None:
+            raise Exception(URL_ATTENDEE_UID_REQUIRED_ERROR)
+
+        json = json_body(self.request)
+        self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
+        if not self.context.getTagName() in ("MeetingItem", "Meeting", ):
+            raise BadRequest(FIRST_UID_ITEM_OR_MEETING)
+
+        # process
         is_meeting = self.context.__class__.__name__ == "Meeting"
+        if is_meeting and not _checkPermission(ModifyPortalContent, self.context):
+            raise Unauthorized
         meeting = self.context if is_meeting else self.context.getMeeting()
         json = json_body(self.request)
         was_managed = True

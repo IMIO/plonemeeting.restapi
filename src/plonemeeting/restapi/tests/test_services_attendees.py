@@ -54,7 +54,8 @@ class testServiceAttendees(BaseTestCase):
         """The @attendees GET on meeting and item."""
         # check response, especially order and attendee_type
         # Meeting
-        endpoint_url = "{0}/@attendees".format(self.meeting_url)
+        endpoint_url = "{0}/@attendees/{1}".format(
+            self.portal_url, self.meeting_uid)
         response = self.api_session.get(endpoint_url)
         json = response.json()
         self.assertEqual(json[0]['UID'], self.hp1_uid)
@@ -70,7 +71,8 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(json[3]['attendee_type'], 'present')
         self.assertEqual(json[3]['signatory'], u'2')
         # MeetingItem
-        endpoint_url = "{0}/@attendees".format(self.item1_url)
+        endpoint_url = "{0}/@attendees/{1}".format(
+            self.portal_url, self.item1_uid)
         response = self.api_session.get(endpoint_url)
         json = response.json()
         self.assertEqual(json[0]['UID'], self.hp1_uid)
@@ -91,35 +93,38 @@ class testServiceAttendees(BaseTestCase):
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
         self.changeUser("pmCreator1")
         self.assertTrue(self.hasPermission(View, self.item1))
-        self.assertEqual(self.api_session.get(endpoint_url).status_code, 200)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
         self.api_session.auth = ("pmCreator2", DEFAULT_USER_PASSWORD)
         self.changeUser("pmCreator2")
         self.assertFalse(self.hasPermission(View, self.item1))
-        self.assertEqual(self.api_session.get(endpoint_url).status_code, 401)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 400, response.content)
 
     def test_restapi_get_attendee_endpoint(self):
         """The @attendee GET on meeting and item."""
         # check response, especially order and attendee_type
         data = {
-            self.meeting_url: {
+            self.meeting_uid: {
                 # hp_uid: (attendee_type, signatory)
                 self.hp1_uid: ('present', '1'),
                 self.hp2_uid: ('excused', None),
                 self.hp3_uid: ('present', None),
                 self.hp4_uid: ('present', '2'), },
-            self.item1_url: {
+            self.item1_uid: {
                 self.hp1_uid: ('present', '1'),
                 self.hp2_uid: ('excused', None),
                 self.hp3_uid: ('absent', None),
                 self.hp4_uid: ('non_attendee', None), },
-            self.item2_url: {
+            self.item2_uid: {
                 self.hp1_uid: ('present', '1'),
                 self.hp2_uid: ('excused', None),
                 self.hp3_uid: ('present', None),
                 self.hp4_uid: ('present', '2'), }, }
-        for url in (self.meeting_url, self.item1_url, self.item2_url):
+        for url in (self.meeting_uid, self.item1_uid, self.item2_uid):
             for hp_uid in (self.hp1_uid, self.hp2_uid, self.hp3_uid, self.hp4_uid):
-                endpoint_url = "{0}/@attendee/{1}".format(url, hp_uid)
+                endpoint_url = "{0}/@attendee/{1}/{2}".format(
+                    self.portal_url, url, hp_uid)
                 response = self.api_session.get(endpoint_url)
                 json = response.json()
                 self.assertEqual(json['UID'], hp_uid)
@@ -133,7 +138,8 @@ class testServiceAttendees(BaseTestCase):
         self.assertTrue(self.hp1_uid in self.meeting.get_attendees())
         # set it absent
         json = {"attendee_type": "absent", }
-        endpoint_url = "{0}/@attendee/{1}".format(self.meeting_url, self.hp1_uid)
+        endpoint_url = "{0}/@attendee/{1}/{2}".format(
+            self.portal_url, self.meeting_uid, self.hp1_uid)
         response = self.api_session.patch(endpoint_url, json=json)
         self.assertEqual(response.json()["attendee_type"], "absent")
         # set it excused
@@ -148,17 +154,17 @@ class testServiceAttendees(BaseTestCase):
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
         json = {"attendee_type": "absent", }
         response = self.api_session.patch(endpoint_url, json=json)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 401, response.content)
 
         # MeetingItem
-        import ipdb; ipdb.set_trace()
         # test an attendee that is excused on the meeting
         # not possible to change it's attendee_type on item
         self.assertTrue(self.hp2_uid in self.meeting.get_excused())
         # try to set it absent
         self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
         json = {"attendee_type": "absent", }
-        endpoint_url = "{0}/@attendee/{1}".format(self.item1_url, self.hp2_uid)
+        endpoint_url = "{0}/@attendee/{1}/{2}".format(
+            self.portal_url, self.item1_uid, self.hp2_uid)
         response = self.api_session.patch(endpoint_url, json=json)
         self.assertEqual(response.json()["attendee_type"], "absent")
 

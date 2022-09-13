@@ -102,49 +102,42 @@
   <!-- get users -->
   <plone:service
       method="GET"
-      factory=".users.PMUsersGet"
       for="Products.CMFCore.interfaces.ISiteRoot"
-      permission="zope2.View"
+      accept="application/json,application/schema+json"
+      name="@users"
+      factory=".users.PMUsersGet"
       layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-      name="@users" />
+      permission="zope2.View" />
 
   <!-- get attendees -->
   <plone:service
-    method="GET"
-    for="zope.interface.Interface"
-    accept="application/json,application/schema+json"
-    name="@attendees"
-    factory=".attendees.AttendeesGet"
-    layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-    permission="zope2.View" />
+      method="GET"
+      for="Products.CMFCore.interfaces.ISiteRoot"
+      accept="application/json,application/schema+json"
+      name="@attendees"
+      factory=".attendees.AttendeesGet"
+      layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+      permission="zope2.View" />
 
   <plone:service
       method="GET"
+      for="Products.CMFCore.interfaces.ISiteRoot"
+      accept="application/json,application/schema+json"
+      name="@attendee"
       factory=".attendees.AttendeeGet"
-      for="zope.interface.Interface"
-      permission="zope2.View"
       layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-      name="@attendee" />
+      permission="zope2.View" />
 
   <adapter factory=".attendees.Attendees" name="attendees" />
 
-  <!-- update attendees -->
-  <!-- MeetingItem, we rely on code permission check -->
+  <!-- PATCH attendee on meeting or item -->
   <plone:service
       method="PATCH"
+      for="Products.CMFCore.interfaces.ISiteRoot"
+      accept="application/json,application/schema+json"
+      name="@attendee"
       factory=".attendees.AttendeePatch"
-      for="Products.PloneMeeting.MeetingItem.IMeetingItem"
       layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-      permission="zope2.View"
-      name="@attendee" />
-
-  <!-- Meeting, available when Meeting editable -->
-  <plone:service
-      method="PATCH"
-      factory=".attendees.AttendeePatch"
-      for="Products.PloneMeeting.content.meeting.IMeeting"
-      layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-      permission="cmf.ModifyPortalContent"
-      name="@attendee" />
+      permission="zope2.View" />
 
 </configure>
