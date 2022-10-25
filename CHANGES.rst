@@ -4,7 +4,8 @@ Changelog
 1.0rc19 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Enforce usage of `UID` parameter only if `externalIdentifier` is not provided
+  [mpeeters]
 
 
 1.0rc18 (2022-08-26)

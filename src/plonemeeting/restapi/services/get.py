@@ -21,6 +21,7 @@ class UidSearchGet(BaseSearchGet):
 
     def __init__(self, context, request):
         super(UidSearchGet, self).__init__(context, request)
+        self.external_id = self.request.form.get("externalIdentifier")
         self.uid = self._uid
         self.config_id = self._config_id
         if self.config_id:
@@ -36,7 +37,7 @@ class UidSearchGet(BaseSearchGet):
     @property
     def _uid(self):
         uid = self.request.form.get("UID") or self.request.form.get("uid")
-        if not uid:
+        if not uid and not self.external_id:
             raise BadRequest(UID_REQUIRED_ERROR)
         return uid
 
