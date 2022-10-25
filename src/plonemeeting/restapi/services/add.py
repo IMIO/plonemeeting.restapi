@@ -114,6 +114,7 @@ class BasePost(FolderPost):
             if auth_user:
                 self.request["AUTHENTICATED_USER"] = None
             with api.env.adopt_user(username=in_name_of):
+                del self.data["in_name_of"]
                 res = self._process_reply()
             if auth_user:
                 self.request["AUTHENTICATED_USER"] = auth_user
