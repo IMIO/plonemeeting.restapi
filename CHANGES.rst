@@ -4,6 +4,8 @@ Changelog
 1.0rc19 (unreleased)
 --------------------
 
+- Ensure that `in_name_of` parameter is only handled once when `__children__` parameter is used
+  [mpeeters]
 - Enforce usage of `UID` parameter only if `externalIdentifier` is not provided
   [mpeeters]
 
