@@ -226,3 +226,7 @@ def get_filtered_plone_groups_for_user(org_uids=[], user_id=None, suffixes=[], t
                        if (not org_uids or plone_group_id.split('_')[0] in org_uids) and
                        (not suffixes or '_' in plone_group_id and plone_group_id.split('_')[1] in suffixes)]
     return sorted(user_groups)
+
+
+def get_at_field(obj, fieldname):
+    raise NotImplementedError

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from plone import api
+from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.config import HAS_MEETING_DX
@@ -10,17 +11,20 @@ from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from zope.component import adapter
-from zope.interface import implementer
+from zope.component import queryMultiAdapter
 from zope.interface import Interface
+from zope.interface import implementer
 
 
 # until every Products.PloneMeeting are not using version 4.2
 # we need to keep backward compatibility between Meeting using AT (4.1) and DX (4.2)
 if HAS_MEETING_DX:
     from Products.PloneMeeting.content.meeting import IMeeting
+    from Products.PloneMeeting.utils import get_dx_field
     MeetingBaseClass = BaseDXSerializeFolderToJson
 else:
     from Products.PloneMeeting.interfaces import IMeeting
+    from plonemeeting.restapi.utils import get_at_field as get_dx_field
     MeetingBaseClass = BaseATSerializeFolderToJson
 
 
@@ -40,6 +44,19 @@ class SerializeMeetingToJsonBase(object):
                 self.context, self)
         if "annexes" in extra_include:
             result = serialize_extra_include_annexes(result, self)
+        return result
+
+    def _include_custom(self, obj, result):
+        if self.fullobjects or \
+           "date" in self.metadata_fields or \
+           self.get_param('include_base_data', True):
+            field = get_dx_field(obj, "date")
+            # serialize the field
+            serializer = queryMultiAdapter(
+                (field, obj, self.request), IFieldSerializer
+            )
+            value = serializer()
+            result["date"] = value
         return result
 
     def _additional_values(self, result, additional_values):
