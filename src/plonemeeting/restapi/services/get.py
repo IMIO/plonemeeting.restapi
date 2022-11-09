@@ -21,7 +21,10 @@ class UidSearchGet(BaseSearchGet):
 
     def __init__(self, context, request):
         super(UidSearchGet, self).__init__(context, request)
-        self.external_id = self.request.form.get("externalIdentifier")
+        self.external_id = self.request.form.get(
+            "externalIdentifier",
+            self.request.form.get("external_id"),
+        )
         self.uid = self._uid
         self.config_id = self._config_id
         if self.config_id:
