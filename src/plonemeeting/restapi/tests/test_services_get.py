@@ -27,7 +27,11 @@ class testServiceGetUid(BaseTestCase):
         # was mixed and MeetingItem.getCategory would return the proposingGroup or the category
         self.meetingConfig.setUseGroupsAsCategories(False)
         self.changeUser("pmManager")
-        self.item1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
+        self.item1 = self.create(
+            "MeetingItem",
+            proposingGroup=self.developers_uid,
+            externalIdentifier="EX123",
+        )
         self.item1_uid = self.item1.UID()
         self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
         self.item2_uid = self.item2.UID()
@@ -51,6 +55,18 @@ class testServiceGetUid(BaseTestCase):
             response.json(), {u"message": UID_REQUIRED_ERROR, u"type": u"BadRequest"}
         )
         endpoint_url += "?UID={0}".format(self.item1_uid)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+
+    def test_restapi_uid_not_required_if_external_id(self):
+        """
+        if 'externalIdentifier' or 'external_id' parameter is given, UID become optional
+        """
+        endpoint_url = "{0}/@get?external_id=EX123".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+
+        endpoint_url = "{0}/@get?externalIdentifier=EX123".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
 
