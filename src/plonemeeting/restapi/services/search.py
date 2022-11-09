@@ -68,8 +68,8 @@ class BaseSearchGet(SearchGet):
             return self._process_reply()
 
     def _clean_query(self, query):
-        """Remove parameters that are not indexes names to avoid warnings like :
-           WARNING plone.restapi.search.query No such index: 'extra_include'"""
+        """Remove or handle parameters that are not indexes names to avoid warnings
+           like : WARNING plone.restapi.search.query No such index: 'extra_include'"""
         query.pop("extra_include", None)
         query.pop("in_name_of", None)
         for easy_index_name in INDEX_CORRESPONDENCES.values():
