@@ -67,9 +67,10 @@ class UidSearchGet(BaseSearchGet):
             # we only have one single result
             res = res["items"][0]
         else:
-            # will raise if element exist but inaccessible or not exist
-            # do not try_restricted as it was just done in this endpoint
-            rest_uuid_to_object(self.uid, try_restricted=False, in_name_of=self.in_name_of)
+            if self.uid:
+                # will raise if element exist but inaccessible or not exist
+                # do not try_restricted as it was just done in this endpoint
+                rest_uuid_to_object(self.uid, try_restricted=False, in_name_of=self.in_name_of)
         return res
 
 
