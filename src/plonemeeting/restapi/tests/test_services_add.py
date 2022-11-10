@@ -889,6 +889,49 @@ class testServiceAddWithAnnexes(BaseTestCase):
         self.assertEqual(annex2.file.size, 6475)
         self.assertEqual(annex2.file.contentType, "application/pdf")
 
+    def test_restapi_add_item_with_annexes_and_in_name_of(self):
+        """When creating an item, we may add annexes as __children__ using `in_name_of`
+        parameter"""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            "in_name_of": "pmCreator1",
+            "__children__": [
+                {
+                    "@type": "annex",
+                    "title": "My annex",
+                    "content_category": "item-annex",
+                    "file": {
+                        "data": "123456",
+                        "encoding": "ascii",
+                        "filename": "file.txt",
+                    },
+                },
+            ],
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        self.changeUser("pmCreator1")
+        pmFolder = self.getMeetingFolder()
+        item = pmFolder.objectValues()[-1]
+        self.assertEqual(item.Title(), json["title"])
+        annex = get_annexes(item)[0]
+        self.assertEqual(annex.title, json["__children__"][0]["title"])
+        self.assertEqual(
+            annex.content_category,
+            calculate_category_id(cfg.annexes_types.item_annexes.get("item-annex")),
+        )
+        self.assertEqual(
+            annex.file.filename, json["__children__"][0]["file"]["filename"]
+        )
+        self.assertEqual(annex.file.size, 6)
+        self.assertEqual(annex.file.contentType, "text/plain")
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
