@@ -21,6 +21,10 @@ class UidSearchGet(BaseSearchGet):
 
     def __init__(self, context, request):
         super(UidSearchGet, self).__init__(context, request)
+        self.external_id = self.request.form.get(
+            "externalIdentifier",
+            self.request.form.get("external_id"),
+        )
         self.uid = self._uid
         self.config_id = self._config_id
         if self.config_id:
@@ -36,7 +40,7 @@ class UidSearchGet(BaseSearchGet):
     @property
     def _uid(self):
         uid = self.request.form.get("UID") or self.request.form.get("uid")
-        if not uid:
+        if not uid and not self.external_id:
             raise BadRequest(UID_REQUIRED_ERROR)
         return uid
 
@@ -63,9 +67,10 @@ class UidSearchGet(BaseSearchGet):
             # we only have one single result
             res = res["items"][0]
         else:
-            # will raise if element exist but inaccessible or not exist
-            # do not try_restricted as it was just done in this endpoint
-            rest_uuid_to_object(self.uid, try_restricted=False, in_name_of=self.in_name_of)
+            if self.uid:
+                # will raise if element exist but inaccessible or not exist
+                # do not try_restricted as it was just done in this endpoint
+                rest_uuid_to_object(self.uid, try_restricted=False, in_name_of=self.in_name_of)
         return res
 
 

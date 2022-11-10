@@ -9,7 +9,9 @@ INDEX_CORRESPONDENCES = {
     'getConfigId': 'config_id',
     'review_state': 'state',
     'portal_type': 'type',
-    'UID': 'uid'}
+    'UID': 'uid',
+    'externalIdentifier': 'external_id',
+}
 HAS_MEETING_DX = False
 try:
     from Products.PloneMeeting.content.meeting import IMeeting
