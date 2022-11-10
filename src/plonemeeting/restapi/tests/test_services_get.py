@@ -481,6 +481,18 @@ class testServiceGetUid(BaseTestCase):
             {u'title': u'Checklist (textCheckList)', u'token': u'textCheckList'}
             in json["usedItemAttributes__choices"])
 
+    def test_restapi_extra_include_config(self):
+        """Test parameter `extra_include` with value `config`"""
+        endpoint_url = "{0}/@get?UID={1}&extra_include=config".format(
+            self.portal_url, self.item1_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertTrue("extra_include_config" in json.keys())
+        self.assertEqual("MeetingConfig", json["extra_include_config"]["@type"])
+        self.assertEqual("plonemeeting-assembly", json["extra_include_config"]["id"])
+        self.assertEqual("PloneMeeting assembly", json["extra_include_config"]["title"])
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
