@@ -641,6 +641,42 @@ class testServiceAdd(BaseTestCase):
                 u"please correct.', 'error': 'ValidationError'}]", u'type': u'BadRequest'}
         )
 
+    def test_restapi_add_item_manually_linked_items(self):
+        """Create an item and link it to another item using MeetingItem.manuallyLinkedItems."""
+        cfg = self.meetingConfig
+        self._enableField("manuallyLinkedItems")
+        transaction.commit()
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "Item 1"
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        item1 = pmFolder.objectValues()[-1]
+        # create a second item
+        json["title"] = "Item 2"
+        json["manuallyLinkedItems"] = [item1.UID()]
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        item2 = pmFolder.objectValues()[-1]
+        self.assertEqual(item1.getManuallyLinkedItems(), [item2])
+        self.assertEqual(item2.getManuallyLinkedItems(), [item1])
+        # create a third item
+        json["title"] = "Item 3"
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        item3 = pmFolder.objectValues()[-1]
+        self.assertEqual(item1.getManuallyLinkedItems(), [item2, item3])
+        self.assertEqual(item2.getManuallyLinkedItems(), [item1, item3])
+        self.assertEqual(item3.getManuallyLinkedItems(), [item1, item2])
+
 
 class testServiceAddWithAnnexes(BaseTestCase):
     """@item/@meeting POST endpoints with annexes."""

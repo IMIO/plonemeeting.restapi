@@ -10,7 +10,9 @@ Changelog
   [mpeeters]
 - Enforce usage of `UID` parameter only if `externalIdentifier` is not provided
   [mpeeters]
-
+- Added `test_restapi_add_item_manually_linked_items` to check that it is possible
+  to create items and use the `MeetingItem.manuallyLinkedItems` functionnality.
+  [gbastien]
 
 1.0rc18 (2022-08-26)
 --------------------
