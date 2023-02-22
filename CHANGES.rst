@@ -13,6 +13,9 @@ Changelog
 - Added `test_restapi_add_item_manually_linked_items` to check that it is possible
   to create items and use the `MeetingItem.manuallyLinkedItems` functionnality.
   [gbastien]
+- Make sure it is not possible to create an item with a category
+  if categories are not enabled. This is a temporary fix until PM-1008 is fixed.
+  [gbastien]
 
 1.0rc18 (2022-08-26)
 --------------------

@@ -104,6 +104,7 @@ class testServiceAdd(BaseTestCase):
     def test_restapi_add_item_optional_fields(self):
         """When creating an item, given optional fields must be enabled in config."""
         cfg = self.meetingConfig
+        self.assertTrue(cfg.getUseGroupsAsCategories())
         self.assertFalse("notes" in cfg.getUsedItemAttributes())
         self.changeUser("pmManager")
         endpoint_url = "{0}/@item".format(self.portal_url)
@@ -111,8 +112,18 @@ class testServiceAdd(BaseTestCase):
             "config_id": cfg.getId(),
             "proposingGroup": self.developers_uid,
             "title": "My item",
+            "category": "development",
             "notes": u"<p>My notes</p>",
         }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json(),
+            {u"message": OPTIONAL_FIELD_ERROR % "category", u"type": u"BadRequest"}
+        )
+        cfg.setUseGroupsAsCategories(False)
+        transaction.commit()
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
         self.assertEqual(response.status_code, 400)
@@ -137,24 +148,26 @@ class testServiceAdd(BaseTestCase):
            is added instead raising an error."""
         cfg = self.meetingConfig
         self.assertFalse("notes" in cfg.getUsedItemAttributes())
+        self.assertTrue(cfg.getUseGroupsAsCategories())
         self.changeUser("pmManager")
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
             "config_id": cfg.getId(),
             "proposingGroup": self.developers_uid,
             "title": "My item",
+            "category": "development",
             "notes": u"<p>My notes</p>",
             "ignore_not_used_data": True
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
         self.assertEqual(response.status_code, 201, response.content)
-        self.assertTrue(OPTIONAL_FIELDS_WARNING % "notes" in response.json()['@warnings'])
+        self.assertTrue(OPTIONAL_FIELDS_WARNING % "category, notes" in response.json()['@warnings'])
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.Title(), json["title"])
         self.assertEqual(item.getProposingGroup(), json["proposingGroup"])
-        # optional field not enable was ignore
+        # optional field not enabled was ignored
         self.assertFalse(item.getNotes())
 
     def test_restapi_add_item_org_fields(self):
