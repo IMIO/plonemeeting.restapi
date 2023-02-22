@@ -162,7 +162,6 @@ class testServiceAdd(BaseTestCase):
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
         self.assertEqual(response.status_code, 201, response.content)
-        import ipdb; ipdb.set_trace()
         self.assertTrue(OPTIONAL_FIELDS_WARNING % "category, notes" in response.json()['@warnings'])
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
