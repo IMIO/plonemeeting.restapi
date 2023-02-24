@@ -274,18 +274,11 @@ class ItemPost(BasePost):
 
     @property
     def _optional_fields(self):
-        # XXX manage 'category' manually until
-        # https://support.imio.be/browse/PM-1008 is fixed
-        return self.cfg.listUsedItemAttributes() + ('category', )
+        return self.cfg.listUsedItemAttributes()
 
     @property
     def _active_fields(self):
-        # XXX manage 'category' manually until
-        # https://support.imio.be/browse/PM-1008 is fixed
-        used_item_attrs = self.cfg.getUsedItemAttributes()
-        if not self.cfg.getUseGroupsAsCategories():
-            used_item_attrs += ('category', )
-        return used_item_attrs
+        return self.cfg.getUsedItemAttributes()
 
     def _wf_transition_additional_warning(self, tr):
         warning_message = ""

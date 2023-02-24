@@ -123,10 +123,8 @@ class testServiceSearch(BaseTestCase):
     def test_restapi_search_items_extra_include(self):
         """@search may receive an extra_include parameter"""
         transaction.begin()
-        cfg = self.meetingConfig
         self.changeUser("pmManager")
-        cfg.setUseGroupsAsCategories(False)
-        self._enableField("groupsInCharge")
+        self._enableField(("category", "groupsInCharge"))
         self.getMeetingFolder()
         meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
         item = self.create("MeetingItem",
@@ -268,9 +266,8 @@ class testServiceSearch(BaseTestCase):
     def test_restapi_search_items_extra_include_deliberation_images(self):
         """When asking for "deliberation" values, images are data base64 values"""
         transaction.begin()
-        cfg = self.meetingConfig
         self.changeUser("pmManager")
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField('category')
         self.getMeetingFolder()
         item = self.create("MeetingItem")
         item.setMotivation("<p>Motivation</p>")
@@ -659,8 +656,7 @@ class testServiceSearch(BaseTestCase):
            - extra_include_category_fullobjects;
            - extra_include_category_include_base_data=false.
         """
-        cfg = self.meetingConfig
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField('category')
         # create 2 items
         self.changeUser("pmManager")
         self.create("MeetingItem")
@@ -691,8 +687,7 @@ class testServiceSearch(BaseTestCase):
            - without fullobjects, the metadata catalog is used;
            - with fullobjects, then it is used to select the fields we want.
         """
-        cfg = self.meetingConfig
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField('category')
         # create 2 items
         self.changeUser("pmManager")
         self.create("MeetingItem")
