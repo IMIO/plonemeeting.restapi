@@ -25,7 +25,7 @@ class testServiceGetUid(BaseTestCase):
         super(testServiceGetUid, self).setUp()
         # especially necessary for branch 4.1.x where proposingGroup/category
         # was mixed and MeetingItem.getCategory would return the proposingGroup or the category
-        self.meetingConfig.setUseGroupsAsCategories(False)
+        self._enableField('category')
         self.changeUser("pmManager")
         self.item1 = self.create(
             "MeetingItem",

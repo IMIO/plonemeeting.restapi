@@ -104,7 +104,7 @@ class testServiceAdd(BaseTestCase):
     def test_restapi_add_item_optional_fields(self):
         """When creating an item, given optional fields must be enabled in config."""
         cfg = self.meetingConfig
-        self.assertTrue(cfg.getUseGroupsAsCategories())
+        self.assertFalse("category" in cfg.getUsedItemAttributes())
         self.assertFalse("notes" in cfg.getUsedItemAttributes())
         self.changeUser("pmManager")
         endpoint_url = "{0}/@item".format(self.portal_url)
@@ -122,7 +122,7 @@ class testServiceAdd(BaseTestCase):
             response.json(),
             {u"message": OPTIONAL_FIELD_ERROR % "category", u"type": u"BadRequest"}
         )
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField('category')
         transaction.commit()
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
@@ -148,7 +148,7 @@ class testServiceAdd(BaseTestCase):
            is added instead raising an error."""
         cfg = self.meetingConfig
         self.assertFalse("notes" in cfg.getUsedItemAttributes())
-        self.assertTrue(cfg.getUseGroupsAsCategories())
+        self.assertFalse("category" in cfg.getUsedItemAttributes())
         self.changeUser("pmManager")
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
@@ -387,7 +387,7 @@ class testServiceAdd(BaseTestCase):
         """When creating an item, it is possible to define
            a list of fields to bypass validation for if it is empty."""
         cfg = self.meetingConfig
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField('category')
         self._enableField("classifier")
         transaction.commit()
         self.changeUser("pmManager")
