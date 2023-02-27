@@ -1,8 +1,8 @@
 Changelog
 =========
 
-1.0rc19 (unreleased)
---------------------
+1.0 (unreleased)
+----------------
 
 - Add `config` to `extra_include` allowed parameters to return informations about the meeting config
   [mpeeters]
