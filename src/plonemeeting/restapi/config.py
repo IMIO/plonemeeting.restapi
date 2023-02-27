@@ -12,9 +12,3 @@ INDEX_CORRESPONDENCES = {
     'UID': 'uid',
     'externalIdentifier': 'external_id',
 }
-HAS_MEETING_DX = False
-try:
-    from Products.PloneMeeting.content.meeting import IMeeting
-    HAS_MEETING_DX = True
-except ImportError:
-    pass

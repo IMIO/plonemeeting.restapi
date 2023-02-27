@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from DateTime import DateTime
 from datetime import datetime
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.services.get import UID_REQUIRED_ERROR
 from plonemeeting.restapi.services.get import UID_WRONG_TYPE_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
@@ -14,7 +12,6 @@ from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
-import unittest
 
 
 class testServiceGetUid(BaseTestCase):
@@ -35,10 +32,7 @@ class testServiceGetUid(BaseTestCase):
         self.item1_uid = self.item1.UID()
         self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
         self.item2_uid = self.item2.UID()
-        if HAS_MEETING_DX:
-            self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
-        else:
-            self.meeting = self.create("Meeting", date=DateTime('2021/09/23 10:0'))
+        self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
         self.meeting_uid = self.meeting.UID()
         transaction.commit()
 
@@ -107,10 +101,7 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(json["id"], obj.getId())
         self.assertEqual(json["UID"], obj_uid)
         # by default, no items
-        # except for AT Meeting for which items is also a ReferenceField...
-        if (obj.__class__.__name__ == "Meeting" and HAS_MEETING_DX) or \
-           obj.__class__.__name__ != "Meeting":
-            self.assertFalse("items" in json)
+        self.assertFalse("items" in json)
 
     def test_restapi_get_uid(self):
         """When given UID is accessible, it is returned"""
@@ -316,7 +307,6 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(item_annexes_json[0][u'UID'], item_annex.UID())
         self.assertEqual(item_annexes_json[0][u'file'][u'filename'], u'FILE.txt')
 
-    @unittest.skipIf(not HAS_MEETING_DX, "linked_items only works with PloneMeeting 4.2+")  # noqa
     def test_restapi_get_uid_extra_include_linked_items(self):
         """Test the extra_include=linked_items."""
         cfg = self.meetingConfig

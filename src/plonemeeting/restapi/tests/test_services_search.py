@@ -5,7 +5,6 @@ from imio.helpers.content import richtextval
 from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
@@ -71,10 +70,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 items
         self.changeUser("pmManager")
         item1 = self.create("MeetingItem")
-        self.assertEqual(self.get_review_state(item1), "itemcreated")
+        self.assertEqual(item1.query_state(), "itemcreated")
         item2 = self.create("MeetingItem")
         self.validateItem(item2)
-        self.assertEqual(self.get_review_state(item2), "validated")
+        self.assertEqual(item2.query_state(), "validated")
         transaction.commit()
 
         # found
@@ -113,10 +112,9 @@ class testServiceSearch(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         # items are returned sorted
-        items_getter = HAS_MEETING_DX and meeting.get_items or meeting.getItems
         self.assertEqual(
             [elt["UID"] for elt in response.json()[u"items"]],
-            [obj.UID() for obj in items_getter(ordered=True)],
+            [obj.UID() for obj in meeting.get_items(ordered=True)],
         )
         transaction.abort()
 
@@ -252,9 +250,7 @@ class testServiceSearch(BaseTestCase):
                          "vendors")
 
         # for meeting moreover by default include_items=False
-        # in AT Meeting, we have a field called "items"...
-        if HAS_MEETING_DX:
-            self.assertFalse("items" in resp_json["items"][0]["extra_include_meeting"])
+        self.assertFalse("items" in resp_json["items"][0]["extra_include_meeting"])
         endpoint_url = endpoint_url + "&extra_include_meeting_include_items=true"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
@@ -299,10 +295,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         meeting = self.create("Meeting", date=datetime(2018, 11, 18))
-        self.assertEqual(self.get_review_state(meeting), "created")
+        self.assertEqual(meeting.query_state(), "created")
         meeting2 = self.create("Meeting", date=datetime(2019, 11, 18))
         self.closeMeeting(meeting2)
-        self.assertEqual(self.get_review_state(meeting2), "closed")
+        self.assertEqual(meeting2.query_state(), "closed")
         transaction.commit()
 
         # found
@@ -334,20 +330,13 @@ class testServiceSearch(BaseTestCase):
         pattern = '<p>Text with image <img src="{0}"/> and more text.</p>'
         meeting = self.create("Meeting", date=datetime(2019, 11, 18))
         meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
-        if HAS_MEETING_DX:
-            meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
-            img = self._add_image(meeting2)
-            text = pattern.format(img.absolute_url())
-            meeting2.observations = richtextval(text)
-        else:
-            meeting2.setAssembly(u'Mr Present, [[Mr Absent]], Mr Present2')
-            img = self._add_image(meeting2)
-            text = pattern.format(img.absolute_url())
-            meeting2.setObservations(text)
-
-        self.assertEqual(self.get_review_state(meeting), "created")
+        meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
+        img = self._add_image(meeting2)
+        text = pattern.format(img.absolute_url())
+        meeting2.observations = richtextval(text)
+        self.assertEqual(meeting.query_state(), "created")
         self.closeMeeting(meeting2)
-        self.assertEqual(self.get_review_state(meeting2), "closed")
+        self.assertEqual(meeting2.query_state(), "closed")
         transaction.commit()
 
         # found
@@ -385,10 +374,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         meeting = self.create("Meeting", date=datetime(2020, 5, 10))
-        self.assertEqual(self.get_review_state(meeting), "created")
+        self.assertEqual(meeting.query_state(), "created")
         meeting2 = self.create("Meeting", date=datetime(2020, 5, 17))
         self.closeMeeting(meeting2)
-        self.assertEqual(self.get_review_state(meeting2), "closed")
+        self.assertEqual(meeting2.query_state(), "closed")
         transaction.commit()
         # only meeting is accepting items
         self.assertEqual(
@@ -421,10 +410,7 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
         self.assertEqual(json[u"items_total"], 1)
-        if HAS_MEETING_DX:
-            self.assertEqual(json["items"][0]["date"], u'2020-05-10T00:00:00')
-        else:
-            self.assertEqual(json["items"][0]["date"], u'2020-05-10T00:00:00+00:00')
+        self.assertEqual(json["items"][0]["date"], u'2020-05-10T00:00:00')
 
     def test_restapi_search_in_name_of(self):
         """ """
@@ -764,10 +750,7 @@ class testServiceSearch(BaseTestCase):
         # in 4.1.x item observations was only readable until validated...
         self.validateItem(item)
         meeting = self.create("Meeting", date=datetime(2020, 6, 8, 8, 0))
-        if HAS_MEETING_DX:
-            meeting.observations = richtextval(text)
-        else:
-            meeting.setObservations(text)
+        meeting.observations = richtextval(text)
         transaction.commit()
 
         # query to get meeting and item description
