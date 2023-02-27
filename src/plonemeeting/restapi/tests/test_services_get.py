@@ -12,7 +12,6 @@ from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
-import unittest
 
 
 class testServiceGetUid(BaseTestCase):
