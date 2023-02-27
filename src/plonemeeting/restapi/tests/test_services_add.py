@@ -3,11 +3,9 @@
 from collective.iconifiedcategory.utils import calculate_category_id
 from datetime import datetime
 from datetime import timedelta
-from DateTime import DateTime
 from imio.helpers.content import object_values
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import ANNEX_DECISION_RELATED_NOT_ITEM_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_REQUIRED_ERROR
@@ -258,9 +256,7 @@ class testServiceAdd(BaseTestCase):
         cfg = self.meetingConfig
         self.changeUser("pmManager")
         # meeting in the future
-        date = DateTime() + 1
-        if HAS_MEETING_DX:
-            date = datetime.now() + timedelta(days=1)
+        date = datetime.now() + timedelta(days=1)
         meeting = self.create("Meeting", date=date)
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
@@ -275,7 +271,7 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(self.get_review_state(item), "presented")
+        self.assertEqual(item.query_state(), "presented")
         self.assertEqual(item.getMeeting(), meeting)
 
     def test_restapi_add_item_in_name_of(self):
@@ -348,10 +344,9 @@ class testServiceAdd(BaseTestCase):
            is protected by specific permission/role."""
         cfg = self.meetingConfig
         self._enableField("internalNotes")
-        if HAS_MEETING_DX:
-            self._activate_config('itemInternalNotesEditableBy',
-                                  'suffix_proposing_group_creators',
-                                  keep_existing=False)
+        self._activate_config('itemInternalNotesEditableBy',
+                              'suffix_proposing_group_creators',
+                              keep_existing=False)
         transaction.commit()
         self.changeUser("pmCreator1")
         endpoint_url = "{0}/@item".format(self.portal_url)
@@ -442,9 +437,7 @@ class testServiceAdd(BaseTestCase):
         json["ignore_validation_for"] = ["category", "classifier"]
         json.pop("category")
         json["classifier"] = None
-        # triggering transitions without category only works with PM4.2+
-        if HAS_MEETING_DX:
-            json["wf_transitions"] = ["propose", "validate"]
+        json["wf_transitions"] = ["propose", "validate"]
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
         self.assertEqual(response.status_code, 201, response.content)
@@ -455,9 +448,7 @@ class testServiceAdd(BaseTestCase):
         # a warning was added nevertheless
         self.assertEqual(response.json()['@warnings'],
                          [IGNORE_VALIDATION_FOR_WARNING % "category, classifier"])
-        # use getInfoFor instead query_state for PM 4.1/4.2 compat
-        if HAS_MEETING_DX:
-            self.assertEqual(self.get_review_state(item), "validated")
+        self.assertEqual(item.query_state(), "validated")
 
     def test_restapi_add_item_wf_transitions(self):
         """When creating an item, we may define "wf_transitions"."""
@@ -475,7 +466,7 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(self.get_review_state(item), "validated")
+        self.assertEqual(item.query_state(), "validated")
 
     def test_restapi_add_annex_to_existing_element(self):
         """Use the @annex POST endpoint to create an annex."""
@@ -484,10 +475,7 @@ class testServiceAdd(BaseTestCase):
         self.changeUser("pmManager")
         item = self.create('MeetingItem')
         item_uid = item.UID()
-        date = None
-        if not HAS_MEETING_DX:
-            date = DateTime()
-        meeting = self.create('Meeting', date=date)
+        meeting = self.create('Meeting')
         meeting_uid = meeting.UID()
         transaction.commit()
 
@@ -612,30 +600,29 @@ class testServiceAdd(BaseTestCase):
             meeting.observations.raw,
             u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
         # this fails with AT Meeting because mimetype is considered text/plain
-        if HAS_MEETING_DX:
-            # create meeting with clean_html=False
-            json['clean_html'] = False
-            # change date, can not create several meeting with same date
-            date = date[0:3] + str(int(date[3]) + 1) + date[4:]
-            json['date'] = date
-            response = self.api_session.post(endpoint_url, json=json)
-            transaction.begin()
-            self.assertEqual(response.status_code, 201, response.content)
-            pmFolder = self.getMeetingFolder()
-            meeting2 = object_values(pmFolder, "Meeting")[-1]
-            # the "&#xa0;" is replaced by "\xa0" by Plone but could also
-            # be removed while using appy.pod pre processor
-            meeting_dirty_html = safe_unicode(dirty_html).replace(u'&#xa0;', u'\xa0')
-            self.assertEqual(meeting2.observations.raw, meeting_dirty_html)
-            # trying to add meeting with same date will fail
-            response = self.api_session.post(endpoint_url, json=json)
-            self.assertEqual(response.status_code, 400, response.content)
-            self.assertEqual(
-                response.json(),
-                {u'message': u"[{'message': 'A meeting having the same date and hour "
-                    u"already exists. Please choose another date and/or hour.', "
-                    u"'error': 'ValidationError'}]",
-                 u'type': u'BadRequest'})
+        # create meeting with clean_html=False
+        json['clean_html'] = False
+        # change date, can not create several meeting with same date
+        date = date[0:3] + str(int(date[3]) + 1) + date[4:]
+        json['date'] = date
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        meeting2 = object_values(pmFolder, "Meeting")[-1]
+        # the "&#xa0;" is replaced by "\xa0" by Plone but could also
+        # be removed while using appy.pod pre processor
+        meeting_dirty_html = safe_unicode(dirty_html).replace(u'&#xa0;', u'\xa0')
+        self.assertEqual(meeting2.observations.raw, meeting_dirty_html)
+        # trying to add meeting with same date will fail
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u"[{'message': 'A meeting having the same date and hour "
+                u"already exists. Please choose another date and/or hour.', "
+                u"'error': 'ValidationError'}]",
+             u'type': u'BadRequest'})
 
     def test_restapi_add_item_can_not_create_empty(self):
         """Test that an empty item can not be created."""
