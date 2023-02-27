@@ -1,9 +1,14 @@
 Changelog
 =========
 
-1.0 (unreleased)
+Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
+
+
+2.0 (unreleased)
 ----------------
 
+- Dropped support for `PloneMeeting 4.1.x`.
+  [gbastien]
 - Add `config` to `extra_include` allowed parameters to return informations about the meeting config
   [mpeeters]
 - Ensure that `in_name_of` parameter is only handled once when `__children__` parameter is used
@@ -17,6 +22,7 @@ Changelog
   Field `MeetingItem.category` is an optional field managed by
   `MeetingConfig.usedItemAttributes` as any other optional fields now.
   [gbastien]
+
 
 1.0rc18 (2022-08-26)
 --------------------
