@@ -12,8 +12,8 @@ from Products.PloneMeeting.content.meeting import IMeeting
 from Products.PloneMeeting.utils import get_dx_field
 from zope.component import adapter
 from zope.component import queryMultiAdapter
-from zope.interface import Interface
 from zope.interface import implementer
+from zope.interface import Interface
 
 
 class SerializeMeetingToJsonBase(object):
