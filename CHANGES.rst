@@ -22,7 +22,8 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
   Field `MeetingItem.category` is an optional field managed by
   `MeetingConfig.usedItemAttributes` as any other optional fields now.
   [gbastien]
-
+- Add `date` by default to meeting informations.
+  [mpeeters]
 
 1.0rc18 (2022-08-26)
 --------------------

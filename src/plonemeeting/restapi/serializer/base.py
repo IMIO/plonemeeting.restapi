@@ -507,8 +507,7 @@ class BaseDXSerializeToJson(ContentSerializeToJson, IMIODXSerializeToJson):
                 serializer = queryMultiAdapter(
                     (field, obj, self.request), IFieldSerializer
                 )
-                value = serializer()
-                result[json_compatible(field_name)] = value
+                result[json_compatible(field_name)] = serializer()
 
         return result
 

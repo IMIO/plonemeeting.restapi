@@ -90,11 +90,11 @@ class testServiceGetUid(BaseTestCase):
             },
         )
 
-    def _check_get_uid_endpoint(self, obj, endpoint_name="@get"):
+    def _check_get_uid_endpoint(self, obj, endpoint_name="@get", query=""):
         """ """
         obj_uid = obj.UID()
-        endpoint_url = "{0}/{1}?UID={2}".format(
-            self.portal_url, endpoint_name, obj_uid
+        endpoint_url = "{0}/{1}?UID={2}{3}".format(
+            self.portal_url, endpoint_name, obj_uid, query
         )
         response = self.api_session.get(endpoint_url)
         json = response.json()
@@ -102,6 +102,7 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(json["UID"], obj_uid)
         # by default, no items
         self.assertFalse("items" in json)
+        return json
 
     def test_restapi_get_uid(self):
         """When given UID is accessible, it is returned"""
@@ -124,7 +125,10 @@ class testServiceGetUid(BaseTestCase):
 
     def test_restapi_get_uid_meeting(self):
         """There is a @meeting convenience endpoint that is just a shortcut to @get"""
-        self._check_get_uid_endpoint(obj=self.meeting, endpoint_name="@meeting")
+        json = self._check_get_uid_endpoint(
+            obj=self.meeting, endpoint_name="@meeting", query="&include_base_data=true")
+        # date is included in base_data
+        self.assertEqual(json['date'], u'2021-09-23T10:00:00')
 
     def test_restapi_get_uid_meeting_wrong_type(self):
         """@meeting endpoint is supposed to return a meeting, so if we receive an UID

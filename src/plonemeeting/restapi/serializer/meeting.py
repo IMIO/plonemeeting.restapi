@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from plone import api
+from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
@@ -8,12 +9,14 @@ from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from Products.PloneMeeting.content.meeting import IMeeting
+from Products.PloneMeeting.utils import get_dx_field
 from zope.component import adapter
+from zope.component import queryMultiAdapter
 from zope.interface import implementer
 from zope.interface import Interface
 
 
-class SerializeMeetingToJsonBase(object):
+class BaseSerializeMeetingToJson(object):
     """ """
 
     def _available_extra_includes(self, result):
@@ -29,6 +32,19 @@ class SerializeMeetingToJsonBase(object):
                 self.context, self)
         if "annexes" in extra_include:
             result = serialize_extra_include_annexes(result, self)
+        return result
+
+    def _include_custom(self, obj, result):
+        """Include "date" by default."""
+        if self.fullobjects or \
+           "date" in self.metadata_fields or \
+           self.get_param('include_base_data', True):
+            field = get_dx_field(obj, "date")
+            # serialize the field
+            serializer = queryMultiAdapter(
+                (field, obj, self.request), IFieldSerializer
+            )
+            result["date"] = serializer()
         return result
 
     def _additional_values(self, result, additional_values):
@@ -52,11 +68,11 @@ class SerializeMeetingToJsonBase(object):
 
 @implementer(ISerializeToJson)
 @adapter(IMeeting, Interface)
-class SerializeToJson(SerializeMeetingToJsonBase, BaseDXSerializeFolderToJson):
+class SerializeToJson(BaseSerializeMeetingToJson, BaseDXSerializeFolderToJson):
     """ """
 
 
 @implementer(ISerializeToJsonSummary)
 @adapter(IMeeting, Interface)
-class SerializeToJsonSummary(SerializeMeetingToJsonBase, PMBrainJSONSummarySerializer):
+class SerializeToJsonSummary(BaseSerializeMeetingToJson, PMBrainJSONSummarySerializer):
     """ """
