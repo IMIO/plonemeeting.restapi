@@ -3,11 +3,9 @@
 from collective.iconifiedcategory.utils import calculate_category_id
 from datetime import datetime
 from datetime import timedelta
-from DateTime import DateTime
 from imio.helpers.content import object_values
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.services.add import ANNEX_CONTENT_CATEGORY_ERROR
 from plonemeeting.restapi.services.add import ANNEX_DECISION_RELATED_NOT_ITEM_ERROR
 from plonemeeting.restapi.services.add import IGNORE_VALIDATION_FOR_REQUIRED_ERROR
@@ -104,6 +102,7 @@ class testServiceAdd(BaseTestCase):
     def test_restapi_add_item_optional_fields(self):
         """When creating an item, given optional fields must be enabled in config."""
         cfg = self.meetingConfig
+        self.assertFalse("category" in cfg.getUsedItemAttributes())
         self.assertFalse("notes" in cfg.getUsedItemAttributes())
         self.changeUser("pmManager")
         endpoint_url = "{0}/@item".format(self.portal_url)
@@ -111,8 +110,18 @@ class testServiceAdd(BaseTestCase):
             "config_id": cfg.getId(),
             "proposingGroup": self.developers_uid,
             "title": "My item",
+            "category": "development",
             "notes": u"<p>My notes</p>",
         }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json(),
+            {u"message": OPTIONAL_FIELD_ERROR % "category", u"type": u"BadRequest"}
+        )
+        self._enableField('category')
+        transaction.commit()
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
         self.assertEqual(response.status_code, 400)
@@ -137,24 +146,26 @@ class testServiceAdd(BaseTestCase):
            is added instead raising an error."""
         cfg = self.meetingConfig
         self.assertFalse("notes" in cfg.getUsedItemAttributes())
+        self.assertFalse("category" in cfg.getUsedItemAttributes())
         self.changeUser("pmManager")
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
             "config_id": cfg.getId(),
             "proposingGroup": self.developers_uid,
             "title": "My item",
+            "category": "development",
             "notes": u"<p>My notes</p>",
             "ignore_not_used_data": True
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
         self.assertEqual(response.status_code, 201, response.content)
-        self.assertTrue(OPTIONAL_FIELDS_WARNING % "notes" in response.json()['@warnings'])
+        self.assertTrue(OPTIONAL_FIELDS_WARNING % "category, notes" in response.json()['@warnings'])
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.Title(), json["title"])
         self.assertEqual(item.getProposingGroup(), json["proposingGroup"])
-        # optional field not enable was ignore
+        # optional field not enabled was ignored
         self.assertFalse(item.getNotes())
 
     def test_restapi_add_item_org_fields(self):
@@ -245,9 +256,7 @@ class testServiceAdd(BaseTestCase):
         cfg = self.meetingConfig
         self.changeUser("pmManager")
         # meeting in the future
-        date = DateTime() + 1
-        if HAS_MEETING_DX:
-            date = datetime.now() + timedelta(days=1)
+        date = datetime.now() + timedelta(days=1)
         meeting = self.create("Meeting", date=date)
         endpoint_url = "{0}/@item".format(self.portal_url)
         json = {
@@ -262,7 +271,7 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(self.get_review_state(item), "presented")
+        self.assertEqual(item.query_state(), "presented")
         self.assertEqual(item.getMeeting(), meeting)
 
     def test_restapi_add_item_in_name_of(self):
@@ -335,10 +344,9 @@ class testServiceAdd(BaseTestCase):
            is protected by specific permission/role."""
         cfg = self.meetingConfig
         self._enableField("internalNotes")
-        if HAS_MEETING_DX:
-            self._activate_config('itemInternalNotesEditableBy',
-                                  'suffix_proposing_group_creators',
-                                  keep_existing=False)
+        self._activate_config('itemInternalNotesEditableBy',
+                              'suffix_proposing_group_creators',
+                              keep_existing=False)
         transaction.commit()
         self.changeUser("pmCreator1")
         endpoint_url = "{0}/@item".format(self.portal_url)
@@ -374,7 +382,7 @@ class testServiceAdd(BaseTestCase):
         """When creating an item, it is possible to define
            a list of fields to bypass validation for if it is empty."""
         cfg = self.meetingConfig
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField('category')
         self._enableField("classifier")
         transaction.commit()
         self.changeUser("pmManager")
@@ -429,9 +437,7 @@ class testServiceAdd(BaseTestCase):
         json["ignore_validation_for"] = ["category", "classifier"]
         json.pop("category")
         json["classifier"] = None
-        # triggering transitions without category only works with PM4.2+
-        if HAS_MEETING_DX:
-            json["wf_transitions"] = ["propose", "validate"]
+        json["wf_transitions"] = ["propose", "validate"]
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
         self.assertEqual(response.status_code, 201, response.content)
@@ -442,9 +448,7 @@ class testServiceAdd(BaseTestCase):
         # a warning was added nevertheless
         self.assertEqual(response.json()['@warnings'],
                          [IGNORE_VALIDATION_FOR_WARNING % "category, classifier"])
-        # use getInfoFor instead query_state for PM 4.1/4.2 compat
-        if HAS_MEETING_DX:
-            self.assertEqual(self.get_review_state(item), "validated")
+        self.assertEqual(item.query_state(), "validated")
 
     def test_restapi_add_item_wf_transitions(self):
         """When creating an item, we may define "wf_transitions"."""
@@ -462,7 +466,7 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(response.status_code, 201, response.content)
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
-        self.assertEqual(self.get_review_state(item), "validated")
+        self.assertEqual(item.query_state(), "validated")
 
     def test_restapi_add_annex_to_existing_element(self):
         """Use the @annex POST endpoint to create an annex."""
@@ -471,10 +475,7 @@ class testServiceAdd(BaseTestCase):
         self.changeUser("pmManager")
         item = self.create('MeetingItem')
         item_uid = item.UID()
-        date = None
-        if not HAS_MEETING_DX:
-            date = DateTime()
-        meeting = self.create('Meeting', date=date)
+        meeting = self.create('Meeting')
         meeting_uid = meeting.UID()
         transaction.commit()
 
@@ -599,30 +600,29 @@ class testServiceAdd(BaseTestCase):
             meeting.observations.raw,
             u'<p><span class="ms-class">\xa0 hello h\xe9h\xe9</span></p>')
         # this fails with AT Meeting because mimetype is considered text/plain
-        if HAS_MEETING_DX:
-            # create meeting with clean_html=False
-            json['clean_html'] = False
-            # change date, can not create several meeting with same date
-            date = date[0:3] + str(int(date[3]) + 1) + date[4:]
-            json['date'] = date
-            response = self.api_session.post(endpoint_url, json=json)
-            transaction.begin()
-            self.assertEqual(response.status_code, 201, response.content)
-            pmFolder = self.getMeetingFolder()
-            meeting2 = object_values(pmFolder, "Meeting")[-1]
-            # the "&#xa0;" is replaced by "\xa0" by Plone but could also
-            # be removed while using appy.pod pre processor
-            meeting_dirty_html = safe_unicode(dirty_html).replace(u'&#xa0;', u'\xa0')
-            self.assertEqual(meeting2.observations.raw, meeting_dirty_html)
-            # trying to add meeting with same date will fail
-            response = self.api_session.post(endpoint_url, json=json)
-            self.assertEqual(response.status_code, 400, response.content)
-            self.assertEqual(
-                response.json(),
-                {u'message': u"[{'message': 'A meeting having the same date and hour "
-                    u"already exists. Please choose another date and/or hour.', "
-                    u"'error': 'ValidationError'}]",
-                 u'type': u'BadRequest'})
+        # create meeting with clean_html=False
+        json['clean_html'] = False
+        # change date, can not create several meeting with same date
+        date = date[0:3] + str(int(date[3]) + 1) + date[4:]
+        json['date'] = date
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        meeting2 = object_values(pmFolder, "Meeting")[-1]
+        # the "&#xa0;" is replaced by "\xa0" by Plone but could also
+        # be removed while using appy.pod pre processor
+        meeting_dirty_html = safe_unicode(dirty_html).replace(u'&#xa0;', u'\xa0')
+        self.assertEqual(meeting2.observations.raw, meeting_dirty_html)
+        # trying to add meeting with same date will fail
+        response = self.api_session.post(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u"[{'message': 'A meeting having the same date and hour "
+                u"already exists. Please choose another date and/or hour.', "
+                u"'error': 'ValidationError'}]",
+             u'type': u'BadRequest'})
 
     def test_restapi_add_item_can_not_create_empty(self):
         """Test that an empty item can not be created."""
@@ -640,6 +640,42 @@ class testServiceAdd(BaseTestCase):
                 u"'error': 'ValidationError'}, {'field': 'title', 'message': u'Purpose is required, "
                 u"please correct.', 'error': 'ValidationError'}]", u'type': u'BadRequest'}
         )
+
+    def test_restapi_add_item_manually_linked_items(self):
+        """Create an item and link it to another item using MeetingItem.manuallyLinkedItems."""
+        cfg = self.meetingConfig
+        self._enableField("manuallyLinkedItems")
+        transaction.commit()
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "Item 1"
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        pmFolder = self.getMeetingFolder()
+        item1 = pmFolder.objectValues()[-1]
+        # create a second item
+        json["title"] = "Item 2"
+        json["manuallyLinkedItems"] = [item1.UID()]
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        item2 = pmFolder.objectValues()[-1]
+        self.assertEqual(item1.getManuallyLinkedItems(), [item2])
+        self.assertEqual(item2.getManuallyLinkedItems(), [item1])
+        # create a third item
+        json["title"] = "Item 3"
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        item3 = pmFolder.objectValues()[-1]
+        self.assertEqual(item1.getManuallyLinkedItems(), [item2, item3])
+        self.assertEqual(item2.getManuallyLinkedItems(), [item1, item3])
+        self.assertEqual(item3.getManuallyLinkedItems(), [item1, item2])
 
 
 class testServiceAddWithAnnexes(BaseTestCase):
@@ -888,6 +924,49 @@ class testServiceAddWithAnnexes(BaseTestCase):
         )
         self.assertEqual(annex2.file.size, 6475)
         self.assertEqual(annex2.file.contentType, "application/pdf")
+
+    def test_restapi_add_item_with_annexes_and_in_name_of(self):
+        """When creating an item, we may add annexes as __children__ using `in_name_of`
+        parameter"""
+        cfg = self.meetingConfig
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+            "in_name_of": "pmCreator1",
+            "__children__": [
+                {
+                    "@type": "annex",
+                    "title": "My annex",
+                    "content_category": "item-annex",
+                    "file": {
+                        "data": "123456",
+                        "encoding": "ascii",
+                        "filename": "file.txt",
+                    },
+                },
+            ],
+        }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        self.assertEqual(response.status_code, 201, response.content)
+        self.changeUser("pmCreator1")
+        pmFolder = self.getMeetingFolder()
+        item = pmFolder.objectValues()[-1]
+        self.assertEqual(item.Title(), json["title"])
+        annex = get_annexes(item)[0]
+        self.assertEqual(annex.title, json["__children__"][0]["title"])
+        self.assertEqual(
+            annex.content_category,
+            calculate_category_id(cfg.annexes_types.item_annexes.get("item-annex")),
+        )
+        self.assertEqual(
+            annex.file.filename, json["__children__"][0]["file"]["filename"]
+        )
+        self.assertEqual(annex.file.size, 6)
+        self.assertEqual(annex.file.contentType, "text/plain")
 
 
 def test_suite():

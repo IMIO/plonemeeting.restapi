@@ -2,7 +2,6 @@
 
 from os import path
 from plone.restapi.testing import RelativeSession
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.testing import PM_REST_TEST_PROFILE_FUNCTIONAL
 from Products.PloneMeeting import tests as pm_tests
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
@@ -30,21 +29,10 @@ class BaseTestCase(PloneMeetingTestCase):
         # enable RESTAPI_DEBUG for every tests
         # this will display the result of a restapi call in the log
         os.environ['RESTAPI_DEBUG'] = "True"
-        # XXX 4.1.x compatibility, to be removed in 4.2+
-        if not HAS_MEETING_DX:
-            self.meetingConfig.setWorkflowAdaptations(('creator_initiated_decisions', ))
-            self.meetingConfig.at_post_edit_script()
         try:
             transaction.commit()
         except Exception:
             transaction.begin()
-
-    def get_review_state(self, obj):
-        """Backward compat method that manage queryState/query_state."""
-        if HAS_MEETING_DX:
-            return obj.query_state()
-        else:
-            return obj.queryState()
 
     def _add_image(self, obj):
         """ """
