@@ -17,11 +17,10 @@ class SerializePodTemplateToJsonBase(object):
     def _include_custom(self, obj, result):
         """Include outputs (format/url)."""
         if base_hasattr(self, "original_context"):
-            output_formats = self.context.get_available_formats()
             result["outputs"] = []
             original_context_url = self.original_context.absolute_url()
             url_pattern = "{0}/document-generation?template_uid={1}&output_format={2}"
-            for output_format in output_formats:
+            for output_format in self.context.get_available_formats():
                 data = {}
                 data["format"] = output_format
                 data["url"] = url_pattern.format(

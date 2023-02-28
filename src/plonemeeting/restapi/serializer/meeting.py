@@ -44,8 +44,7 @@ class SerializeMeetingToJsonBase(object):
             serializer = queryMultiAdapter(
                 (field, obj, self.request), IFieldSerializer
             )
-            value = serializer()
-            result["date"] = value
+            result["date"] = serializer()
         return result
 
     def _additional_values(self, result, additional_values):

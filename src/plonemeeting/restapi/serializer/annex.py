@@ -27,8 +27,7 @@ class BaseSerializeAnnexToJson(object):
             serializer = queryMultiAdapter(
                 (field, obj, self.request), IFieldSerializer
             )
-            value = serializer()
-            result["file"] = value
+            result["file"] = serializer()
         return result
 
     def _additional_values(self, result, additional_values):
