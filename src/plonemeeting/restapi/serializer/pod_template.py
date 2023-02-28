@@ -11,7 +11,7 @@ from zope.interface import implementer
 from zope.interface import Interface
 
 
-class SerializePodTemplateToJsonBase(object):
+class BaseSerializePodTemplateToJson(object):
     """ """
 
     def _include_custom(self, obj, result):
@@ -31,11 +31,11 @@ class SerializePodTemplateToJsonBase(object):
 
 @implementer(ISerializeToJson)
 @adapter(IConfigurablePODTemplate, Interface)
-class SerializeToJson(SerializePodTemplateToJsonBase, BaseDXSerializeFolderToJson):
+class SerializeToJson(BaseSerializePodTemplateToJson, BaseDXSerializeFolderToJson):
     """ """
 
 
 @implementer(ISerializeToJsonSummary)
 @adapter(IConfigurablePODTemplate, Interface)
-class SerializeToJsonSummary(SerializePodTemplateToJsonBase, PMBrainJSONSummarySerializer):
+class SerializeToJsonSummary(BaseSerializePodTemplateToJson, PMBrainJSONSummarySerializer):
     """ """

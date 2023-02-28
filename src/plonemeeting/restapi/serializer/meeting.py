@@ -16,7 +16,7 @@ from zope.interface import implementer
 from zope.interface import Interface
 
 
-class SerializeMeetingToJsonBase(object):
+class BaseSerializeMeetingToJson(object):
     """ """
 
     def _available_extra_includes(self, result):
@@ -68,11 +68,11 @@ class SerializeMeetingToJsonBase(object):
 
 @implementer(ISerializeToJson)
 @adapter(IMeeting, Interface)
-class SerializeToJson(SerializeMeetingToJsonBase, BaseDXSerializeFolderToJson):
+class SerializeToJson(BaseSerializeMeetingToJson, BaseDXSerializeFolderToJson):
     """ """
 
 
 @implementer(ISerializeToJsonSummary)
 @adapter(IMeeting, Interface)
-class SerializeToJsonSummary(SerializeMeetingToJsonBase, PMBrainJSONSummarySerializer):
+class SerializeToJsonSummary(BaseSerializeMeetingToJson, PMBrainJSONSummarySerializer):
     """ """
