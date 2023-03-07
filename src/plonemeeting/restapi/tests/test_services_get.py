@@ -9,6 +9,7 @@ from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_ERROR
 from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR
 from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
+from Products.PloneMeeting.config import NO_TRIGGER_WF_TRANSITION_UNTIL
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
@@ -318,6 +319,10 @@ class testServiceGetUid(BaseTestCase):
         cfg.setItemManualSentToOtherMCStates(('itemcreated', ))
         cfg2 = self.meetingConfig2
         cfg2Id = cfg2.getId()
+        # make sure items sendable to cfg2
+        cfg.setMeetingConfigsToCloneTo(
+            ({'meeting_config': cfg2Id,
+              'trigger_workflow_transitions_until': NO_TRIGGER_WF_TRANSITION_UNTIL}, ))
         # setup, create item, delay it, send it to cfg2
         # auto linked items
         self.changeUser('pmManager')
