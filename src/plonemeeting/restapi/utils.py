@@ -9,8 +9,6 @@ from plone import api
 from plone.restapi.deserializer import boolean_value
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plonemeeting.restapi.bbb import get_filtered_plone_groups_for_user
-from plonemeeting.restapi.bbb import getActiveConfigs
 from plonemeeting.restapi.config import INDEX_CORRESPONDENCES
 from Products.CMFCore.permissions import ManagePortal
 from Products.CMFCore.utils import _checkPermission
@@ -141,11 +139,13 @@ def get_poweraccess_configs():
     '''
     tool = api.portal.get_tool('portal_plonemeeting')
     if _checkPermission(ManagePortal, tool):
-        cfg_ids = [cfg.id for cfg in getActiveConfigs(check_using_groups=False, check_access=False)]
+        cfg_ids = [cfg.id for cfg in tool.getActiveConfigs(
+            check_using_groups=False, check_access=False)]
     else:
         cfg_ids = [
             group_id.split('_')[0] for group_id in
-            get_filtered_plone_groups_for_user(suffixes=[MEETINGMANAGERS_GROUP_SUFFIX])]
+            tool.get_filtered_plone_groups_for_user(
+                suffixes=[MEETINGMANAGERS_GROUP_SUFFIX])]
     return cfg_ids
 
 

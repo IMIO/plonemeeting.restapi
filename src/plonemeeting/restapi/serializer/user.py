@@ -5,8 +5,6 @@ from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plone.restapi.serializer.user import BaseSerializer as BaseUserSerializer
-from plonemeeting.restapi.bbb import getActiveConfigs
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.serializer.base import BaseSerializeToJson
 from Products.CMFCore.interfaces._tools import IMemberData
@@ -37,7 +35,7 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
             if auth_user:
                 self.request["AUTHENTICATED_USER"] = None
             with api.env.adopt_user(username=self.context.id):
-                self.cfgs = getActiveConfigs()
+                self.cfgs = self.tool.getActiveConfigs()
                 cfgs = self.cfgs
             if auth_user:
                 self.request["AUTHENTICATED_USER"] = auth_user
@@ -66,17 +64,11 @@ class PMBaseUserSerializer(BaseUserSerializer, BaseSerializeToJson):
             result["extra_include_groups_items_total"] = len(orgs)
 
         if "app_groups" in extra_include:
-            # XXX backward compat for PM 4.1.x, to be removed
-            if HAS_MEETING_DX:
-                groups = get_plone_groups_for_user(
-                    user_id=self.context.id, the_objects=True)
-            else:
-                groups = self.tool.get_plone_groups_for_user(
-                    userId=self.context.id, the_objects=True)
             result["extra_include_app_groups"] = [
                 {"token": group.id,
                  "title": safe_unicode(group.getProperty("title"))}
-                for group in groups]
+                for group in self.tool.get_plone_groups_for_user(
+                    user_id=self.context.id, the_objects=True)]
 
         if "configs" in extra_include:
             result["extra_include_configs"] = []

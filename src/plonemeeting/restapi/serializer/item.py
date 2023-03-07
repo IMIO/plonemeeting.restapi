@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from imio.helpers.content import uuidsToObjects
+from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
@@ -14,7 +15,7 @@ from zope.interface import implementer
 from zope.interface import Interface
 
 
-class SerializeItemToJsonBase(object):
+class BaseSerializeItemToJson(object):
     """ """
 
     def _available_extra_includes(self, result):
@@ -29,7 +30,9 @@ class SerializeItemToJsonBase(object):
             "pod_templates",
             "meeting",
             "linked_items",
-            "*deliberation*"]
+            "*deliberation*",
+            "config",
+        ]
         return result
 
     def _extra_include_linked_items(self, result):
@@ -117,6 +120,13 @@ class SerializeItemToJsonBase(object):
                 result["extra_include_meeting"] = serializer()
         if "linked_items" in extra_include:
             result = self._extra_include_linked_items(result)
+        if "config" in extra_include:
+            tool = api.portal.get_tool('portal_plonemeeting')
+            cfg = tool.getMeetingConfig(self.context)
+            result["extra_include_config"] = {}
+            if cfg:
+                serializer = self._get_serializer(cfg, "config")
+                result["extra_include_config"] = serializer()
 
         # various type of deliberation may be included
         # if we find a key containing "deliberation", we use it
@@ -167,11 +177,11 @@ class SerializeItemToJsonBase(object):
 
 @implementer(ISerializeToJson)
 @adapter(IMeetingItem, Interface)
-class SerializeToJson(SerializeItemToJsonBase, BaseATSerializeFolderToJson):
+class SerializeToJson(BaseSerializeItemToJson, BaseATSerializeFolderToJson):
     """ """
 
 
 @implementer(ISerializeToJsonSummary)
 @adapter(IMeetingItem, Interface)
-class SerializeToJsonSummary(SerializeItemToJsonBase, PMBrainJSONSummarySerializer):
+class SerializeToJsonSummary(BaseSerializeItemToJson, PMBrainJSONSummarySerializer):
     """ """

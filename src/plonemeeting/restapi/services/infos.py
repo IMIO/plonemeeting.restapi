@@ -2,7 +2,6 @@
 
 from imio.restapi.services.infos import InfosGet
 from plone import api
-from plonemeeting.restapi.bbb import getActiveConfigs
 
 
 class PMInfosGet(InfosGet):
@@ -12,7 +11,7 @@ class PMInfosGet(InfosGet):
         queries = {}
         tool = api.portal.get_tool("portal_plonemeeting")
         # types MeetingConfig
-        mConfigs = getActiveConfigs(check_using_groups=False)
+        mConfigs = tool.getActiveConfigs(check_using_groups=False)
         queries["MeetingConfig"] = {
             "portal_type": "MeetingConfig",
             "review_state": "active",

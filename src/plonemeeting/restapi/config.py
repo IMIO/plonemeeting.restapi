@@ -9,10 +9,6 @@ INDEX_CORRESPONDENCES = {
     'getConfigId': 'config_id',
     'review_state': 'state',
     'portal_type': 'type',
-    'UID': 'uid'}
-HAS_MEETING_DX = False
-try:
-    import Products.PloneMeeting.content.meeting  # noqa
-    HAS_MEETING_DX = True
-except ImportError:
-    pass
+    'UID': 'uid',
+    'externalIdentifier': 'external_id',
+}

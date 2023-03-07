@@ -2,8 +2,6 @@
 
 from imio.restapi.serializer.base import DefaultJSONSummarySerializer
 from OFS.interfaces import IItem
-from plone.app.contentlisting.contentlisting import BaseContentListingObject
-from plone.app.contentlisting.interfaces import IContentListingObject
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plone.restapi.serializer.converters import json_compatible
 from plone.restapi.serializer.summary import BLACKLISTED_ATTRIBUTES

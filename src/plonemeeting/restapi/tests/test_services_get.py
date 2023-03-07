@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from DateTime import DateTime
 from datetime import datetime
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.services.get import UID_REQUIRED_ERROR
 from plonemeeting.restapi.services.get import UID_WRONG_TYPE_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
@@ -14,7 +12,6 @@ from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
-import unittest
 
 
 class testServiceGetUid(BaseTestCase):
@@ -25,16 +22,17 @@ class testServiceGetUid(BaseTestCase):
         super(testServiceGetUid, self).setUp()
         # especially necessary for branch 4.1.x where proposingGroup/category
         # was mixed and MeetingItem.getCategory would return the proposingGroup or the category
-        self.meetingConfig.setUseGroupsAsCategories(False)
+        self._enableField('category')
         self.changeUser("pmManager")
-        self.item1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
+        self.item1 = self.create(
+            "MeetingItem",
+            proposingGroup=self.developers_uid,
+            externalIdentifier="EX123",
+        )
         self.item1_uid = self.item1.UID()
         self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
         self.item2_uid = self.item2.UID()
-        if HAS_MEETING_DX:
-            self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
-        else:
-            self.meeting = self.create("Meeting", date=DateTime('2021/09/23 10:0'))
+        self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
         self.meeting_uid = self.meeting.UID()
         transaction.commit()
 
@@ -53,6 +51,20 @@ class testServiceGetUid(BaseTestCase):
         endpoint_url += "?UID={0}".format(self.item1_uid)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
+
+    def test_restapi_uid_not_required_if_external_id(self):
+        """
+        if 'externalIdentifier' or 'external_id' parameter is given, UID become optional
+        """
+        endpoint_url = "{0}/@get?external_id=EX123".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(self.item1_uid, response.json()["UID"])
+
+        endpoint_url = "{0}/@get?externalIdentifier=EX123".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(self.item1_uid, response.json()["UID"])
 
     def test_restapi_get_uid_not_found(self):
         """When given UID does not exist"""
@@ -78,21 +90,19 @@ class testServiceGetUid(BaseTestCase):
             },
         )
 
-    def _check_get_uid_endpoint(self, obj, endpoint_name="@get"):
+    def _check_get_uid_endpoint(self, obj, endpoint_name="@get", query=""):
         """ """
         obj_uid = obj.UID()
-        endpoint_url = "{0}/{1}?UID={2}".format(
-            self.portal_url, endpoint_name, obj_uid
+        endpoint_url = "{0}/{1}?UID={2}{3}".format(
+            self.portal_url, endpoint_name, obj_uid, query
         )
         response = self.api_session.get(endpoint_url)
         json = response.json()
         self.assertEqual(json["id"], obj.getId())
         self.assertEqual(json["UID"], obj_uid)
         # by default, no items
-        # except for AT Meeting for which items is also a ReferenceField...
-        if (obj.__class__.__name__ == "Meeting" and HAS_MEETING_DX) or \
-           obj.__class__.__name__ != "Meeting":
-            self.assertFalse("items" in json)
+        self.assertFalse("items" in json)
+        return json
 
     def test_restapi_get_uid(self):
         """When given UID is accessible, it is returned"""
@@ -115,7 +125,10 @@ class testServiceGetUid(BaseTestCase):
 
     def test_restapi_get_uid_meeting(self):
         """There is a @meeting convenience endpoint that is just a shortcut to @get"""
-        self._check_get_uid_endpoint(obj=self.meeting, endpoint_name="@meeting")
+        json = self._check_get_uid_endpoint(
+            obj=self.meeting, endpoint_name="@meeting", query="&include_base_data=true")
+        # date is included in base_data
+        self.assertEqual(json['date'], u'2021-09-23T10:00:00')
 
     def test_restapi_get_uid_meeting_wrong_type(self):
         """@meeting endpoint is supposed to return a meeting, so if we receive an UID
@@ -298,7 +311,6 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(item_annexes_json[0][u'UID'], item_annex.UID())
         self.assertEqual(item_annexes_json[0][u'file'][u'filename'], u'FILE.txt')
 
-    @unittest.skipIf(not HAS_MEETING_DX, "linked_items only works with PloneMeeting 4.2+")  # noqa
     def test_restapi_get_uid_extra_include_linked_items(self):
         """Test the extra_include=linked_items."""
         cfg = self.meetingConfig
@@ -462,6 +474,18 @@ class testServiceGetUid(BaseTestCase):
         self.assertTrue(
             {u'title': u'Checklist (textCheckList)', u'token': u'textCheckList'}
             in json["usedItemAttributes__choices"])
+
+    def test_restapi_extra_include_config(self):
+        """Test parameter `extra_include` with value `config`"""
+        endpoint_url = "{0}/@get?UID={1}&extra_include=config".format(
+            self.portal_url, self.item1_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertTrue("extra_include_config" in json.keys())
+        self.assertEqual("MeetingConfig", json["extra_include_config"]["@type"])
+        self.assertEqual("plonemeeting-assembly", json["extra_include_config"]["id"])
+        self.assertEqual("PloneMeeting assembly", json["extra_include_config"]["title"])
 
 
 def test_suite():

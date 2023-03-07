@@ -83,7 +83,7 @@ class testServiceConfig(BaseTestCase):
         """@config"""
         # cfg2 uses disabled categories
         cfg = self.meetingConfig2
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField('category')
         cfg_id = cfg.getId()
         transaction.commit()
         # categories
@@ -227,8 +227,7 @@ class testServiceConfig(BaseTestCase):
         """@config extra_include_fullobjects"""
         cfg = self.meetingConfig
         cfg_id = cfg.getId()
-        self._enableField('groupsInCharge')
-        cfg.setUseGroupsAsCategories(False)
+        self._enableField(('category', 'groupsInCharge'))
         cfg_id = cfg.getId()
         transaction.commit()
         endpoint_url_pattern = "{0}/@config?config_id={1}&extra_include={2}" \

@@ -4,7 +4,6 @@ from plone import api
 from plone.restapi.deserializer import json_body
 from plone.restapi.deserializer.atcontent import DeserializeFromJson as ATDeserializeFromJson
 from plone.restapi.interfaces import IDeserializeFromJson
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from Products.PloneMeeting.interfaces import IATMeetingContent
 from zope.component import adapter
 from zope.interface import implementer
@@ -42,12 +41,7 @@ class DeserializeFromJson(ATDeserializeFromJson):
                     # for now self.context does not have any field set, we need
                     # to set proposingGroup so update_local_roles works
                     self.context.setProposingGroup(data["proposingGroup"])
-                    # Products.PloneMeeting 4.1/4.2 compatibility
-                    if HAS_MEETING_DX:
-                        self.context.update_local_roles()
-                    else:
-                        #
-                        self.context.updateLocalRoles()
+                    self.context.update_local_roles()
 
         return super(DeserializeFromJson, self).__call__(
             validate_all=validate_all, data=data, create=create)
