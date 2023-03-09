@@ -2,7 +2,6 @@
 
 from DateTime import DateTime
 from datetime import datetime
-from plonemeeting.restapi.config import HAS_MEETING_DX
 from plonemeeting.restapi.tests.base import BaseTestCase
 from Products.CMFCore.permissions import View
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
@@ -24,10 +23,7 @@ class testServiceAttendees(BaseTestCase):
         self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
         self.item2_uid = self.item2.UID()
         self.item2_url = self.item2.absolute_url()
-        if HAS_MEETING_DX:
-            self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
-        else:
-            self.meeting = self.create("Meeting", date=DateTime('2021/09/23 10:0'))
+        self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
         self.meeting_uid = self.meeting.UID()
         self.meeting_url = self.meeting.absolute_url()
         self.presentItem(self.item1)
