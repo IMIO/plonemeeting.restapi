@@ -116,24 +116,33 @@ def serialize_attendees(context, attendee_uid=None, extra_include_name=None, bas
 
     # initialize voter
     voters = meeting.get_voters()
-    signatories = context.get_signatories() if is_meeting else context.get_item_signatories()
+    signatories = context.get_signatories() if is_meeting else context.get_item_signatories(include_position_type=True)
     non_attendees = context.get_item_non_attendees()
     for attendee in context.get_all_attendees(the_objects=True):
         if attendee_uid is not None and attendee.UID() != attendee_uid:
             continue
         serializer = get_serializer(
-            attendee, extra_include_name=extra_include_name, serializer=base_serializer)
+            attendee,
+            extra_include_name=extra_include_name,
+            serializer=base_serializer,
+            interface=ISerializeToJson)
+        # we need position_type
+        serializer._init()
+        serializer.fullobjects = False
+        serializer.metadata_fields = ['position_type']
         serialized = serializer()
         serialized_uid = serialized['UID']
         # manage "attendee_type"
         serialized["attendee_type"] = "non_attendee" if \
             serialized_uid in non_attendees else attendee_types[serialized_uid]
         # manage "signatory"
-        serialized["signatory"] = signatories.get(serialized_uid, None)
+        signatory_infos = signatories.get(serialized_uid, {})
+        serialized["signatory"] = signatory_infos.get('signature_number', None)
+        serialized["signatory_position_type"] = signatory_infos.get('position_type', None)
         # manage "voter"
         serialized["voter"] = serialized_uid in voters
         result.append(serialized)
-        # manage hp title that could change for on item
+        # manage hp title that could change on item
         item = None
         if not is_meeting:
             item = context
@@ -168,6 +177,9 @@ class BaseSerializeToJson(object):
 
     def _init(self):
         """ """
+        # if already _init, pass, could have been changed manually
+        if base_hasattr(self, 'metadata_fields'):
+            return
         self.metadata_fields = self.get_param('metadata_fields', [])
         self.asked_extra_include = self._get_asked_extra_include()
         self.asked_additional_values = self._get_asked_additional_values()

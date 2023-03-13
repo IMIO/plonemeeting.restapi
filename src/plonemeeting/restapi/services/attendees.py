@@ -27,6 +27,7 @@ from zope.publisher.interfaces import NotFound
 FIRST_UID_ITEM_OR_MEETING = "The first provided UID must be the UID of an item or a meeting!"
 URL_UID_REQUIRED_ERROR = "The object UID must be provided in the URL!"
 URL_ATTENDEE_UID_REQUIRED_ERROR = "The attendee UID must be provided in the URL!"
+WRONG_ATTENDEE_TYPE = "Wrong attendee_type : \"%s\""
 
 
 @implementer(IExpandableElement)
@@ -67,7 +68,7 @@ class AttendeesGet(Service):
 
         # initialize self.context
         if self.uid is None:
-            raise Exception("UID_REQUIRED_ERROR")
+            raise BadRequest("UID_REQUIRED_ERROR")
         json = json_body(self.request)
         self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
 
@@ -98,7 +99,7 @@ class AttendeeGet(Service):
 
         # initialize self.context
         if self.uid is None:
-            raise Exception("UID_REQUIRED_ERROR")
+            raise BadRequest("UID_REQUIRED_ERROR")
         json = json_body(self.request)
         self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
 
@@ -136,7 +137,7 @@ class AttendeePatch(Service):
 
         attendee_type = json.get('attendee_type')
         if attendee_type not in attendee_type_mappings:
-            raise Exception("Wrong attendee_type : \"%s\"" % attendee_type)
+            raise BadRequest(WRONG_ATTENDEE_TYPE % attendee_type)
 
         # Meeting
         if is_meeting:
@@ -169,15 +170,15 @@ class AttendeePatch(Service):
             if error:
                 # we get a message in error, translate it
                 msg = translate(error, context=self.request)
-                raise ValueError(msg)
+                raise BadRequest(msg)
 
     def _manage_signatory(self, json, is_meeting, meeting):
         """Manage signatories on Meeting and MeetingItem."""
         signature_number = json.get('signatory')
         if not isinstance(signature_number, int) or signature_number < 0 or signature_number > 20:
-            raise Exception("Wrong signatory : \"%s\".  "
-                            "An integer between 0 and 20 is required.  "
-                            "Using 0 will unset signatory." % signature_number)
+            raise BadRequest("Wrong signatory : \"%s\".  "
+                             "An integer between 0 and 20 is required.  "
+                             "Using 0 will unset signatory." % signature_number)
         signature_number = None if signature_number == 0 else safe_unicode(str(signature_number))
         # Meeting
         if is_meeting:
@@ -209,15 +210,15 @@ class AttendeePatch(Service):
             if error:
                 # we get a message in error, translate it
                 msg = translate(error, context=self.request)
-                raise ValueError(msg)
+                raise BadRequest(msg)
 
     def reply(self):
 
         # initialize self.context
         if self.uid is None:
-            raise Exception(URL_UID_REQUIRED_ERROR)
+            raise BadRequest(URL_UID_REQUIRED_ERROR)
         if self.attendee_uid is None:
-            raise Exception(URL_ATTENDEE_UID_REQUIRED_ERROR)
+            raise BadRequest(URL_ATTENDEE_UID_REQUIRED_ERROR)
 
         json = json_body(self.request)
         self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
@@ -230,7 +231,7 @@ class AttendeePatch(Service):
             raise Unauthorized
         meeting = self.context if is_meeting else self.context.getMeeting()
         json = json_body(self.request)
-        was_managed = True
+        was_managed = False
         if "attendee_type" in json:
             self._manage_attendee_type(json, is_meeting, meeting)
             was_managed = True

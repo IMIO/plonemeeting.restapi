@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from DateTime import DateTime
 from datetime import datetime
+from plonemeeting.restapi.services.attendees import WRONG_ATTENDEE_TYPE
 from plonemeeting.restapi.tests.base import BaseTestCase
 from Products.CMFCore.permissions import View
+from Products.PloneMeeting.browser.itemattendee import WRONG_POSITION_TYPE
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
@@ -127,15 +128,29 @@ class testServiceAttendees(BaseTestCase):
                 self.assertEqual(json['attendee_type'], data[url][hp_uid][0])
                 self.assertEqual(json['signatory'], data[url][hp_uid][1])
 
-    def test_restapi_patch_attendee_endpoint(self):
-        """The @attendee PATCH on meeting and item."""
-        # Meeting
+    def test_restapi_patch_meeting_attendee_endpoint(self):
+        """The @attendee PATCH on meeting."""
         # test an attendee that is present
         self.assertTrue(self.hp1_uid in self.meeting.get_attendees())
         # set it absent
         json = {"attendee_type": "absent", }
         endpoint_url = "{0}/@attendee/{1}/{2}".format(
             self.portal_url, self.meeting_uid, self.hp1_uid)
+        response = self.api_session.patch(endpoint_url, json=json)
+        # this will generate an error because self.hp1_uid is signatory
+        self.assertEqual(response.status_code, 500, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'can_not_remove_attendee_defined_as_signatory',
+             u'type': u'Invalid'})
+        # set self.hp1_uid no more signatory so it may be set absent
+        self.assertEqual(self.meeting.get_signatories()[self.hp1_uid], '1')
+        json = {"signatory": 0, }
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.json()["attendee_type"], "present")
+        self.assertEqual(response.json()["signatory"], None)
+        # this time self.hp1_uid me be set absent
+        json = {"attendee_type": "absent", }
         response = self.api_session.patch(endpoint_url, json=json)
         self.assertEqual(response.json()["attendee_type"], "absent")
         # set it excused
@@ -152,17 +167,98 @@ class testServiceAttendees(BaseTestCase):
         response = self.api_session.patch(endpoint_url, json=json)
         self.assertEqual(response.status_code, 401, response.content)
 
-        # MeetingItem
+    def test_restapi_patch_item_attendee_endpoint(self):
+        """The @attendee PATCH on item."""
         # test an attendee that is excused on the meeting
         # not possible to change it's attendee_type on item
         self.assertTrue(self.hp2_uid in self.meeting.get_excused())
-        # try to set it absent
+        # try to set it absent, will fail as not present on the meeting
         self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
         json = {"attendee_type": "absent", }
         endpoint_url = "{0}/@attendee/{1}/{2}".format(
             self.portal_url, self.item1_uid, self.hp2_uid)
         response = self.api_session.patch(endpoint_url, json=json)
-        self.assertEqual(response.json()["attendee_type"], "absent")
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'Can not set "Absent" a person that is not present on the meeting!\n',
+             u'type': u'BadRequest'})
+        # same for non_attendee
+        json = {"attendee_type": "non_attendee", }
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'Can not set "Non attendee" a person that is not present on the meeting!\n',
+             u'type': u'BadRequest'})
+        # wrong attendee type
+        json = {"attendee_type": "unknown", }
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': WRONG_ATTENDEE_TYPE % 'unknown', u'type': u'BadRequest'})
+        # signatory
+        # trying to set absent as signatory will not work
+        self.assertTrue(self.hp2_uid in self.meeting.get_excused())
+        json = {"signatory": 1}
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'Can not set "Signatory" a person that is not present on the meeting!\n',
+             u'type': u'BadRequest'})
+        # work with hp1_uid, already signatory on the meeting
+        endpoint_url = "{0}/@attendee/{1}/{2}".format(
+            self.portal_url, self.item1_uid, self.hp1_uid)
+        self.assertTrue(self.hp1_uid in self.item1.get_item_signatories())
+        # not able to set signatory for an item a user already signatory on the meeting
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'Can not set "Signatory" a person that is already signatory on the meeting!\n',
+             u'type': u'BadRequest'})
+
+        # now with self.hp3_uid that is not signatory on the meeting not on the item
+        endpoint_url = "{0}/@attendee/{1}/{2}".format(
+            self.portal_url, self.item1_uid, self.hp3_uid)
+        self.assertFalse(self.hp3_uid in self.item1.get_item_signatories())
+        self.assertFalse(self.hp3_uid in self.item1.get_item_signatories(real=True))
+        json = {"signatory": 1}
+        response = self.api_session.patch(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.json()['signatory'], '1')
+        self.assertTrue(self.hp3_uid in self.item1.get_item_signatories())
+        self.assertTrue(self.hp3_uid in self.item1.get_item_signatories(real=True))
+        # need to remove and add signatory again to change a redefined signatory number
+        json = {"signatory": 1}
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'Can not set "Signatory" a person already redefined as signatory on an item!\n',
+             u'type': u'BadRequest'})
+        json = {"signatory": 0}
+        response = self.api_session.patch(endpoint_url, json=json)
+        transaction.commit()
+        self.assertIsNone(response.json()['signatory'])
+        # trying to remove a non signatory will do nothing
+        json = {"signatory": 0}
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertIsNone(response.json()['signatory'])
+        # redefine signatory and position_type
+        # wrong position_type
+        json = {"signatory": 1, "position_type": 'unknown'}
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'message': u'Given position_type "unknown" does not exist!\n',
+             u'type': u'BadRequest'})
+        json = {"signatory": 1, "position_type": 'default'}
+        # XXX to be continued
 
 
 def test_suite():
