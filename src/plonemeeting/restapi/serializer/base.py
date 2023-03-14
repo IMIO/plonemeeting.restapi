@@ -116,7 +116,8 @@ def serialize_attendees(context, attendee_uid=None, extra_include_name=None, bas
 
     # initialize voter
     voters = meeting.get_voters()
-    signatories = context.get_signatories() if is_meeting else context.get_item_signatories(include_position_type=True)
+    signatories = context.get_signatories(include_position_type=True) \
+        if is_meeting else context.get_item_signatories(include_position_type=True)
     non_attendees = context.get_item_non_attendees()
     for attendee in context.get_all_attendees(the_objects=True):
         if attendee_uid is not None and attendee.UID() != attendee_uid:
