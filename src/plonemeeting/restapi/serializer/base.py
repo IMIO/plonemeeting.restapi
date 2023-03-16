@@ -9,6 +9,7 @@ from imio.helpers.content import base_hasattr
 from imio.helpers.content import get_vocab
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
+from imio.restapi.utils import serialize_term
 from plone import api
 from plone.autoform.interfaces import READ_PERMISSIONS_KEY
 from plone.dexterity.interfaces import IDexterityContainer
@@ -35,6 +36,7 @@ from zope.component import ComponentLookupError
 from zope.component import getAdapter
 from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
+from zope.i18n import translate
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.schema import getFields
@@ -127,19 +129,38 @@ def serialize_attendees(context, attendee_uid=None, extra_include_name=None, bas
             extra_include_name=extra_include_name,
             serializer=base_serializer,
             interface=ISerializeToJson)
-        # we need position_type
+        # for is_meeting position_type, let the serializer manage it
         serializer._init()
         serializer.fullobjects = False
-        serializer.metadata_fields = ['position_type']
+        if is_meeting:
+            serializer.metadata_fields = ['position_type']
         serialized = serializer()
         serialized_uid = serialized['UID']
+        # for not is_meeting position_type, manage it manually as it may be redefined
+        # attendee (context) is used to return correct value depending on gender/number
+        position_type_vocab = None
+        if not is_meeting:
+            position_type_vocab = get_vocab(attendee, "PMPositionTypes")
+            serialized['position_type'] = serialize_term(
+                meeting.get_attendee_position_for(context.UID(), serialized_uid),
+                position_type_vocab)
         # manage "attendee_type"
-        serialized["attendee_type"] = "non_attendee" if \
+        attendee_type = "non_attendee" if \
             serialized_uid in non_attendees else attendee_types[serialized_uid]
+        serialized["attendee_type"] = {
+            'token': attendee_type,
+            'title': translate(attendee_type, domain="PloneMeeting", context=context.REQUEST)}
         # manage "signatory"
+        serialized["signatory"] = None
+        serialized["signatory_position_type"] = None
         signatory_infos = signatories.get(serialized_uid, {})
-        serialized["signatory"] = signatory_infos.get('signature_number', None)
-        serialized["signatory_position_type"] = signatory_infos.get('position_type', None)
+        if signatory_infos:
+            position_type_vocab = position_type_vocab if position_type_vocab is not None \
+                else get_vocab(attendee, "PMPositionTypes")
+            serialized["signatory"] = signatory_infos['signature_number']
+            serialized["signatory_position_type"] = serialize_term(
+                signatory_infos['position_type'],
+                position_type_vocab)
         # manage "voter"
         serialized["voter"] = serialized_uid in voters
         result.append(serialized)

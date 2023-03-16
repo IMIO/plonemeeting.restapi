@@ -124,8 +124,10 @@ class testServiceAttendees(BaseTestCase):
                     self.portal_url, url, hp_uid)
                 response = self.api_session.get(endpoint_url)
                 json = response.json()
+                self.assertEqual(json['position_type'],
+                                 {u'title': u'D\xe9faut', u'token': u'default'})
                 self.assertEqual(json['UID'], hp_uid)
-                self.assertEqual(json['attendee_type'], data[url][hp_uid][0])
+                self.assertEqual(json['attendee_type']['token'], data[url][hp_uid][0])
                 self.assertEqual(json['signatory'], data[url][hp_uid][1])
 
     def test_restapi_patch_meeting_attendee_endpoint(self):
@@ -147,20 +149,24 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(self.meeting.get_signatories()[self.hp1_uid], '1')
         json = {"signatory": 0, }
         response = self.api_session.patch(endpoint_url, json=json)
-        self.assertEqual(response.json()["attendee_type"], "present")
+        self.assertEqual(response.json()["attendee_type"],
+                         {u'token': u'present', u'title': u'Present'})
         self.assertEqual(response.json()["signatory"], None)
         # this time self.hp1_uid me be set absent
         json = {"attendee_type": "absent", }
         response = self.api_session.patch(endpoint_url, json=json)
-        self.assertEqual(response.json()["attendee_type"], "absent")
+        self.assertEqual(response.json()["attendee_type"],
+                         {u'token': u'absent', u'title': u'Absent'})
         # set it excused
         json = {"attendee_type": "excused", }
         response = self.api_session.patch(endpoint_url, json=json)
-        self.assertEqual(response.json()["attendee_type"], "excused")
+        self.assertEqual(response.json()["attendee_type"],
+                         {u'token': u'excused', u'title': u'Absent (excused)'})
         # set it present
         json = {"attendee_type": "present", }
         response = self.api_session.patch(endpoint_url, json=json)
-        self.assertEqual(response.json()["attendee_type"], "present")
+        self.assertEqual(response.json()["attendee_type"],
+                         {u'token': u'present', u'title': u'Present'})
         # will raise Unauthorized if user not able to edit meeting
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
         json = {"attendee_type": "absent", }
@@ -255,10 +261,16 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
-            {u'message': u'Given position_type "unknown" does not exist!\n',
+            {u'message': WRONG_POSITION_TYPE % "unknown",
              u'type': u'BadRequest'})
-        json = {"signatory": 1, "position_type": 'default'}
-        # XXX to be continued
+        json = {"signatory": 2, "position_type": 'administrator'}
+        response = self.api_session.patch(endpoint_url, json=json)
+        # change signature_number and signatory position_type
+        response_json = response.json()
+        self.assertEqual(response_json['signatory'], u'2')
+        self.assertEqual(response_json['signatory_position_type'],
+                         {u'title': u'Administratrice',
+                          u'token': u'administrator'})
 
 
 def test_suite():

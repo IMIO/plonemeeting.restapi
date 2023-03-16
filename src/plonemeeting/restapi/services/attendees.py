@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from AccessControl import Unauthorized
+from imio.helpers.content import get_vocab
 from imio.helpers.content import uuidToObject
 from plone import api
 from plone.restapi.deserializer import json_body
@@ -28,6 +29,8 @@ FIRST_UID_ITEM_OR_MEETING = "The first provided UID must be the UID of an item o
 URL_UID_REQUIRED_ERROR = "The object UID must be provided in the URL!"
 URL_ATTENDEE_UID_REQUIRED_ERROR = "The attendee UID must be provided in the URL!"
 WRONG_ATTENDEE_TYPE = "Wrong attendee_type : \"%s\""
+WRONG_PARAMETERS = "Your request is not supported, please check parameters!"
+WRONG_POSITION_TYPE = "Wrong position_type : \"%s\""
 
 
 @implementer(IExpandableElement)
@@ -212,6 +215,31 @@ class AttendeePatch(Service):
                 msg = translate(error, context=self.request)
                 raise BadRequest(msg)
 
+    def _manage_position_type(self, json):
+        """Manage changing a position_type for an attendee on MeetingItem."""
+        position_type = json.get('position_type')
+        remove = json.get('remove', False)
+        attendee = uuidToObject(self.attendee_uid)
+        position_type_vocab = get_vocab(attendee, "PMPositionTypes")
+        if position_type not in position_type_vocab:
+            raise BadRequest(WRONG_POSITION_TYPE % position_type)
+
+        self.request.form['person_uid'] = safe_unicode(self.attendee_uid)
+        form_name = "@@item_remove_redefined_attendee_position_form" if remove \
+            else "@@item_redefine_attendee_position_form"
+        form = self.context.restrictedTraverse(form_name)
+        form.update()
+        form.person_uid = self.attendee_uid
+        form.position_type = position_type
+        form.apply_until_item_number = _itemNumber_to_storedItemNumber(
+            str(json.get('until_item_number', u'0')))
+        form.meeting = self.context.getMeeting()
+        error = form._doApply()
+        if error:
+            # we get a message in error, translate it
+            msg = translate(error, context=self.request)
+            raise BadRequest(msg)
+
     def reply(self):
 
         # initialize self.context
@@ -235,9 +263,14 @@ class AttendeePatch(Service):
         if "attendee_type" in json:
             self._manage_attendee_type(json, is_meeting, meeting)
             was_managed = True
-        if "signatory" in json:
+        elif "signatory" in json:
             self._manage_signatory(json, is_meeting, meeting)
             was_managed = True
+        elif "position_type" in json and not is_meeting:
+            self._manage_position_type(json)
+            was_managed = True
+        else:
+            raise BadRequest(WRONG_PARAMETERS)
 
         result = None
         if was_managed:
