@@ -272,6 +272,40 @@ class testServiceAttendees(BaseTestCase):
                          {u'title': u'Administratrice',
                           u'token': u'administrator'})
 
+    def test_restapi_patch_item_attendee_position_type_endpoint(self):
+        """The @attendee PATCH on item that changes attendee position_type."""
+        # test an attendee that is excused on the meeting
+        # not possible to change it's position_type on item
+        self.assertTrue(self.hp2_uid in self.meeting.get_excused())
+        # try to set it absent, will fail as not present on the meeting
+        self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
+        json = {"position_type": "administrator", }
+        endpoint_url = "{0}/@attendee/{1}/{2}".format(
+            self.portal_url, self.item1_uid, self.hp2_uid)
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(
+            response.json()['position_type'],
+            {u'title': u'Administrateur',
+             u'token': u'administrator'})
+        # can change position_type that was already changed
+        json = {"position_type": "default", }
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(
+            response.json()['position_type'],
+            {u'title': u'D\xe9faut', u'token': u'default'})
+        # remove redefined position_type
+        json = {"position_type": "administrator", }
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(
+            response.json()['position_type'],
+            {u'title': u'Administrateur',
+             u'token': u'administrator'})
+        json = {"position_type": "administrator", "remove": 1}
+        response = self.api_session.patch(endpoint_url, json=json)
+        self.assertEqual(
+            response.json()['position_type'],
+            {u'title': u'D\xe9faut', u'token': u'default'})
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
