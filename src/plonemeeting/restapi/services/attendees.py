@@ -25,7 +25,8 @@ from zope.publisher.interfaces import IPublishTraverse
 from zope.publisher.interfaces import NotFound
 
 
-FIRST_UID_ITEM_OR_MEETING = "The first provided UID must be the UID of an item or a meeting!"
+FIRST_UID_TYPE = "The first provided UID must be the UID of an item or a meeting!"
+SECOND_UID_TYPE = "The second provided UID must be the UID of an attendee (held_position)!"
 URL_UID_REQUIRED_ERROR = "The object UID must be provided in the URL!"
 URL_ATTENDEE_UID_REQUIRED_ERROR = "The attendee UID must be provided in the URL!"
 WRONG_ATTENDEE_TYPE = "Wrong attendee_type : \"%s\""
@@ -98,36 +99,61 @@ class AttendeeGet(Service):
                 raise NotFound(self, name, request)
         return self
 
-    def reply(self):
-
-        # initialize self.context
+    def _init(self):
+        """ """
         if self.uid is None:
-            raise BadRequest("UID_REQUIRED_ERROR")
+            raise BadRequest(URL_UID_REQUIRED_ERROR)
+        if self.attendee_uid is None:
+            raise BadRequest(URL_ATTENDEE_UID_REQUIRED_ERROR)
+
         json = json_body(self.request)
         self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
+        if not self.context.getTagName() in ("MeetingItem", "Meeting", ):
+            raise BadRequest(FIRST_UID_TYPE)
+        self.attendee = rest_uuid_to_object(self.attendee_uid, in_name_of=json.get("in_name_of"))
+        if self.attendee.portal_type not in ("held_position", ):
+            raise BadRequest(SECOND_UID_TYPE)
+
+    def reply(self):
+        # check required data and initialize context
+        self._init()
 
         # process
-        result = serialize_attendees(self.context, attendee_uid=self.attendee_uid)
+        result = serialize_attendees(self.context, attendee=self.attendee)
         return result and result[0]
 
 
 @implementer(IPublishTraverse)
-class AttendeePatch(Service):
+class AttendeePatch(AttendeeGet):
 
-    def __init__(self, context, request):
-        super(AttendeePatch, self).__init__(context, request)
-        self.uid = None
-        self.attendee_uid = None
+    def reply(self):
 
-    def publishTraverse(self, request, name):
-        if self.uid is None:
-            self.uid = name
+        # check required data and initialize context
+        self._init()
+
+        # process
+        is_meeting = self.context.__class__.__name__ == "Meeting"
+        if is_meeting and not _checkPermission(ModifyPortalContent, self.context):
+            raise Unauthorized
+        meeting = self.context if is_meeting else self.context.getMeeting()
+        json = json_body(self.request)
+        was_managed = False
+        if "attendee_type" in json:
+            self._manage_attendee_type(json, is_meeting, meeting)
+            was_managed = True
+        elif "signatory" in json:
+            self._manage_signatory(json, is_meeting, meeting)
+            was_managed = True
+        elif "position_type" in json and not is_meeting:
+            self._manage_position_type(json)
+            was_managed = True
         else:
-            if self.attendee_uid is None:
-                self.attendee_uid = name
-            else:
-                raise NotFound(self, name, request)
-        return self
+            raise BadRequest(WRONG_PARAMETERS)
+
+        result = None
+        if was_managed:
+            result = serialize_attendees(self.context, attendee=self.attendee)
+        return result and result[0]
 
     def _manage_attendee_type(self, json, is_meeting, meeting):
         """Change attendee type on Meeting or MeetingItem.
@@ -239,40 +265,3 @@ class AttendeePatch(Service):
             # we get a message in error, translate it
             msg = translate(error, context=self.request)
             raise BadRequest(msg)
-
-    def reply(self):
-
-        # initialize self.context
-        if self.uid is None:
-            raise BadRequest(URL_UID_REQUIRED_ERROR)
-        if self.attendee_uid is None:
-            raise BadRequest(URL_ATTENDEE_UID_REQUIRED_ERROR)
-
-        json = json_body(self.request)
-        self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
-        if not self.context.getTagName() in ("MeetingItem", "Meeting", ):
-            raise BadRequest(FIRST_UID_ITEM_OR_MEETING)
-
-        # process
-        is_meeting = self.context.__class__.__name__ == "Meeting"
-        if is_meeting and not _checkPermission(ModifyPortalContent, self.context):
-            raise Unauthorized
-        meeting = self.context if is_meeting else self.context.getMeeting()
-        json = json_body(self.request)
-        was_managed = False
-        if "attendee_type" in json:
-            self._manage_attendee_type(json, is_meeting, meeting)
-            was_managed = True
-        elif "signatory" in json:
-            self._manage_signatory(json, is_meeting, meeting)
-            was_managed = True
-        elif "position_type" in json and not is_meeting:
-            self._manage_position_type(json)
-            was_managed = True
-        else:
-            raise BadRequest(WRONG_PARAMETERS)
-
-        result = None
-        if was_managed:
-            result = serialize_attendees(self.context, attendee_uid=self.attendee_uid)
-        return result and result[0]

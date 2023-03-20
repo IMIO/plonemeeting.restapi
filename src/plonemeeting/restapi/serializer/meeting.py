@@ -35,7 +35,7 @@ class BaseSerializeMeetingToJson(object):
             result = serialize_extra_include_annexes(result, self)
         if "attendees" in extra_include:
             result["extra_include_attendees"] = serialize_attendees(
-                self.context, "attendees", self)
+                self.context, extra_include_name="attendees", base_serializer=self)
         return result
 
     def _include_custom(self, obj, result):

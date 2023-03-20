@@ -96,7 +96,7 @@ def serialize_annexes(context, filters, extra_include_name=None, base_serializer
     return result
 
 
-def serialize_attendees(context, attendee_uid=None, extra_include_name=None, base_serializer=None):
+def serialize_attendees(context, attendee=None, extra_include_name=None, base_serializer=None):
     """ """
     result = []
     tool = api.portal.get_tool("portal_plonemeeting")
@@ -121,9 +121,8 @@ def serialize_attendees(context, attendee_uid=None, extra_include_name=None, bas
     signatories = context.get_signatories(include_position_type=True) \
         if is_meeting else context.get_item_signatories(include_position_type=True)
     non_attendees = context.get_item_non_attendees()
-    for attendee in context.get_all_attendees(the_objects=True):
-        if attendee_uid is not None and attendee.UID() != attendee_uid:
-            continue
+    attendees = [attendee] if attendee is not None else context.get_all_attendees(the_objects=True)
+    for attendee in attendees:
         serializer = get_serializer(
             attendee,
             extra_include_name=extra_include_name,
