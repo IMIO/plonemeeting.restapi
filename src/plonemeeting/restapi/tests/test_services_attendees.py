@@ -61,16 +61,20 @@ class testServiceAttendees(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         json = response.json()
         self.assertEqual(json[0]['UID'], self.hp1_uid)
-        self.assertEqual(json[0]['attendee_type'], 'present')
+        self.assertEqual(json[0]['attendee_type'],
+                         {u'token': u'present', u'title': u'Present'})
         self.assertEqual(json[0]['signatory'], u'1')
         self.assertEqual(json[1]['UID'], self.hp2_uid)
-        self.assertEqual(json[1]['attendee_type'], 'excused')
+        self.assertEqual(json[1]['attendee_type'],
+                         {u'token': u'excused', u'title': u'Absent (excused)'})
         self.assertEqual(json[1]['signatory'], None)
         self.assertEqual(json[2]['UID'], self.hp3_uid)
-        self.assertEqual(json[2]['attendee_type'], 'present')
+        self.assertEqual(json[2]['attendee_type'],
+                         {u'token': u'present', u'title': u'Present'})
         self.assertEqual(json[2]['signatory'], None)
         self.assertEqual(json[3]['UID'], self.hp4_uid)
-        self.assertEqual(json[3]['attendee_type'], 'present')
+        self.assertEqual(json[3]['attendee_type'],
+                         {u'token': u'present', u'title': u'Present'})
         self.assertEqual(json[3]['signatory'], u'2')
         # MeetingItem
         endpoint_url = "{0}/@attendees/{1}".format(
@@ -78,16 +82,20 @@ class testServiceAttendees(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         json = response.json()
         self.assertEqual(json[0]['UID'], self.hp1_uid)
-        self.assertEqual(json[0]['attendee_type'], 'present')
+        self.assertEqual(json[0]['attendee_type'],
+                         {u'token': u'present', u'title': u'Present'})
         self.assertEqual(json[0]['signatory'], u'1')
         self.assertEqual(json[1]['UID'], self.hp2_uid)
-        self.assertEqual(json[1]['attendee_type'], 'excused')
+        self.assertEqual(json[1]['attendee_type'],
+                         {u'token': u'excused', u'title': u'Absent (excused)'})
         self.assertEqual(json[1]['signatory'], None)
         self.assertEqual(json[2]['UID'], self.hp3_uid)
-        self.assertEqual(json[2]['attendee_type'], 'absent')
+        self.assertEqual(json[2]['attendee_type'],
+                         {u'token': u'absent', u'title': u'Absent'})
         self.assertEqual(json[2]['signatory'], None)
         self.assertEqual(json[3]['UID'], self.hp4_uid)
-        self.assertEqual(json[3]['attendee_type'], 'non_attendee')
+        self.assertEqual(json[3]['attendee_type'],
+                         {u'token': u'non_attendee', u'title': u'Non attendee'})
         # a non_attendee can not be signatory
         self.assertEqual(json[3]['signatory'], None)
 
@@ -331,14 +339,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(response.json()['signatory'], '1')
         self.assertTrue(self.hp3_uid in self.item1.get_item_signatories())
         self.assertTrue(self.hp3_uid in self.item1.get_item_signatories(real=True))
-        # need to remove and add signatory again to change a redefined signatory number
-        json = {"signatory": 1}
-        response = self.api_session.patch(endpoint_url, json=json)
-        self.assertEqual(response.status_code, 400, response.content)
-        self.assertEqual(
-            response.json(),
-            {u'message': u'Can not set "Signatory" a person already redefined as signatory on an item!\n',
-             u'type': u'BadRequest'})
+        # use signature number 0 to remove a signatory
         json = {"signatory": 0}
         response = self.api_session.patch(endpoint_url, json=json)
         transaction.commit()
