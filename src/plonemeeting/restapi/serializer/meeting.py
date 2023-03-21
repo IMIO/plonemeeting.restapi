@@ -22,7 +22,7 @@ class BaseSerializeMeetingToJson(object):
 
     def _available_extra_includes(self, result):
         """ """
-        result["@extra_includes"] = ["annexes", "pod_templates", "attendees"]
+        result["@extra_includes"] = ["annexes", "attendees", "pod_templates"]
         return result
 
     def _extra_include(self, result):

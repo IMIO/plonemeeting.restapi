@@ -7,8 +7,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Added `@attendees GET` on meeting and item and `@attendee GET/PATCH`
+  on meeting and item. Added `extra_include=attendees` on meeting and item.
+  [gbastien]
 
 2.0.1 (2023-03-07)
 ------------------

@@ -401,6 +401,47 @@ class testServiceAttendees(BaseTestCase):
             response.json()['position_type'],
             {u'title': u'D\xe9faut', u'token': u'default'})
 
+    def test_restapi_extra_include_attendees(self):
+        """extra_include=attendees is available on item and meeting."""
+        self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
+        # Meeting
+        endpoint_url = "{0}/@get?UID={1}&extra_include=attendees".format(
+            self.portal_url, self.meeting_uid)
+        response = self.api_session.get(endpoint_url)
+        response_json = response.json()
+        self.assertEqual(
+            response_json['extra_include_attendees'][0]['attendee_type'],
+            {u'title': u'Present', u'token': u'present'})
+        self.assertEqual(
+            response_json['extra_include_attendees'][0]['signatory'], '1')
+        self.assertEqual(
+            response_json['extra_include_attendees'][1]['attendee_type'],
+            {u'title': u'Absent (excused)', u'token': u'excused'},)
+        self.assertIsNone(response_json['extra_include_attendees'][1]['signatory'])
+        self.assertEqual(
+            response_json['extra_include_attendees'][3]['attendee_type'],
+            {u'title': u'Present', u'token': u'present'})
+        self.assertEqual(
+            response_json['extra_include_attendees'][3]['signatory'], '2')
+        # Item
+        endpoint_url = "{0}/@get?UID={1}&extra_include=attendees".format(
+            self.portal_url, self.item1_uid)
+        response = self.api_session.get(endpoint_url)
+        response_json = response.json()
+        self.assertEqual(
+            response_json['extra_include_attendees'][0]['attendee_type'],
+            {u'title': u'Present', u'token': u'present'})
+        self.assertEqual(
+            response_json['extra_include_attendees'][0]['signatory'], '1')
+        self.assertEqual(
+            response_json['extra_include_attendees'][1]['attendee_type'],
+            {u'title': u'Absent (excused)', u'token': u'excused'},)
+        self.assertIsNone(response_json['extra_include_attendees'][1]['signatory'])
+        self.assertEqual(
+            response_json['extra_include_attendees'][3]['attendee_type'],
+            {u'token': u'non_attendee', u'title': u'Non attendee'})
+        self.assertIsNone(response_json['extra_include_attendees'][3]['signatory'])
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
