@@ -337,6 +337,15 @@ class testServiceAttendees(BaseTestCase):
         response = self.api_session.patch(endpoint_url, json=json)
         transaction.commit()
         self.assertEqual(response.json()['signatory'], '1')
+        # can change signatory even when already set
+        json = {"signatory": 2}
+        response = self.api_session.patch(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.json()['signatory'], '2')
+        json = {"signatory": 3}
+        response = self.api_session.patch(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.json()['signatory'], '3')
         self.assertTrue(self.hp3_uid in self.item1.get_item_signatories())
         self.assertTrue(self.hp3_uid in self.item1.get_item_signatories(real=True))
         # use signature number 0 to remove a signatory
