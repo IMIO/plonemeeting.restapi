@@ -289,7 +289,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
-            {u'message': u'Can not set "Absent" a person that is not present on the meeting!\n',
+            {u'message': u'Can not set "Absent" a person that is not present on the meeting!',
              u'type': u'BadRequest'})
         # same for non_attendee
         json = {"attendee_type": "non_attendee", }
@@ -297,7 +297,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
-            {u'message': u'Can not set "Non attendee" a person that is not present on the meeting!\n',
+            {u'message': u'Can not set "Non attendee" a person that is not present on the meeting!',
              u'type': u'BadRequest'})
         # wrong attendee type
         json = {"attendee_type": "unknown", }
@@ -314,7 +314,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
-            {u'message': u'Can not set "Signatory" a person that is not present on the meeting!\n',
+            {u'message': u'Can not set "Signatory" a person that is not present on the meeting!',
              u'type': u'BadRequest'})
         # work with hp1_uid, already signatory on the meeting
         endpoint_url = "{0}/@attendee/{1}/{2}".format(
@@ -325,7 +325,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
-            {u'message': u'Can not set "Signatory" a person that is already signatory on the meeting!\n',
+            {u'message': u'Can not set "Signatory" a person that is already signatory on the meeting!',
              u'type': u'BadRequest'})
 
         # now with self.hp3_uid that is not signatory on the meeting not on the item
