@@ -171,12 +171,6 @@ def serialize_attendees(context, attendee=None, extra_include_name=None, base_se
     return result
 
 
-def serialize_person(held_position, serializer):
-    """ """
-
-    return {}
-
-
 def serialize_extra_include_annexes(result, serializer):
     """ """
     # compute filters to get annexes
