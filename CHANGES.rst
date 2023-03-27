@@ -7,8 +7,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Added `@attendees GET` on meeting and item and `@attendee GET/PATCH`
+  on meeting and item. Added `extra_include=attendees` on meeting and item.
+  [gbastien]
 
 2.0.1 (2023-03-07)
 ------------------
@@ -68,7 +69,7 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 - Refactored `@item extra_include=linked_items` to filter results using a
   catalog query so parameters and functionnality is similar to other endpoints.
   Removed `utils.filter_data` that could be dangerous and build a catalog query.
-  Formalized convienence catalog index names substitution (passing parameter `type`
+  Formalized convenience catalog index names substitution (passing parameter `type`
   corresponds to index `portal_type` or `state` corresponds to `review_state`).
   [gbastien]
 - Parameter `config_id` is no more required when using `in_name_of`

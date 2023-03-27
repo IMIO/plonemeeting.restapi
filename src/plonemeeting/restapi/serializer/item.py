@@ -5,6 +5,7 @@ from plone import api
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseATSerializeFolderToJson
+from plonemeeting.restapi.serializer.base import serialize_attendees
 from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
@@ -22,6 +23,7 @@ class BaseSerializeItemToJson(object):
         """ """
         result["@extra_includes"] = [
             "annexes",
+            "attendees",
             "proposing_group",
             "category",
             "classifier",
@@ -127,6 +129,9 @@ class BaseSerializeItemToJson(object):
             if cfg:
                 serializer = self._get_serializer(cfg, "config")
                 result["extra_include_config"] = serializer()
+        if "attendees" in extra_include:
+            result["extra_include_attendees"] = serialize_attendees(
+                self.context, extra_include_name="attendees", base_serializer=self)
 
         # various type of deliberation may be included
         # if we find a key containing "deliberation", we use it

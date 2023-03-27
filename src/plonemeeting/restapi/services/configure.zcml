@@ -3,7 +3,7 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     xmlns:zcml="http://namespaces.zope.org/zcml">
 
-  <!-- get UID -->
+  <!-- GET element from UID -->
   <plone:service
     method="GET"
     for="Products.CMFPlone.interfaces.IPloneSiteRoot"
@@ -12,7 +12,7 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
-  <!-- search -->
+  <!-- GET search -->
   <plone:service
     method="GET"
     for="Products.CMFCore.interfaces.ISiteRoot"
@@ -40,7 +40,7 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
-  <!-- get UID item -->
+  <!-- GET item from UID -->
   <plone:service
     method="GET"
     for="Products.CMFCore.interfaces.IFolderish"
@@ -69,7 +69,7 @@
 
   <adapter factory=".annex.Annexes" name="annex" />
 
-  <!-- annexes -->
+  <!-- GET annexes -->
   <plone:service
     method="GET"
     for="zope.interface.Interface"
@@ -79,7 +79,7 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
-  <!-- get config -->
+  <!-- GET config -->
   <plone:service
     method="GET"
     for="zope.interface.Interface"
@@ -89,7 +89,7 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
-  <!-- get infos -->
+  <!-- GET infos -->
   <plone:service
     method="GET"
     for="zope.interface.Interface"
@@ -99,13 +99,46 @@
     layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
     permission="zope2.View" />
 
-  <!-- get users -->
+  <!-- GET users -->
   <plone:service
       method="GET"
-      factory=".users.PMUsersGet"
       for="Products.CMFCore.interfaces.ISiteRoot"
-      permission="zope2.View"
+      accept="application/json,application/schema+json"
+      name="@users"
+      factory=".users.PMUsersGet"
       layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
-      name="@users" />
+      permission="zope2.View" />
+
+  <!-- GET attendees on meeting or item -->
+  <plone:service
+      method="GET"
+      for="Products.CMFCore.interfaces.ISiteRoot"
+      accept="application/json,application/schema+json"
+      name="@attendees"
+      factory=".attendees.AttendeesGet"
+      layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+      permission="zope2.View" />
+
+  <!-- GET attendee on meeting or item -->
+  <plone:service
+      method="GET"
+      for="Products.CMFCore.interfaces.ISiteRoot"
+      accept="application/json,application/schema+json"
+      name="@attendee"
+      factory=".attendees.AttendeeGet"
+      layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+      permission="zope2.View" />
+
+  <adapter factory=".attendees.Attendees" name="attendees" />
+
+  <!-- PATCH attendee on meeting or item -->
+  <plone:service
+      method="PATCH"
+      for="Products.CMFCore.interfaces.ISiteRoot"
+      accept="application/json,application/schema+json"
+      name="@attendee"
+      factory=".attendees.AttendeePatch"
+      layer="plonemeeting.restapi.interfaces.IPMRestapiLayer"
+      permission="zope2.View" />
 
 </configure>

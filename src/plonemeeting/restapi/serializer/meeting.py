@@ -5,6 +5,7 @@ from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import BaseDXSerializeFolderToJson
+from plonemeeting.restapi.serializer.base import serialize_attendees
 from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
@@ -21,7 +22,7 @@ class BaseSerializeMeetingToJson(object):
 
     def _available_extra_includes(self, result):
         """ """
-        result["@extra_includes"] = ["annexes", "pod_templates"]
+        result["@extra_includes"] = ["annexes", "attendees", "pod_templates"]
         return result
 
     def _extra_include(self, result):
@@ -32,6 +33,9 @@ class BaseSerializeMeetingToJson(object):
                 self.context, self)
         if "annexes" in extra_include:
             result = serialize_extra_include_annexes(result, self)
+        if "attendees" in extra_include:
+            result["extra_include_attendees"] = serialize_attendees(
+                self.context, extra_include_name="attendees", base_serializer=self)
         return result
 
     def _include_custom(self, obj, result):

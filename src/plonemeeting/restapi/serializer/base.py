@@ -9,6 +9,7 @@ from imio.helpers.content import base_hasattr
 from imio.helpers.content import get_vocab
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
+from imio.restapi.utils import serialize_term
 from plone import api
 from plone.autoform.interfaces import READ_PERMISSIONS_KEY
 from plone.dexterity.interfaces import IDexterityContainer
@@ -30,12 +31,12 @@ from plonemeeting.restapi.config import ANNEXES_FILTER_VALUES
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.utils import get_param
 from plonemeeting.restapi.utils import get_serializer
-from Products.CMFCore.utils import getToolByName
 from zope.component import adapter
 from zope.component import ComponentLookupError
 from zope.component import getAdapter
 from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
+from zope.i18n import translate
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.schema import getFields
@@ -91,8 +92,82 @@ def serialize_annexes(context, filters, extra_include_name=None, base_serializer
     for annex in annexes:
         serializer = get_serializer(
             annex, extra_include_name=extra_include_name, serializer=base_serializer)
-        serialized_annex = serializer()
-        result.append(serialized_annex)
+        result.append(serializer())
+    return result
+
+
+def serialize_attendees(context, attendee=None, extra_include_name=None, base_serializer=None):
+    """ """
+    result = []
+    tool = api.portal.get_tool("portal_plonemeeting")
+    cfg = tool.getMeetingConfig(context)
+    attendee_types = {}
+    is_meeting = context.__class__.__name__ == "Meeting"
+    meeting = context if is_meeting else context.getMeeting()
+    if is_meeting:
+        attendee_types.update({attendee_uid: 'present' for attendee_uid in context.get_attendees()})
+        attendee_types.update({absent_uid: 'absent' for absent_uid in context.get_absents()})
+        attendee_types.update({excused_uid: 'excused' for excused_uid in context.get_excused()})
+    else:
+        # MeetingItem
+        attendee_types.update({attendee_uid: 'present' for attendee_uid in context.get_attendees()})
+        attendee_types.update({absent_uid: 'absent' for absent_uid in
+                               meeting.get_absents() + context.get_item_absents()})
+        attendee_types.update({excused_uid: 'excused' for excused_uid in
+                               meeting.get_excused() + context.get_item_excused()})
+
+    # initialize voter
+    voters = meeting.get_voters()
+    signatories = context.get_signatories(include_position_type=True) \
+        if is_meeting else context.get_item_signatories(include_position_type=True)
+    non_attendees = context.get_item_non_attendees()
+    attendees = [attendee] if attendee is not None else context.get_all_attendees(the_objects=True)
+    for attendee in attendees:
+        serializer = get_serializer(
+            attendee,
+            extra_include_name=extra_include_name,
+            serializer=base_serializer,
+            interface=ISerializeToJson)
+        # for is_meeting position_type, let the serializer manage it
+        serializer._init()
+        serializer.fullobjects = False
+        if is_meeting:
+            serializer.metadata_fields = ['position_type']
+        serialized = serializer()
+        serialized_uid = serialized['UID']
+        # for not is_meeting position_type, manage it manually as it may be redefined
+        # attendee (context) is used to return correct value depending on gender/number
+        position_type_vocab = None
+        if not is_meeting:
+            position_type_vocab = get_vocab(attendee, "PMPositionTypes")
+            serialized['position_type'] = serialize_term(
+                meeting.get_attendee_position_for(context.UID(), serialized_uid),
+                position_type_vocab)
+        # manage "attendee_type"
+        attendee_type = "non_attendee" if \
+            serialized_uid in non_attendees else attendee_types[serialized_uid]
+        serialized["attendee_type"] = {
+            'token': attendee_type,
+            'title': translate(attendee_type, domain="PloneMeeting", context=context.REQUEST)}
+        # manage "signatory"
+        serialized["signatory"] = None
+        serialized["signatory_position_type"] = None
+        signatory_infos = signatories.get(serialized_uid, {})
+        if signatory_infos:
+            position_type_vocab = position_type_vocab if position_type_vocab is not None \
+                else get_vocab(attendee, "PMPositionTypes")
+            serialized["signatory"] = signatory_infos['signature_number']
+            serialized["signatory_position_type"] = serialize_term(
+                signatory_infos['position_type'],
+                position_type_vocab)
+        # manage "voter"
+        serialized["voter"] = serialized_uid in voters
+        result.append(serialized)
+        # manage hp title that could change on item
+        item = None
+        if not is_meeting:
+            item = context
+        serialized["title"] = meeting.get_attendee_short_title(attendee, cfg, item=item)
     return result
 
 
@@ -117,6 +192,9 @@ class BaseSerializeToJson(object):
 
     def _init(self):
         """ """
+        # if already _init, pass, could have been changed manually
+        if base_hasattr(self, 'metadata_fields'):
+            return
         self.metadata_fields = self.get_param('metadata_fields', [])
         self.asked_extra_include = self._get_asked_extra_include()
         self.asked_additional_values = self._get_asked_additional_values()
@@ -298,7 +376,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
         if include_items:
             query = self._build_query()
 
-            catalog = getToolByName(self.context, "portal_catalog")
+            catalog = api.portal.get_tool("portal_catalog")
             brains = catalog(query)
 
             batch = HypermediaBatch(self.request, brains)

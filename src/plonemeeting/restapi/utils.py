@@ -52,15 +52,16 @@ def check_in_name_of(cfg_id, data):
     return in_name_of, access_cfg_ids
 
 
-def get_serializer(obj, extra_include_name=None, serializer=None):
+def get_serializer(obj, extra_include_name=None, serializer=None, interface=ISerializeToJsonSummary):
     """ """
     request = getRequest()
-    interface = ISerializeToJsonSummary
-    prefix = ''
-    if extra_include_name:
-        prefix = "extra_include_{0}_".format(extra_include_name)
-    if use_obj_serializer(request.form, prefix=prefix):
-        interface = ISerializeToJson
+    # check if need to use ISerializeToJson interface
+    if interface != ISerializeToJson:
+        prefix = ''
+        if extra_include_name:
+            prefix = "extra_include_{0}_".format(extra_include_name)
+        if use_obj_serializer(request.form, prefix=prefix):
+            interface = ISerializeToJson
     serializer = queryMultiAdapter((obj, request), interface)
     if extra_include_name:
         serializer._extra_include_name = extra_include_name
