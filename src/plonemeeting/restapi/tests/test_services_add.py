@@ -21,6 +21,7 @@ from plonemeeting.restapi.tests.config import base64_pdf_data
 from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.CMFPlone.utils import safe_unicode
+from Products.PloneMeeting.config import ITEM_NO_PREFERRED_MEETING_VALUE
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.utils import get_annexes
 
@@ -221,6 +222,7 @@ class testServiceAdd(BaseTestCase):
         json = {
             "config_id": cfg.getId(),
             "proposingGroup": self.developers.getId(),
+            "preferredMeeting": "unknown_uid",
             "optionalAdvisers": [self.vendors.getId(), self.orgOutside1_uid],
             "groupsInCharge": [self.vendors.getId(), self.orgOutside1_uid],
             "title": "My item",
@@ -229,12 +231,16 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
-            {u'message': u'[{\'field\': \'groupsInCharge\', \'message\': u"Values [\'%s\'] '
-             u'are not allowed for vocabulary of element Groups in charge.", \'error\': \'ValidationError\'}, '
-             u'{\'field\': \'optionalAdvisers\', \'message\': u"Values [\'%s\'] are not allowed for '
-             u'vocabulary of element Optional advisers.", \'error\': \'ValidationError\'}]' % (
-                 self.orgOutside1_uid, self.orgOutside1_uid),
+            {u'message': u'[{\'field\': \'groupsInCharge\', \'message\': '
+             u'u"Values [\'%s\'] are not allowed for vocabulary of element Groups in charge.", '
+             u'\'error\': \'ValidationError\'}, {\'field\': \'optionalAdvisers\', '
+             u'\'message\': u"Values [\'%s\'] are not allowed for vocabulary of element Optional advisers.", '
+             u'\'error\': \'ValidationError\'}, {\'field\': \'preferredMeeting\', \'message\': '
+             u'u"Values [\'unknown_uid\'] are not allowed for vocabulary of element Preferred meeting.", '
+             u'\'error\': \'ValidationError\'}]' % (self.orgOutside1_uid, self.orgOutside1_uid),
              u'type': u'BadRequest'})
+        # if preferredMeeting set to None, then created item will use ITEM_NO_PREFERRED_MEETING_VALUE
+        json["preferredMeeting"] = None
         # check for groupsInCharge
         json["optionalAdvisers"] = [self.vendors.getId()]
         response = self.api_session.post(endpoint_url, json=json)
@@ -249,6 +255,8 @@ class testServiceAdd(BaseTestCase):
         json["groupsInCharge"] = [self.vendors.getId()]
         response = self.api_session.post(endpoint_url, json=json)
         self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(response.json()["preferredMeeting"],
+                         {u'token': u'whatever', u'title': u'No preference'})
 
     def test_restapi_add_item_wf_transitions_present(self):
         """When creating an item, we may define "wf_transitions"
