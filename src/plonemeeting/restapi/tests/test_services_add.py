@@ -21,7 +21,6 @@ from plonemeeting.restapi.tests.config import base64_pdf_data
 from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
 from plonemeeting.restapi.utils import IN_NAME_OF_USER_NOT_FOUND
 from Products.CMFPlone.utils import safe_unicode
-from Products.PloneMeeting.config import ITEM_NO_PREFERRED_MEETING_VALUE
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.utils import get_annexes
 
@@ -440,10 +439,11 @@ class testServiceAdd(BaseTestCase):
         )
         # use "ignore_validation_for" correctly
         # bypass category validation and classifier validation
-        # remove category from data and pass an empty classifier
+        # pass empty classifier/category
+        # define a ignore_validation_for a field that it not in json data
         # check also that such an item may be set to WF state "validated"
-        json["ignore_validation_for"] = ["category", "classifier"]
-        json.pop("category")
+        json["ignore_validation_for"] = ["category", "classifier", "groupsInCharge"]
+        json["category"] = None
         json["classifier"] = None
         json["wf_transitions"] = ["propose", "validate"]
         response = self.api_session.post(endpoint_url, json=json)
@@ -455,7 +455,8 @@ class testServiceAdd(BaseTestCase):
         self.assertEqual(item.getClassifier(), "")
         # a warning was added nevertheless
         self.assertEqual(response.json()['@warnings'],
-                         [IGNORE_VALIDATION_FOR_WARNING % "category, classifier"])
+                         [IGNORE_VALIDATION_FOR_WARNING %
+                          "category, classifier, groupsInCharge"])
         self.assertEqual(item.query_state(), "validated")
 
     def test_restapi_add_item_wf_transitions(self):
