@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from collective.behavior.internalnumber.browser.settings import set_settings
 from collective.iconifiedcategory.utils import calculate_category_id
 from datetime import datetime
 from datetime import timedelta
@@ -888,6 +889,24 @@ class testServiceAddWithAnnexes(BaseTestCase):
         )
         self.assertEqual(annex2.file.size, 6475)
         self.assertEqual(annex2.file.contentType, "application/pdf")
+
+    def test_restapi_add_item_with_internal_number(self):
+        """When creating an item and using internal_number, it is correctly incremented."""
+        cfg = self.meetingConfig
+        set_settings({cfg.getItemTypeName(): {'u': False, 'nb': 5, 'expr': u'number'}})
+        transaction.commit()
+        self.changeUser("pmManager")
+        endpoint_url = "{0}/@item".format(self.portal_url)
+        json = {
+            "config_id": cfg.getId(),
+            "proposingGroup": self.developers.getId(),
+            "title": "My item",
+        }
+        self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        pmFolder = self.getMeetingFolder()
+        item = pmFolder.objectValues()[-1]
+        self.assertEqual(item.internal_number, 5)
 
     def test_restapi_add_a_meeting_with_annexes(self):
         """When creating a meeting, we may add annexes as __children__,
