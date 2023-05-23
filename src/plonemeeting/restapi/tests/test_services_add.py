@@ -907,6 +907,7 @@ class testServiceAddWithAnnexes(BaseTestCase):
         pmFolder = self.getMeetingFolder()
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.internal_number, 5)
+        self.assertEqual(self.catalog(internal_number=5)[0].UID, item.UID())
 
     def test_restapi_add_a_meeting_with_annexes(self):
         """When creating a meeting, we may add annexes as __children__,
