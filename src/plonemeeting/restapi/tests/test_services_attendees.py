@@ -23,6 +23,10 @@ class testServiceAttendees(BaseTestCase):
         super(testServiceAttendees, self).setUp()
         self._setUpOrderedContacts()
         self.changeUser("pmManager")
+        # item out of meeting
+        self.item0 = self.create("MeetingItem", proposingGroup=self.developers_uid)
+        self.item0_uid = self.item0.UID()
+        self.item0_url = self.item0.absolute_url()
         self.item1 = self.create("MeetingItem", proposingGroup=self.developers_uid)
         self.item1_uid = self.item1.UID()
         self.item1_url = self.item1.absolute_url()
@@ -98,6 +102,13 @@ class testServiceAttendees(BaseTestCase):
                          {u'token': u'non_attendee', u'title': u'Non attendee'})
         # a non_attendee can not be signatory
         self.assertEqual(json[3]['signatory'], None)
+
+        # item out of meeting
+        endpoint_url = "{0}/@attendees/{1}".format(
+            self.portal_url, self.item0_uid)
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json, [])
 
         # must be able to view the item to get attendees
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
@@ -450,6 +461,12 @@ class testServiceAttendees(BaseTestCase):
             response_json['extra_include_attendees'][3]['attendee_type'],
             {u'token': u'non_attendee', u'title': u'Non attendee'})
         self.assertIsNone(response_json['extra_include_attendees'][3]['signatory'])
+        # item out of meeting
+        endpoint_url = "{0}/@get?UID={1}&extra_include=attendees".format(
+            self.portal_url, self.item0_uid)
+        response = self.api_session.get(endpoint_url)
+        response_json = response.json()
+        self.assertEqual(response_json['extra_include_attendees'], [])
 
 
 def test_suite():

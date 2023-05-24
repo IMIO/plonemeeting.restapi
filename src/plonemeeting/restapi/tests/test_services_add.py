@@ -908,6 +908,20 @@ class testServiceAddWithAnnexes(BaseTestCase):
         item = pmFolder.objectValues()[-1]
         self.assertEqual(item.internal_number, 5)
         self.assertEqual(self.catalog(internal_number=5)[0].UID, item.UID())
+        # returned when using metadata_fields even if not a real field
+        # internal_number, not a real field, managed manually
+        endpoint_url = "{0}/@get?uid={1}" \
+            "&metadata_fields=internal_number".format(self.portal_url, item.UID())
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json["internal_number"], 5)
+        # also returned when using fullobjects
+        endpoint_url = endpoint_url.replace("&metadata_fields=internal_number", "&fullobjects")
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json["internal_number"], 5)
 
     def test_restapi_add_a_meeting_with_annexes(self):
         """When creating a meeting, we may add annexes as __children__,

@@ -104,6 +104,9 @@ def serialize_attendees(context, attendee=None, extra_include_name=None, base_se
     attendee_types = {}
     is_meeting = context.__class__.__name__ == "Meeting"
     meeting = context if is_meeting else context.getMeeting()
+    # return empty result when called on item out of meeting
+    if meeting is None:
+        return result
     if is_meeting:
         attendee_types.update({attendee_uid: 'present' for attendee_uid in context.get_attendees()})
         attendee_types.update({absent_uid: 'absent' for absent_uid in context.get_absents()})

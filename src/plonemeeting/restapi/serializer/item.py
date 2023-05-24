@@ -11,6 +11,7 @@ from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
 from plonemeeting.restapi.utils import build_catalog_query
 from Products.PloneMeeting.interfaces import IMeetingItem
+from Products.PloneMeeting.utils import get_internal_number
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
@@ -184,6 +185,14 @@ class BaseSerializeItemToJson(object):
 @adapter(IMeetingItem, Interface)
 class SerializeToJson(BaseSerializeItemToJson, BaseATSerializeFolderToJson):
     """ """
+
+    def _include_fields(self, obj):
+        """Manage internal_numbe manually as it is not a field for now but
+           a stored attribute, will be a field when item will be DX."""
+        result = super(SerializeToJson, self)._include_fields(obj)
+        if self.fullobjects or "internal_number" in self.metadata_fields:
+            result["internal_number"] = get_internal_number(obj)
+        return result
 
 
 @implementer(ISerializeToJsonSummary)
