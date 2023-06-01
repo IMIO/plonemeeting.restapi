@@ -137,7 +137,8 @@ def serialize_attendees(context, attendee=None, extra_include_name=None, base_se
         if is_meeting:
             serializer.metadata_fields = ['position_type']
         serialized = serializer()
-        serialized_uid = serialized['UID']
+        # 'UID' could not be in serialized if include_base_data=false
+        serialized_uid = serialized.get('UID', attendee.UID())
         # for not is_meeting position_type, manage it manually as it may be redefined
         # attendee (context) is used to return correct value depending on gender/number
         position_type_vocab = None
