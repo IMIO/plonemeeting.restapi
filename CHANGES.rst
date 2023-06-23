@@ -8,7 +8,7 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 ----------------
 
 - In `base.serialize_attendees`, do not use `UID` from serialized result as it
-  could not be there when using `include_base_date=false`.
+  could not be there when using `include_base_data=false`.
   [gbastien]
 
 2.0.2 (2023-05-31)
