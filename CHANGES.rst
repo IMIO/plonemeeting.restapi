@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.1 (unreleased)
+2.1 (2023-06-27)
 ----------------
 
 - In `base.serialize_attendees`, do not use `UID` from serialized result as it
