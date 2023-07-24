@@ -317,20 +317,20 @@ class ContentSerializeToJson(BaseSerializeToJson):
 
     def _include_base_data(self, obj):
         """ """
-        result = {}
+        # always include at least the @type that is used by _check_res_type
+        result = {"@type": obj.portal_type, }
 
         if self.get_param("include_base_data", True):
-            result = {
+            result.update({
                 # '@context': 'http://www.w3.org/ns/hydra/context.jsonld',
                 "@id": obj.absolute_url(),
                 "id": obj.id,
-                "@type": obj.portal_type,
                 "created": json_compatible(obj.created()),
                 "modified": json_compatible(obj.modified()),
                 "review_state": self._get_workflow_state(obj),
                 "UID": obj.UID(),
                 "title": obj.Title(),
-            }
+            })
             # add "enabled" if it exists
             if base_hasattr(obj, "enabled"):
                 result["enabled"] = obj.enabled

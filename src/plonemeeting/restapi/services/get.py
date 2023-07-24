@@ -45,7 +45,8 @@ class UidSearchGet(BaseSearchGet):
         return uid
 
     def _check_res_type(self, res):
-        """ """
+        """Check that returned type is correct.
+           This is done when we defined some self.required_meta_type_id."""
         if self.required_meta_type_id and res["items"]:
             # we have the portal_type in res, we need to get the meta_type
             # to compare it with self.required_meta_type_id

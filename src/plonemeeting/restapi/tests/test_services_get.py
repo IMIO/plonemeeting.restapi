@@ -130,6 +130,13 @@ class testServiceGetUid(BaseTestCase):
             obj=self.meeting, endpoint_name="@meeting", query="&include_base_data=true")
         # date is included in base_data
         self.assertEqual(json['date'], u'2021-09-23T10:00:00')
+        # @type is included even when include_base_data is false
+        # as it is necessary to check returned type, just check that is does not break
+        self.assertTrue(
+            self._check_get_uid_endpoint(
+                obj=self.meeting,
+                endpoint_name="@meeting",
+                query="&include_base_data=false"))
 
     def test_restapi_get_uid_meeting_wrong_type(self):
         """@meeting endpoint is supposed to return a meeting, so if we receive an UID

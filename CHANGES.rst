@@ -7,8 +7,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- Always include `@type` info in result even when `include_base_data=false` as
+  it is used with `UidSearchGet.required_meta_type_id`.
+  [gbastien]
 
 2.1 (2023-06-27)
 ----------------
