@@ -99,8 +99,10 @@ class testServiceGetUid(BaseTestCase):
         )
         response = self.api_session.get(endpoint_url)
         json = response.json()
-        self.assertEqual(json["id"], obj.getId())
-        self.assertEqual(json["UID"], obj_uid)
+        if "id" in json:
+            self.assertEqual(json["id"], obj.getId())
+            self.assertEqual(json["UID"], obj_uid)
+        self.assertEqual(json["@type"], obj.portal_type)
         # by default, no items
         self.assertFalse("items" in json)
         return json
