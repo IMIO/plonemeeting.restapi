@@ -699,6 +699,7 @@ class testServiceSearch(BaseTestCase):
         # category
         self.assertEqual(resp_json["items"][0]["extra_include_category"],
                          {u'@extra_includes': [],
+                          u'@type': u'meetingcategory',
                           u'category_id': u'development',
                           u'enabled': True})
 
