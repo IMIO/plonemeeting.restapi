@@ -338,7 +338,6 @@ class testServiceAttendees(BaseTestCase):
             response.json(),
             {u'message': u'Can not set "Signatory" a person that is already signatory on the meeting!',
              u'type': u'BadRequest'})
-        import ipdb; ipdb.set_trace()
         # now with self.hp3_uid that is not signatory on the meeting not on the item
         endpoint_url = "{0}/@attendee/{1}/{2}".format(
             self.portal_url, self.item1_uid, self.hp3_uid)
