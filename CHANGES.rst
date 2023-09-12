@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.2 (unreleased)
+2.2 (2023-09-12)
 ----------------
 
 - Always include `@type` info in result even when `include_base_data=false` as
