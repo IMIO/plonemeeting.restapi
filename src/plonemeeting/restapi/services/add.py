@@ -3,6 +3,7 @@
 from collective.iconifiedcategory.utils import calculate_category_id
 from imio.helpers.content import get_vocab
 from imio.helpers.security import fplog
+from imio.history.utils import add_event_to_wf_history
 from imio.restapi.services.add import FolderPost
 from imio.restapi.utils import get_return_fullobject_after_creation_default
 from plone import api
@@ -10,7 +11,6 @@ from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.utils import check_in_name_of
 from plonemeeting.restapi.utils import rest_uuid_to_object
-from Products.PloneMeeting.utils import add_wf_history_action
 from Products.PloneMeeting.utils import get_annexes_config
 from Products.PloneMeeting.utils import org_id_to_uid
 from zExceptions import BadRequest
@@ -236,14 +236,12 @@ class BasePost(FolderPost):
         """ """
         obj = self.context.get(serialized_obj["id"])
         # add a record to the item workflow_history to specify that item was created thru SOAP WS
-        action_name = "create_element_using_ws_rest"
-        action_label = action_name + "_comments"
         # there may be several actions in the workflow_history, especially when
         # wf_transitions are used so we insert our event just after event 0
-        add_wf_history_action(obj,
-                              action_name=action_name,
-                              action_label=action_label,
-                              insert_index=0)
+        add_event_to_wf_history(obj,
+                                action="create_element_using_ws_rest",
+                                comments="create_element_using_ws_rest_comments",
+                                insert_index=0)
         # fingerpointing
         extras = "object={0}".format(repr(self.context.get(serialized_obj["id"])))
         fplog("create_by_ws_rest", extras=extras)
