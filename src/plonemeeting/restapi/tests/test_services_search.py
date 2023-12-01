@@ -268,7 +268,7 @@ class testServiceSearch(BaseTestCase):
         item = self.create("MeetingItem")
         item.setMotivation("<p>Motivation</p>")
         img = self._add_image(item)
-        pattern = '<p>Text with image <img src="{0}"/> and more text.</p>'
+        pattern = u'<p>Text with image <img loading="lazy" src="{0}"/> and more text.</p>'
         text = pattern.format(img.absolute_url())
         item.setDecision(text)
         endpoint_url = "{0}/@search?config_id={1}&type=item&fullobjects" \
@@ -327,7 +327,7 @@ class testServiceSearch(BaseTestCase):
 
         # create 2 meetings
         self.changeUser("pmManager")
-        pattern = '<p>Text with image <img src="{0}"/> and more text.</p>'
+        pattern = u'<p>Text with image <img loading="lazy" src="{0}"/> and more text.</p>'
         meeting = self.create("Meeting", date=datetime(2019, 11, 18))
         meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
         meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
@@ -353,9 +353,7 @@ class testServiceSearch(BaseTestCase):
 
         # includes every data as well as extra formatted values
         self.assertTrue("date" in resp_json["items"][0])
-        # AT/DX
-        self.assertTrue("startDate" in resp_json["items"][0] or
-                        "start_date" in resp_json["items"][0])
+        self.assertTrue("start_date" in resp_json["items"][0])
         self.assertTrue("notes" in resp_json["items"][0])
         self.assertEqual(
             resp_json["items"][0]["formatted_assembly"],

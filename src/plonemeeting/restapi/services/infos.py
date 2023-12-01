@@ -2,6 +2,7 @@
 
 from imio.restapi.services.infos import InfosGet
 from plone import api
+from Products.PloneMeeting.utils import getAdvicePortalTypeIds
 
 
 class PMInfosGet(InfosGet):
@@ -27,7 +28,7 @@ class PMInfosGet(InfosGet):
         # types annexDecision
         queries["annexDecision"] = {"portal_type": "annexDecision"}
         # types advices (meetingadvice, meetingadvicefinances, ...)
-        for advice_type in tool.getAdvicePortalTypes(as_ids=True):
+        for advice_type in getAdvicePortalTypeIds():
             queries[advice_type] = {"portal_type": advice_type}
         return queries
 

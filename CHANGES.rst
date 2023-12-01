@@ -8,7 +8,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 ----------------
 
 - Adapted code as `Products.PloneMeeting.utils.add_wf_history_action` was moved
-  to `imio.history.utils.add_event_to_wf_history`.
+  to `imio.history.utils.add_event_to_wf_history` and
+  `ToolPloneMeeting.getAdvicePortalTypes` and
+  `ToolPloneMeeting.getAdvicePortalTypeIds` were moved to utils.
   [gbastien]
 
 2.2 (2023-09-12)
