@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.3 (unreleased)
+2.3 (2023-12-11)
 ----------------
 
 - Adapted code as `Products.PloneMeeting.utils.add_wf_history_action` was moved
