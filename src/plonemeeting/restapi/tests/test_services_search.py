@@ -517,8 +517,8 @@ class testServiceSearch(BaseTestCase):
         json = response.json()
         # only 2 items found, sorted modified reversed
         self.assertEqual(json[u"items_total"], 2)
-        self.assertEqual(json[u"items"][0]["UID"], item_ven1_uid)
-        self.assertEqual(json[u"items"][1]["UID"], item_dev2_uid)
+        self.assertEqual(json[u"items"][0]["UID"], item_dev2_uid)
+        self.assertEqual(json[u"items"][1]["UID"], item_ven1_uid)
         # possible to complete the query with arbitray parameters
         # restrict only developers_uid
         endpoint_url += "&getProposingGroup={0}".format(self.developers_uid)
@@ -543,7 +543,7 @@ class testServiceSearch(BaseTestCase):
         self.assertEqual(json[u"items_total"], 2)
         self.assertEqual(json[u"items"][0]["UID"], item_dev2_uid)
         self.assertEqual(json[u"items"][1]["UID"], item_dev1_uid)
-        # sort_on may be overrided
+        # sort_on/sort_order may be overrided
         endpoint_url += "&sort_on=sortable_title&sort_order="
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
