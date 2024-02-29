@@ -7,8 +7,10 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- Fixed `test_restapi_add_clean_meeting`, when generating new date use datetime
+  and timedelta to avoid generating an unexisting date,
+  here it was generating `2025/02/29` that does not exist.
+  [gbastien]
 
 2.3 (2023-12-11)
 ----------------

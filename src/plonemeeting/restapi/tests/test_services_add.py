@@ -613,7 +613,7 @@ class testServiceAdd(BaseTestCase):
         # create meeting with clean_html=False
         json['clean_html'] = False
         # change date, can not create several meeting with same date
-        date = date[0:3] + str(int(date[3]) + 1) + date[4:]
+        date = (datetime.now(tz=pytz.UTC) + timedelta(1)).isoformat().replace("+00:00", "Z")
         json['date'] = date
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
