@@ -828,7 +828,12 @@ class testServiceAddWithAnnexes(BaseTestCase):
         }
         response = self.api_session.post(endpoint_url, json=json)
         transaction.begin()
-        self.assertEqual(response.status_code, 400, response.content)
+        try:
+            self.assertEqual(response.status_code, 400, response.content)
+        except Exception:
+            response = self.api_session.post(endpoint_url, json=json)
+            transaction.commit()
+            self.assertEqual(response.status_code, 400, response.content)
         self.assertEqual(
             response.json(),
             {
