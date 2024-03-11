@@ -15,6 +15,15 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
   enabled in `MeetingConfig`, same for `classifiers`, this avoid having
   selectable categories for an user when categories are not used.
   [gbastien]
+- Added special behavior for `review_state` and `creators` when asked in
+  `metadata_fields`:
+
+  - `review_state` will return a token/title with review_state id
+    and translated title;
+  - `creators` will return a list of token/title with each creator id
+    and fullname.
+
+  [gbastien]
 
 2.3 (2023-12-11)
 ----------------

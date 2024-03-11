@@ -6,6 +6,7 @@ from collective.documentgenerator.interfaces import IGenerablePODTemplates
 from collective.iconifiedcategory.utils import _categorized_elements
 from collective.iconifiedcategory.utils import get_categorized_elements
 from imio.helpers.content import base_hasattr
+from imio.helpers.content import get_user_fullname
 from imio.helpers.content import get_vocab
 from imio.restapi.serializer.base import SerializeFolderToJson as IMIODXSerializeFolderToJson
 from imio.restapi.serializer.base import SerializeToJson as IMIODXSerializeToJson
@@ -212,9 +213,15 @@ class BaseSerializeToJson(object):
              not self.asked_additional_values and
              not self.asked_includes)
 
-    def _get_workflow_state(self, obj):
+    def _get_workflow_state(self, obj, include_title=False):
         wftool = api.portal.get_tool("portal_workflow")
         review_state = wftool.getInfoFor(obj, name="review_state", default=None)
+        if review_state and include_title:
+            wf = wftool.getWorkflowsFor(obj)[0]
+            review_state = {'token': review_state,
+                            'title': translate(wf.states[review_state].title,
+                                               domain="plone",
+                                               context=self.request)}
         return review_state
 
     def _available_includes(self):
@@ -327,7 +334,8 @@ class ContentSerializeToJson(BaseSerializeToJson):
                 "id": obj.id,
                 "created": json_compatible(obj.created()),
                 "modified": json_compatible(obj.modified()),
-                "review_state": self._get_workflow_state(obj),
+                "review_state": self._get_workflow_state(
+                    obj, include_title="review_state" in self.metadata_fields),
                 "UID": obj.UID(),
                 "title": obj.Title(),
             })
@@ -368,6 +376,15 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_fields(self, obj):
         """ """
         raise NotImplementedError
+
+    def _after_include_fields(self, obj, result):
+        """Hook to adapt some data after it has been managed by _include_fields."""
+        # when creators asked in metadata_fields, turn it to a token/title version
+        if "creators" in self.metadata_fields and "creators" in result:
+            result["creators"] = [
+                {'token': creator, 'title': get_user_fullname(creator)}
+                for creator in result["creators"]]
+        return result
 
     def _include_choices_for(self, obj):
         """ """
@@ -534,6 +551,7 @@ class BaseATSerializeFolderToJson(ContentSerializeToJson, ATSerializeFolderToJso
                 )
                 if serializer is not None:
                     result[field_name] = serializer()
+        result = self._after_include_fields(obj, result)
         return result
 
 
@@ -590,7 +608,7 @@ class BaseDXSerializeToJson(ContentSerializeToJson, IMIODXSerializeToJson):
                     (field, obj, self.request), IFieldSerializer
                 )
                 result[json_compatible(field_name)] = serializer()
-
+        result = self._after_include_fields(obj, result)
         return result
 
 

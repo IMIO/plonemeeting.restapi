@@ -315,8 +315,17 @@ class testServiceSearch(BaseTestCase):
         endpoint_url += "&review_state=closed"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(response.json()[u"items_total"], 1)
-        self.assertEqual(response.json()[u"items"][0][u"review_state"], u"closed")
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items_total"], 1)
+        self.assertEqual(resp_json[u"items"][0][u"review_state"], u"closed")
+        # ask review_state and creators in metadata_fields
+        endpoint_url += "&metadata_fields=review_state&metadata_fields=creators"
+        response = self.api_session.get(endpoint_url)
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items"][0][u"review_state"],
+                         {u'title': u'Closed', u'token': u'closed'})
+        # creators is not managed by Meeting schema
+        self.assertFalse("creators" in resp_json[u"items"][0])
         transaction.abort()
 
     def test_restapi_search_meetings_fullobjects(self):
@@ -708,6 +717,24 @@ class testServiceSearch(BaseTestCase):
                           u'@type': u'meetingcategory',
                           u'category_id': u'development',
                           u'enabled': True})
+        # special behavior for review_state, by default in base data
+        # we get "review_state": "accepted" but when in metadata_fields
+        # we get a dict with token/title
+        self.assertEqual(resp_json["items"][0]["review_state"], u'itemcreated')
+        endpoint_url += "&metadata_fields=review_state"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json["items"][0]["review_state"],
+                         {'token': u'itemcreated', 'title': u'Created'})
+        # special behavior for creators that is displayed as token/title
+        endpoint_url += "&metadata_fields=creators"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json["items"][0]["creators"],
+                         [{u'token': u'pmManager',
+                           u'title': u'M. PMManager'}])
 
     def test_restapi_search_not_found_brain(self):
         """Check that everything is behaving correctly when some brains
