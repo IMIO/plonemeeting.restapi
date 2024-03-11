@@ -11,6 +11,10 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
   and timedelta to avoid generating an unexisting date,
   here it was generating `2025/02/29` that does not exist.
   [gbastien]
+- When using `@users?extra_include=categories`, categories are only returned if
+  enabled in `MeetingConfig`, same for `classifiers`, this avoid having
+  selectable categories for an user when categories are not used.
+  [gbastien]
 
 2.3 (2023-12-11)
 ----------------

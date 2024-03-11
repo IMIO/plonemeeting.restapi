@@ -98,7 +98,8 @@ class testServicePMUsersGet(BaseTestCase):
         self.assertEqual(len(json["extra_include_categories"]), 2)
         cfg_cat_ids = [cat["id"] for cat in json["extra_include_categories"][cfg_id]]
         cfg2_cat_ids = [cat["id"] for cat in json["extra_include_categories"][cfg2_id]]
-        self.assertTrue("development" in cfg_cat_ids)
+        # categories are not enabled in cfg1
+        self.assertFalse(cfg_cat_ids)
         self.assertTrue("deployment" in cfg2_cat_ids)
         # can get categories of only one MeetingConfig
         endpoint_url += "&extra_include_categories_configs={0}".format(cfg_id)
@@ -114,6 +115,8 @@ class testServicePMUsersGet(BaseTestCase):
         cfg_id = cfg.getId()
         cfg2 = self.meetingConfig2
         cfg2_id = cfg2.getId()
+        self._enableField('classifier', cfg2)
+        transaction.commit()
         endpoint_url = "{0}/@users/pmManager?extra_include=classifiers".format(
             self.portal_url)
         response = self.api_session.get(endpoint_url)
@@ -124,7 +127,8 @@ class testServicePMUsersGet(BaseTestCase):
         self.assertEqual(len(json["extra_include_classifiers"]), 2)
         cfg_cat_ids = [cat["id"] for cat in json["extra_include_classifiers"][cfg_id]]
         cfg2_cat_ids = [cat["id"] for cat in json["extra_include_classifiers"][cfg2_id]]
-        self.assertTrue("classifier1" in cfg_cat_ids)
+        # classifiers are not enabled in cfg1
+        self.assertFalse(cfg_cat_ids)
         self.assertTrue("classifier1" in cfg2_cat_ids)
         # can get classifiers of only one MeetingConfig
         endpoint_url += "&extra_include_classifiers_configs={0}".format(cfg_id)
