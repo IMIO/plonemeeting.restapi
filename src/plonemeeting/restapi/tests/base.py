@@ -25,7 +25,13 @@ class BaseTestCase(PloneMeetingTestCase):
         self.api_session.headers.update({"Accept": "application/json"})
         self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
         self.changeUser("siteadmin")
-        self.getMeetingFolder(userId="pmManager")
+        # avoid sometimes failing test on jenkins...
+        try:
+            self.getMeetingFolder(userId="pmManager")
+        except:
+            transaction.commit()
+            self.getMeetingFolder(userId="pmManager")
+
         # enable RESTAPI_DEBUG for every tests
         # this will display the result of a restapi call in the log
         os.environ['RESTAPI_DEBUG'] = "True"
