@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.4 (unreleased)
+2.4 (2024-03-14)
 ----------------
 
 - Fixed `test_restapi_add_clean_meeting`, when generating new date use datetime
