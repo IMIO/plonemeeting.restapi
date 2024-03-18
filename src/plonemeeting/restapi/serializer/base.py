@@ -347,7 +347,8 @@ class ContentSerializeToJson(BaseSerializeToJson):
     def _include_nextprev(self, obj):
         """ """
         result = {}
-        if self.fullobjects or self.get_param('include_nextprev'):
+        # nextprev is only included when specifically asked, even when fullobjects
+        if self.get_param('include_nextprev'):
             nextprevious = NextPrevious(obj)
             result.update(
                 {"previous_item": nextprevious.previous, "next_item": nextprevious.next}

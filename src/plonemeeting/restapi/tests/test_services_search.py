@@ -621,8 +621,9 @@ class testServiceSearch(BaseTestCase):
         self.assertTrue("@components" in resp_json["items"][0])
         self.assertTrue("id" in resp_json["items"][0])
         self.assertTrue("UID" in resp_json["items"][0])
-        self.assertTrue("next_item" in resp_json["items"][0])
-        self.assertTrue("previous_item" in resp_json["items"][0])
+        # next/previous only there when specifically asked
+        self.assertFalse("next_item" in resp_json["items"][0])
+        self.assertFalse("previous_item" in resp_json["items"][0])
         # parent is only there when specifically asked
         self.assertFalse("parent" in resp_json["items"][0])
         self.assertTrue("allow_discussion" in resp_json["items"][0])
@@ -631,8 +632,7 @@ class testServiceSearch(BaseTestCase):
         self.assertFalse("items" in resp_json["items"][0])
         # we may get what we want, only get "@components"
         endpoint_url = "{0}/@search?config_id={1}" \
-            "&include_base_data=false&include_parent=true" \
-            "&include_components=true".format(
+            "&include_base_data=false&include_components=true".format(
                 self.portal_url, self.meetingConfig.getId())
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
@@ -643,10 +643,39 @@ class testServiceSearch(BaseTestCase):
         self.assertFalse("UID" in resp_json["items"][0])
         self.assertFalse("next_item" in resp_json["items"][0])
         self.assertFalse("previous_item" in resp_json["items"][0])
-        # include_parent=true
-        self.assertTrue("parent" in resp_json["items"][0])
+        self.assertFalse("parent" in resp_json["items"][0])
         self.assertFalse("allow_discussion" in resp_json["items"][0])
         self.assertFalse("formatted_itemNumber" in resp_json["items"][0])
+        self.assertFalse("items" in resp_json["items"][0])
+        # with fullobjects, next_item and parent is there only when asked
+        endpoint_url += "&fullobjects"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items_total"], 1)
+        self.assertTrue("@components" in resp_json["items"][0])
+        self.assertTrue("id" in resp_json["items"][0])
+        self.assertFalse("UID" in resp_json["items"][0])
+        self.assertFalse("next_item" in resp_json["items"][0])
+        self.assertFalse("previous_item" in resp_json["items"][0])
+        self.assertFalse("parent" in resp_json["items"][0])
+        self.assertTrue("allow_discussion" in resp_json["items"][0])
+        self.assertTrue("formatted_itemNumber" in resp_json["items"][0])
+        self.assertFalse("items" in resp_json["items"][0])
+        # ask parent and next/previous
+        endpoint_url += "&include_parent=true&include_nextprev=true"
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        resp_json = response.json()
+        self.assertEqual(resp_json[u"items_total"], 1)
+        self.assertTrue("@components" in resp_json["items"][0])
+        self.assertTrue("id" in resp_json["items"][0])
+        self.assertFalse("UID" in resp_json["items"][0])
+        self.assertTrue("next_item" in resp_json["items"][0])
+        self.assertTrue("previous_item" in resp_json["items"][0])
+        self.assertTrue("parent" in resp_json["items"][0])
+        self.assertTrue("allow_discussion" in resp_json["items"][0])
+        self.assertTrue("formatted_itemNumber" in resp_json["items"][0])
         self.assertFalse("items" in resp_json["items"][0])
 
     def test_restapi_search_extra_includes_parameters(self):
