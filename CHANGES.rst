@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.5 (unreleased)
+2.5 (2024-03-19)
 ----------------
 
 - When using `fullobjects`, only serialize `next/previous` when specifically
