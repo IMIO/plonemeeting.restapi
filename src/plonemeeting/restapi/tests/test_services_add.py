@@ -856,7 +856,7 @@ class testServiceAddWithAnnexes(BaseTestCase):
                 {
                     "@type": "annex",
                     "title": "My annex 1",
-                    "content_category": "item-annex",
+                    "content_category": "preview-annex",
                     "file": {
                         "data": "123456",
                         "encoding": "ascii",
@@ -866,11 +866,22 @@ class testServiceAddWithAnnexes(BaseTestCase):
                 {
                     "@type": "annex",
                     "title": "My annex 2",
-                    "content_category": "item-annex",
+                    "content_category": "preview-annex",
                     "file": {"data": base64_pdf_data, "filename": "file.pdf"},
                 },
             ],
         }
+        response = self.api_session.post(endpoint_url, json=json)
+        transaction.commit()
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json(),
+            {u'message': u"[{'message': 'You must select a PDF file!', "
+                         u"'error': 'ValidationError'}]",
+             u'type': u'BadRequest'}
+        )
+        # fix annex1 annex type
+        json['__children__'][0]["content_category"] = "item-annex"
         response = self.api_session.post(endpoint_url, json=json)
         transaction.commit()
         # this tries to manage randomly failing test
