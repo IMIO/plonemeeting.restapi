@@ -10,6 +10,8 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 - Adapted `test_restapi_add_item_with_annexes_children` to show that annex
   `content_category` `only_pdf` parameter is taken into account.
   [gbastien]
+- Added `testServiceDelete` to show that the `DELETE` method works as expected.
+  [gbastien]
 
 2.5 (2024-03-19)
 ----------------
