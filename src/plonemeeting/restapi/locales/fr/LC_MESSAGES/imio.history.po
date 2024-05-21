@@ -16,4 +16,4 @@ msgstr ""
 
 #. Default: "This item has been created using the Webservice (rest)."
 msgid "create_element_using_ws_rest_comments"
-msgstr "Ce point a été créé depuis un appel WebService (REST)."
+msgstr "Cet élément a été créé depuis un appel WebService (REST)."

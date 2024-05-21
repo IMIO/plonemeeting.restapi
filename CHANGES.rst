@@ -12,6 +12,8 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
   [gbastien]
 - Added `testServiceDelete` to show that the `DELETE` method works as expected.
   [gbastien]
+- Fixed french translation for `create_element_using_ws_rest_comments`.
+  [gbastien]
 
 2.5 (2024-03-19)
 ----------------
