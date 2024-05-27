@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.6 (unreleased)
+2.6 (2024-05-27)
 ----------------
 
 - Adapted `test_restapi_add_item_with_annexes_children` to show that annex
