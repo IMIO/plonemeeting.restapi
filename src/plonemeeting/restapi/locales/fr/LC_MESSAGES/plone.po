@@ -16,4 +16,4 @@ msgstr ""
 
 #. Default: "Create element using WS (rest)"
 msgid "create_element_using_ws_rest"
-msgstr "Créer un point depuis un appel WS"
+msgstr "Créer un élément depuis un appel WS"
