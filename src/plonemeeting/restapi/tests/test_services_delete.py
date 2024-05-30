@@ -77,6 +77,42 @@ class testServiceDelete(BaseTestCase):
         self.assertFalse(meeting in folder.objectValues())
         self.assertFalse(object_values(folder, "MeetingItem"))
 
+    def test_restapi_delete_annex(self):
+        """Delete an annex."""
+        self.changeUser("pmCreator1")
+        item = self.create("MeetingItem")
+        item_annex = self.addAnnex(item)
+        validated_item = self.create("MeetingItem")
+        validated_item_annex = self.addAnnex(validated_item)
+        self.validateItem(validated_item)
+        self.changeUser('pmManager')
+        meeting = self.create('Meeting')
+        meeting_annex = self.addAnnex(meeting)
+        closed_meeting = self.create('Meeting')
+        closed_meeting_annex = self.addAnnex(closed_meeting)
+        self.closeMeeting(closed_meeting)
+        transaction.commit()
+        # annex on meeting not removable by "pmCreator1"
+        self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
+        response = self.api_session.delete(meeting_annex.absolute_url())
+        self.assertEqual(response.status_code, 401, response.content)
+        # may be removed by "pmManager"
+        self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
+        response = self.api_session.delete(meeting_annex.absolute_url())
+        self.assertEqual(response.status_code, 204, response.content)
+        response = self.api_session.delete(closed_meeting_annex.absolute_url())
+        self.assertEqual(response.status_code, 401, response.content)
+        # remove annex on item
+        self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
+        response = self.api_session.delete(item_annex.absolute_url())
+        self.assertEqual(response.status_code, 204, response.content)
+        response = self.api_session.delete(validated_item_annex.absolute_url())
+        self.assertEqual(response.status_code, 401, response.content)
+        # annex on validated item removable by "pmManager"
+        self.api_session.auth = ("pmManager", DEFAULT_USER_PASSWORD)
+        response = self.api_session.delete(validated_item_annex.absolute_url())
+        self.assertEqual(response.status_code, 204, response.content)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
