@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from plonemeeting.restapi.tests.base import BaseTestCase
+from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
 import transaction
 
@@ -20,6 +21,13 @@ class testServicePMUsersGet(BaseTestCase):
     def test_restapi_users_endpoint(self):
         """@users"""
         endpoint_url = "{0}/@users/pmManager".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        json = response.json()
+        self.assertEqual(json["username"], u'pmManager')
+        self.assertEqual(json["email"], u'pmmanager@plonemeeting.org')
+        # accessible as Manager
+        self.api_session.auth = ("siteadmin", DEFAULT_USER_PASSWORD)
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         json = response.json()
