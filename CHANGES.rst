@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.7 (unreleased)
+2.7 (2024-06-07)
 ----------------
 
 - Fixed french translation for `create_element_using_ws_rest`.
