@@ -32,6 +32,7 @@ from plonemeeting.restapi.config import ANNEXES_FILTER_VALUES
 from plonemeeting.restapi.interfaces import IPMRestapiLayer
 from plonemeeting.restapi.utils import get_param
 from plonemeeting.restapi.utils import get_serializer
+from Products.PloneMeeting.utils import get_attendee_short_title
 from zope.component import adapter
 from zope.component import ComponentLookupError
 from zope.component import getAdapter
@@ -172,7 +173,8 @@ def serialize_attendees(context, attendee=None, extra_include_name=None, base_se
         item = None
         if not is_meeting:
             item = context
-        serialized["title"] = meeting.get_attendee_short_title(attendee, cfg, item=item)
+        serialized["title"] = get_attendee_short_title(
+            attendee, cfg, item=item, meeting=meeting)
     return result
 
 

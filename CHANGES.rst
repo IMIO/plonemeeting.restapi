@@ -7,8 +7,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- Adapted call to `get_attendee_short_title` as it was moved
+  from `Meeting` to `utils`.
+  [gbastien]
 
 2.7 (2024-06-07)
 ----------------
