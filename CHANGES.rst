@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.8 (unreleased)
+2.8 (2024-10-16)
 ----------------
 
 - Adapted call to `get_attendee_short_title` as it was moved
