@@ -235,9 +235,9 @@ class BasePost(FolderPost):
     def _after_reply_hook(self, serialized_obj):
         """ """
         obj = self.context.get(serialized_obj["id"])
-        # add a record to the item workflow_history to specify that item was created thru SOAP WS
-        # there may be several actions in the workflow_history, especially when
-        # wf_transitions are used so we insert our event just after event 0
+        # add a record to the element's workflow_history to specify that it was
+        # created thru REST WS there may be several actions in the workflow_history,
+        # especially when wf_transitions are used so we insert our event just after event 0
         add_event_to_wf_history(obj,
                                 action="create_element_using_ws_rest",
                                 comments="create_element_using_ws_rest_comments",
