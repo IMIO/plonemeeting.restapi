@@ -38,6 +38,7 @@ setup(
     install_requires=[
         # -*- Extra requirements: -*-
         "setuptools",
+        "beautifulsoup4",
         "Products.PloneMeeting",
         "imio.restapi>=1.0a12",
         "plone.restapi>=7.8.0",

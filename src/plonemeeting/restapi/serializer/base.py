@@ -22,7 +22,7 @@ from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.interfaces import IObjectPrimaryFieldTarget
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.interfaces import ISerializeToJsonSummary
-from plone.restapi.serializer.atcontent import SerializeFolderToJson as ATSerializeFolderToJson
+# from plone.restapi.serializer.atcontent import SerializeFolderToJson as ATSerializeFolderToJson  # MIGRATION-PLONE6
 from plone.restapi.serializer.converters import json_compatible
 from plone.restapi.serializer.expansion import expandable_elements
 from plone.restapi.serializer.nextprev import NextPrevious
@@ -504,7 +504,7 @@ class ContentSerializeToJson(BaseSerializeToJson):
 
 @implementer(ISerializeToJson)
 @adapter(Interface, Interface)
-class BaseATSerializeFolderToJson(ContentSerializeToJson, ATSerializeFolderToJson):
+class BaseATSerializeFolderToJson(ContentSerializeToJson):  # MIGRATION-PLONE6
     """ """
 
     def _get_readable_fields(self, obj, field_names=[]):

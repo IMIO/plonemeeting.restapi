@@ -5,10 +5,12 @@
 
   <configure zcml:condition="installed Products.Archetypes">
     <adapter factory=".atcontent.DeserializeFromJson" />
+
+    <!-- RichText fields deserializer for AX -->
+    <adapter factory=".atfields.TextFieldDeserializer" />
   </configure>
 
-  <!-- RichText fields deserializer for AT and DX -->
-  <adapter factory=".atfields.TextFieldDeserializer" />
+  <!-- RichText fields deserializer for DX -->
   <adapter factory=".dxfields.PMRichTextFieldDeserializer" />
 
 </configure>

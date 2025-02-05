@@ -12,7 +12,7 @@ from plone.restapi.interfaces import ISerializeToJsonSummary
 from plone.restapi.serializer.catalog import LazyCatalogResultSerializer
 from plonemeeting.restapi import logger
 from plonemeeting.restapi.utils import use_obj_serializer
-from Products.ZCatalog.Lazy import LazyMap
+from Products.ZCatalog.Catalog import LazyMap
 from zope.component import adapter
 from zope.component import getMultiAdapter
 from zope.interface import implementer

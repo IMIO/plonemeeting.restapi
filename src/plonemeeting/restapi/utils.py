@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from AccessControl import Unauthorized
-from BeautifulSoup import BeautifulSoup
-from HTMLParser import HTMLParser
+from bs4 import BeautifulSoup
+from html.parser import HTMLParser
 from imio.helpers.content import uuidToObject
 from lxml.html.clean import Cleaner
 from plone import api
