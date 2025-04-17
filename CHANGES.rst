@@ -7,8 +7,8 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.9 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- SUP-43789: Fixed an issue with `utils.clean_html` when the ending tag </p> was not at the end of the content string.
+  [aduchene]
 
 2.8 (2024-10-16)
 ----------------

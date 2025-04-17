@@ -582,6 +582,18 @@ class testServiceAdd(BaseTestCase):
         item2 = pmFolder.objectValues()[-1]
         self.assertEqual(item2.getDecision(), dirty_html)
 
+        dirty_html_ending_tag = '<p>Hello, &#xa0; la d\xc3\xa9cision</p>/r/n'
+        json['decision'] = dirty_html_ending_tag
+        json['clean_html'] = True
+        self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        item2 = pmFolder.objectValues()[-1]
+        # decision was cleaned without surrounding <p></p>
+        self.assertEqual(
+            item2.getDecision(),
+            '<p>Hello, \xc2\xa0 la d\xc3\xa9cision</p>/r/n'
+        )
+
     def test_restapi_add_clean_meeting(self):
         """When creating an meeting, HTML will be cleaned by default."""
         transaction.begin()
