@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.10 (unreleased)
+2.10 (2025-12-22)
 -----------------
 
 - Make `formatted_itemNumber` available when `metadata_fields=formatted_itemNumber`
