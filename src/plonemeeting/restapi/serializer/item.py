@@ -187,11 +187,13 @@ class SerializeToJson(BaseSerializeItemToJson, BaseATSerializeFolderToJson):
     """ """
 
     def _include_fields(self, obj):
-        """Manage internal_numbe manually as it is not a field for now but
+        """Manage internal_number manually as it is not a field for now but
            a stored attribute, will be a field when item will be DX."""
         result = super(SerializeToJson, self)._include_fields(obj)
         if self.fullobjects or "internal_number" in self.metadata_fields:
             result["internal_number"] = get_internal_number(obj)
+        if self.fullobjects or "formatted_itemNumber" in self.metadata_fields:
+            result["formatted_itemNumber"] = obj.getItemNumber(for_display=True)
         return result
 
 

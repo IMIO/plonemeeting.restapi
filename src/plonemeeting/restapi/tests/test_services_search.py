@@ -717,15 +717,20 @@ class testServiceSearch(BaseTestCase):
            - without fullobjects, the metadata catalog is used;
            - with fullobjects, then it is used to select the fields we want.
         """
+        self._removeConfigObjectsFor(self.meetingConfig)
         self._enableField('category')
         # create 2 items
         self.changeUser("pmManager")
-        self.create("MeetingItem")
+        item = self.create("MeetingItem")
+        self.create("Meeting", date=datetime(2025, 12, 22, 15, 0))
+        self.presentItem(item)
         transaction.commit()
 
         # get item base data + getItemNumber and category enabled and category_id
+        # formatted_itemNumber can also be asked thru metadata_fields
         endpoint_url = "{0}/@search?config_id={1}" \
             "&metadata_fields=itemNumber" \
+            "&metadata_fields=formatted_itemNumber" \
             "&extra_include=category" \
             "&extra_include_category_include_base_data=false" \
             "&extra_include_category_metadata_fields=enabled" \
@@ -737,9 +742,10 @@ class testServiceSearch(BaseTestCase):
         # item
         self.assertEqual(sorted(resp_json["items"][0].keys()),
                          [u'@extra_includes', u'@id', u'@type', u'UID',
-                          u'created', u'extra_include_category', u'id',
+                          u'created', u'extra_include_category', u'formatted_itemNumber', u'id',
                           u'itemNumber', u'modified', u'review_state', u'title'])
-        self.assertEqual(resp_json["items"][0]["itemNumber"], 0)
+        self.assertEqual(resp_json["items"][0]["itemNumber"], 100)
+        self.assertEqual(resp_json["items"][0]["formatted_itemNumber"], "1")
         # category
         self.assertEqual(resp_json["items"][0]["extra_include_category"],
                          {u'@extra_includes': [],
@@ -749,13 +755,13 @@ class testServiceSearch(BaseTestCase):
         # special behavior for review_state, by default in base data
         # we get "review_state": "accepted" but when in metadata_fields
         # we get a dict with token/title
-        self.assertEqual(resp_json["items"][0]["review_state"], u'itemcreated')
+        self.assertEqual(resp_json["items"][0]["review_state"], u'presented')
         endpoint_url += "&metadata_fields=review_state"
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
         resp_json = response.json()
         self.assertEqual(resp_json["items"][0]["review_state"],
-                         {'token': u'itemcreated', 'title': u'Created'})
+                         {'token': u'presented', 'title': u'Presented'})
         # special behavior for creators that is displayed as token/title
         endpoint_url += "&metadata_fields=creators"
         response = self.api_session.get(endpoint_url)

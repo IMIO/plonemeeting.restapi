@@ -7,8 +7,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.10 (unreleased)
 -----------------
 
-- Nothing changed yet.
-
+- Make `formatted_itemNumber` available when `metadata_fields=formatted_itemNumber`
+  in addition to `additional_values=formatted_itemNumber`.
+  [gbastien]
 
 2.9 (2025-05-05)
 ----------------
