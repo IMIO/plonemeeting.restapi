@@ -594,6 +594,22 @@ class testServiceAdd(BaseTestCase):
             '<p>Hello, \xc2\xa0 la d\xc3\xa9cision</p>'
         )
 
+        html_not_ending_with_p = "<p>John Doe's list:</p>\n<ul>\n<li>Item 1</li>\n<li>Item 2</li>\n</ul>\n"
+        json['decision'] = html_not_ending_with_p
+        json['clean_html'] = True
+        self.api_session.post(endpoint_url, json=json)
+        transaction.begin()
+        item2 = pmFolder.objectValues()[-1]
+        # A common bug when the cleaning adds necessary surrounding <p>'s
+        self.assertFalse(
+            item2.getDecision().startswith("<p></p>"),
+            "Should not start with empty <p></p>!\n%s" % item2.getDecision()
+        )
+        self.assertEqual(
+            item2.getDecision(),
+            "<p>John Doe's list:</p>\n<ul>\n<li>Item 1</li>\n<li>Item 2</li>\n</ul>"
+        )
+
     def test_restapi_add_clean_meeting(self):
         """When creating an meeting, HTML will be cleaned by default."""
         transaction.begin()
