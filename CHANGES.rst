@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.11 (unreleased)
+2.11 (2026-01-15)
 -----------------
 
 - SUP-43789: Fixed another issue with `utils.clean_html` 
