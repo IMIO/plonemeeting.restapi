@@ -71,9 +71,12 @@ class testServiceGetUid(BaseTestCase):
         """When given UID does not exist"""
         endpoint_url = "{0}/@get?UID=unknown".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 404)
         self.assertEqual(
             response.json(),
-            {u"message": UID_NOT_FOUND_ERROR % "unknown", u"type": u"BadRequest"},
+            {u'error': {
+                u'message': UID_NOT_FOUND_ERROR % ('UID', 'unknown'),
+                u'type': u'NotFound'}}
         )
 
     def test_restapi_get_uid_not_accessible(self):
@@ -82,13 +85,13 @@ class testServiceGetUid(BaseTestCase):
         # pmCreator1 can not access item with proposingGroup 'vendors'
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
         response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(
             response.json(),
-            {
-                u"message": UID_NOT_ACCESSIBLE_ERROR % (
-                    self.item2_uid, self.meetingConfig.getId(), "pmCreator1"),
-                u"type": u"BadRequest",
-            },
+            {u"error": {
+                u'message': UID_NOT_ACCESSIBLE_ERROR % (
+                    'UID', self.item2_uid, self.meetingConfig.getId(), "pmCreator1"),
+                u"type": u"Forbidden"}}
         )
 
     def _check_get_uid_endpoint(self, obj, endpoint_name="@get", query=""):
@@ -194,14 +197,14 @@ class testServiceGetUid(BaseTestCase):
         # try to get an inaccessible element
         endpoint_url = endpoint_url.replace(self.item1_uid, self.item2_uid)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(response.status_code, 403, response.content)
         self.assertEqual(
             response.json(),
-            {
+            {u"error": {
                 u"message": UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
-                    self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager"),
-                u"type": u"BadRequest",
-            },
+                    'UID', self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager"),
+                u"type": u"Forbidden",
+            }},
         )
         # must be MeetingManager to use in_name_of
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
@@ -218,14 +221,14 @@ class testServiceGetUid(BaseTestCase):
         # MeetingConfigs the power user may access
         self.api_session.auth = ("pmManager2", DEFAULT_USER_PASSWORD)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 400, response.content)
+        self.assertEqual(response.status_code, 403, response.content)
         self.assertEqual(
             response.json(),
-            {
+            {u"error": {
                 u"message": UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
-                    self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager2"),
-                u"type": u"BadRequest",
-            },
+                    'UID', self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager2"),
+                u"type": u"Forbidden",
+            }},
         )
         # when using a config_id the power user is not MeetingManager for,
         # we get a clear message

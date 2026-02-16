@@ -74,10 +74,15 @@ class AttendeesGet(Service):
         if self.uid is None:
             raise BadRequest("UID_REQUIRED_ERROR")
         json = json_body(self.request)
-        self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
-
+        # could set an error on response while getting object
+        res = rest_uuid_to_object(
+            self.uid,
+            self.request.response,
+            in_name_of=json.get("in_name_of"))
+        if self.request.response.status != 200:
+            return res
         # process
-        attendees = Attendees(self.context, self.request)
+        attendees = Attendees(res, self.request)
         return attendees(expand=True)
 
 
@@ -107,16 +112,36 @@ class AttendeeGet(Service):
             raise BadRequest(URL_ATTENDEE_UID_REQUIRED_ERROR)
 
         json = json_body(self.request)
-        self.context = rest_uuid_to_object(self.uid, in_name_of=json.get("in_name_of"))
+        # could set an error on response while getting object
+        res = rest_uuid_to_object(
+            self.uid,
+            self.request.response,
+            in_name_of=json.get("in_name_of"))
+        if self.request.response.status != 200:
+            return res
+
+        # could get item or meeting, continue
+        self.context = res
         if not self.context.getTagName() in ("MeetingItem", "Meeting", ):
             raise BadRequest(FIRST_UID_TYPE)
-        self.attendee = rest_uuid_to_object(self.attendee_uid, in_name_of=json.get("in_name_of"))
+
+        # could set an error on response while getting object
+        res = rest_uuid_to_object(
+            self.attendee_uid,
+            self.request.response,
+            in_name_of=json.get("in_name_of"))
+        if self.request.response.status != 200:
+            return res
+
+        self.attendee = res
         if self.attendee.portal_type not in ("held_position", ):
             raise BadRequest(SECOND_UID_TYPE)
 
     def reply(self):
         # check required data and initialize context
-        self._init()
+        res = self._init()
+        if self.request.response.status != 200:
+            return res
 
         # process
         result = serialize_attendees(self.context, attendee=self.attendee)
@@ -129,7 +154,9 @@ class AttendeePatch(AttendeeGet):
     def reply(self):
 
         # check required data and initialize context
-        self._init()
+        res = self._init()
+        if self.request.response.status != 200:
+            return res
 
         # process
         is_meeting = self.context.__class__.__name__ == "Meeting"

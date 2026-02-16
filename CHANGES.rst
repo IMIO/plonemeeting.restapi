@@ -7,8 +7,11 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- When using `utils.rest_uuid_to_object` return a specific error when:
+  - element exists but not accessible (`403 Forbidden`);
+  - element does not exist (`404 NotFound`).
 
+  [gbastien]
 
 2.11 (2026-01-15)
 -----------------
