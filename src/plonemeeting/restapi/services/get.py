@@ -77,8 +77,9 @@ class UidSearchGet(BaseSearchGet):
                     try_restricted=False,
                     in_name_of=self.in_name_of)
             elif self.external_id:
-                # if no uid, we have an externa_id, try to get it unrestricted
-                # will raise if element exist but inaccessible or not exist
+                # if no uid, we have an external_id that can be an UID,
+                # try to get it unrestricted will raise if element exist
+                # but inaccessible or does not exist
                 return rest_uuid_to_object(
                     self.external_id,
                     self.request.response,
