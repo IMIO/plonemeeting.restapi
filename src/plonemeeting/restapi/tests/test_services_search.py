@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from imio.helpers.content import richtextval
-from plone.app.textfield.value import RichTextValue
 from plonemeeting.restapi.config import CONFIG_ID_ERROR
 from plonemeeting.restapi.config import CONFIG_ID_NOT_FOUND_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
@@ -337,9 +336,10 @@ class testServiceSearch(BaseTestCase):
         # create 2 meetings
         self.changeUser("pmManager")
         pattern = u'<p>Text with image <img loading="lazy" src="{0}"/> and more text.</p>'
-        meeting = self.create("Meeting", date=datetime(2019, 11, 18))
-        meeting2 = self.create("Meeting", date=datetime(2019, 11, 19))
-        meeting2.assembly = RichTextValue(u'Mr Present, [[Mr Absent]], Mr Present2')
+        # one meeting with committees so we test datagrid with RichTextValue
+        meeting = self.create("Meeting", date=datetime(2019, 11, 19))
+        meeting2 = self._setUpCommittees()
+        meeting2.assembly = richtextval(u'Mr Present, [[Mr Absent]], Mr Present2')
         img = self._add_image(meeting2)
         text = pattern.format(img.absolute_url())
         meeting2.observations = richtextval(text)
@@ -369,6 +369,15 @@ class testServiceSearch(BaseTestCase):
             u'<p>Mr Present, <strike>Mr Absent</strike>, Mr Present2</p>')
         self.assertEqual(resp_json["items"][0]["observations"]["data"],
                          pattern.format(IMG_BASE64_DATA))
+        # committees is correctly serialized
+        self.assertEqual(
+            resp_json['items'][0]['committees'][0]['committee_observations'],
+            {u'data': u"<p>Committee observations</p>",
+             u'content-type': u'text/html',
+             u'encoding': u'utf-8'})
+        self.assertEqual(
+            resp_json['items'][0]['committees'][0]['attendees'],
+            [self.hp1_uid, self.hp2_uid])
         transaction.abort()
 
     def test_restapi_search_meetings_accepting_items(self):

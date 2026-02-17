@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from imio.helpers.content import get_schema_fields
+from plone.app.textfield.value import RichTextValue
 from plone.dexterity.interfaces import IDexterityContent
 from plone.restapi.interfaces import IFieldSerializer
 from plone.restapi.serializer.converters import json_compatible
@@ -74,4 +75,11 @@ class PMCollectionFieldSerializer(CollectionFieldSerializer):
                     except LookupError:
                         logger.warning("Term lookup error: %r" % v)
                 value = values
+        # XXX fix for datagridfield containing RichTextValue
+        if value and isinstance(value[0], dict):
+            new_value = []
+            for val in value:
+                new_value.append({k: json_compatible(v, self.context) if isinstance(v, RichTextValue) else v
+                                  for k, v in val.items()})
+            value = new_value
         return json_compatible(value)
