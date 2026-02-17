@@ -7,7 +7,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.12 (unreleased)
 -----------------
 
-- When using `utils.rest_uuid_to_object` return a specific error when:
+- When using `utils.rest_uuid_to_object` instead returning a `400 BadRequest`
+  when element was not found, return a specific error when:
+
   - element exists but not accessible (`403 Forbidden`);
   - element does not exist (`404 NotFound`).
 
@@ -19,7 +21,7 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.11 (2026-01-15)
 -----------------
 
-- SUP-43789: Fixed another issue with `utils.clean_html` 
+- SUP-43789: Fixed another issue with `utils.clean_html`
   when the ending tag was not a </p>.
   [aduchene]
 
