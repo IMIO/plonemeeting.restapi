@@ -328,7 +328,6 @@ class ContentSerializeToJson(BaseSerializeToJson):
         """ """
         # always include at least the @type that is used by _check_res_type
         result = {"@type": obj.portal_type, }
-
         if self.get_param("include_base_data", True):
             result.update({
                 # '@context': 'http://www.w3.org/ns/hydra/context.jsonld',

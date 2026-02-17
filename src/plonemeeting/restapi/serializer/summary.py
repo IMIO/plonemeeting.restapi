@@ -17,8 +17,9 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
 
     @property
     def _additional_fields(self):
-        """By default add 'UID' to returned data."""
-        return ["id", "UID", "enabled", "created", "modified"]
+        """Add some defaults."""
+        res = super(PMBrainJSONSummarySerializer, self)._additional_fields
+        return res + ["enabled", "created", "modified"]
 
     def _get_metadata_fields_name(self):
         """May be overrided when necessary."""
@@ -35,6 +36,14 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
         self.asked_additional_values = []
         self.asked_includes = []
         self.fullobjects = False
+
+    def _include_custom(self, obj, result):
+        """Custom related to PloneMeeting:
+           - organization: include "full_id" by default."""
+        from plonemeeting.restapi.serializer.organization import org_full_id
+        if self.context.portal_type == "organization":
+            result['full_id'] = org_full_id(self.context.getObject())
+        return result
 
     def __call__(self):
         """ """

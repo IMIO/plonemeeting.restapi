@@ -17,6 +17,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 - Fixed serialization of `Meeting.committees` that failed on
   `RichTextValue` in a `datagridfield`.
   [gbastien]
+- Include `full_id` by default when serializing an `organization` so
+  information is available when used as `MeetingItem.proposingGroup`.
+  [gbastien]
 
 2.11 (2026-01-15)
 -----------------

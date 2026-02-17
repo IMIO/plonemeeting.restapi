@@ -19,9 +19,11 @@
     <adapter factory=".meeting.SerializeToJsonSummary" />
     <adapter factory=".meetingconfig.SerializeToJson" />
     <adapter factory=".meetingconfig.SerializeToJsonSummary" />
-    <adapter factory=".summary.PMJSONSummarySerializer" />
+    <adapter factory=".organization.SerializeToJson" />
+    <adapter factory=".organization.SerializeToJsonSummary" />
     <adapter factory=".pod_template.SerializeToJson" />
     <adapter factory=".pod_template.SerializeToJsonSummary" />
+    <adapter factory=".summary.PMJSONSummarySerializer" />
 
     <!-- User serializers -->
     <adapter factory=".user.SerializeUserToJson" />

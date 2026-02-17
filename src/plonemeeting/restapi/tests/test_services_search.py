@@ -573,6 +573,8 @@ class testServiceSearch(BaseTestCase):
     def test_restapi_search_without_config_id(self):
         """@search parameter config_id will ease searching but
            when not provided, then default @search functionnality is available."""
+        self.changeUser('siteadmin')
+        self.create('organization', folder=self.developers, id='suborg1', title="Suborg1")
         self.changeUser("pmManager")
         endpoint_url = (
             "{0}/@search?portal_type=organization".format(self.portal_url)
@@ -584,6 +586,15 @@ class testServiceSearch(BaseTestCase):
         json = response.json()
         for result in json[u"items"]:
             self.assertEqual(result[u'@type'], 'organization')
+        # the organization serializer includes "full_id" by default
+        # plonegroup-organization
+        self.assertEqual(json[u"items"][0]["full_id"], u'')
+        # developers
+        self.assertEqual(json[u"items"][1]["full_id"], u'developers')
+        # vendors
+        self.assertEqual(json[u"items"][2]["full_id"], u'vendors')
+        # suborg1
+        self.assertEqual(json[u"items"][-1]["full_id"], u'developers/suborg1')
         transaction.abort()
 
     def test_restapi_search_without_type(self):
