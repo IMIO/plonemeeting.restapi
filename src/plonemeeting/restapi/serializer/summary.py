@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from imio.helpers.content import base_hasattr
 from imio.restapi.serializer.base import DefaultJSONSummarySerializer
 from OFS.interfaces import IItem
 from plone.restapi.interfaces import ISerializeToJsonSummary
@@ -41,8 +42,11 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
         """Custom related to PloneMeeting:
            - organization: include "full_id" by default."""
         from plonemeeting.restapi.serializer.organization import org_full_id
-        if self.context.portal_type == "organization":
-            result['full_id'] = org_full_id(self.context.getObject())
+        # serializer may be initialized with an object and not a brain
+        if base_hasattr(obj, 'getObject'):
+            obj = obj.getObject()
+        if obj.portal_type == "organization":
+            result['full_id'] = org_full_id(obj)
         return result
 
     def __call__(self):
