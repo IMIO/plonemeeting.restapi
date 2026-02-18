@@ -4,6 +4,12 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
+2.13 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
 2.12 (2026-02-18)
 -----------------
 
