@@ -7,13 +7,24 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- When using `utils.rest_uuid_to_object` instead returning a `400 BadRequest`
+  when element was not found, return a specific error when:
 
+  - element exists but not accessible (`403 Forbidden`);
+  - element does not exist (`404 NotFound`).
+
+  [gbastien]
+- Fixed serialization of `Meeting.committees` that failed on
+  `RichTextValue` in a `datagridfield`.
+  [gbastien]
+- Include `full_id` by default when serializing an `organization` so
+  information is available when used as `MeetingItem.proposingGroup`.
+  [gbastien]
 
 2.11 (2026-01-15)
 -----------------
 
-- SUP-43789: Fixed another issue with `utils.clean_html` 
+- SUP-43789: Fixed another issue with `utils.clean_html`
   when the ending tag was not a </p>.
   [aduchene]
 
@@ -27,7 +38,8 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.9 (2025-05-05)
 ----------------
 
-- SUP-43789: Fixed an issue with `utils.clean_html` when the ending tag </p> was not at the end of the content string.
+- SUP-43789: Fixed an issue with `utils.clean_html` when the ending tag `</p>`
+  was not at the end of the content string.
   [aduchene]
 
 2.8 (2024-10-16)

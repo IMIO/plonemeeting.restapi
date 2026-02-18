@@ -71,7 +71,21 @@ class UidSearchGet(BaseSearchGet):
             if self.uid:
                 # will raise if element exist but inaccessible or not exist
                 # do not try_restricted as it was just done in this endpoint
-                rest_uuid_to_object(self.uid, try_restricted=False, in_name_of=self.in_name_of)
+                return rest_uuid_to_object(
+                    self.uid,
+                    self.request.response,
+                    try_restricted=False,
+                    in_name_of=self.in_name_of)
+            elif self.external_id:
+                # if no uid, we have an external_id that can be an UID,
+                # try to get it unrestricted will raise if element exist
+                # but inaccessible or does not exist
+                return rest_uuid_to_object(
+                    self.external_id,
+                    self.request.response,
+                    try_restricted=False,
+                    in_name_of=self.in_name_of,
+                    attr_name="externalIdentifier")
         return res
 
 

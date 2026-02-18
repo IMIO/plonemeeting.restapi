@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from imio.helpers.content import base_hasattr
 from imio.restapi.serializer.base import DefaultJSONSummarySerializer
 from OFS.interfaces import IItem
 from plone.restapi.interfaces import ISerializeToJsonSummary
@@ -17,8 +18,9 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
 
     @property
     def _additional_fields(self):
-        """By default add 'UID' to returned data."""
-        return ["id", "UID", "enabled", "created", "modified"]
+        """Add some defaults."""
+        res = super(PMBrainJSONSummarySerializer, self)._additional_fields
+        return res + ["enabled", "created", "modified"]
 
     def _get_metadata_fields_name(self):
         """May be overrided when necessary."""
@@ -35,6 +37,17 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
         self.asked_additional_values = []
         self.asked_includes = []
         self.fullobjects = False
+
+    def _include_custom(self, obj, result):
+        """Custom related to PloneMeeting:
+           - organization: include "full_id" by default."""
+        if obj.portal_type == "organization":
+            from plonemeeting.restapi.serializer.organization import org_full_id
+            # serializer may be initialized with an object and not a brain
+            if base_hasattr(obj, 'getObject'):
+                obj = obj.getObject()
+            result['full_id'] = org_full_id(obj)
+        return result
 
     def __call__(self):
         """ """

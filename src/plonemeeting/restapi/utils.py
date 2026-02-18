@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
-
 from AccessControl import Unauthorized
 from BeautifulSoup import BeautifulSoup
 from HTMLParser import HTMLParser
@@ -20,16 +18,18 @@ from zExceptions import BadRequest
 from zope.component import queryMultiAdapter
 from zope.globalrequest import getRequest
 
+import re
+
 
 IN_NAME_OF_CONFIG_ID_UNAUTHORIZED = 'User "%s" must be Manager/MeetingManager for ' \
     'config "%s" to use "in_name_of=%s" option!'
 IN_NAME_OF_UNAUTHORIZED = 'User "%s" must be Manager/MeetingManager to use "in_name_of=%s" option!'
 IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
-UID_NOT_ACCESSIBLE_ERROR = 'Element with UID "%s" was found in config "%s" but ' \
+UID_NOT_ACCESSIBLE_ERROR = 'Element with %s "%s" was found in config "%s" but ' \
     'user "%s" can not access it!'
-UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR = 'Element with UID "%s" was found in config ' \
+UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR = 'Element with %s "%s" was found in config ' \
     '"%s" but user "%s" can not access it (using "in_name_of" original power user "%s")!'
-UID_NOT_FOUND_ERROR = 'No element found with UID "%s"!'
+UID_NOT_FOUND_ERROR = 'No element found with %s "%s"!'
 
 
 def check_in_name_of(cfg_id, data):
@@ -164,7 +164,7 @@ def use_obj_serializer(form, prefix=''):
         form.get(prefix + "additional_values", []))
 
 
-def rest_uuid_to_object(uid, try_restricted=True, in_name_of=None):
+def rest_uuid_to_object(uid, response, try_restricted=True, in_name_of=None, attr_name="UID"):
     """Return the object corresponding to given p_uid but manage cases when
        it was not found or is not available to current user."""
     obj = None
@@ -178,13 +178,15 @@ def rest_uuid_to_object(uid, try_restricted=True, in_name_of=None):
             cfg = tool.getMeetingConfig(obj)
             if in_name_of:
                 msg = UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
-                    uid, cfg.getId(), in_name_of, api.user.get_current().getId())
+                    attr_name, uid, cfg.getId(), in_name_of, api.user.get_current().getId())
             else:
                 msg = UID_NOT_ACCESSIBLE_ERROR % (
-                    uid, cfg.getId(), in_name_of or api.user.get_current().getId())
-            raise BadRequest(msg)
+                    attr_name, uid, cfg.getId(), in_name_of or api.user.get_current().getId())
+            response.setStatus(403)
+            return dict(error=dict(type="Forbidden", message=msg))
         else:
-            raise BadRequest(UID_NOT_FOUND_ERROR % uid)
+            response.setStatus(404)
+            return dict(error=dict(type="NotFound", message=UID_NOT_FOUND_ERROR % (attr_name, uid)))
     return obj
 
 
