@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.12 (unreleased)
+2.12 (2026-02-18)
 -----------------
 
 - When using `utils.rest_uuid_to_object` instead returning a `400 BadRequest`
