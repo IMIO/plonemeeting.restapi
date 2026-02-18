@@ -41,11 +41,11 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
     def _include_custom(self, obj, result):
         """Custom related to PloneMeeting:
            - organization: include "full_id" by default."""
-        from plonemeeting.restapi.serializer.organization import org_full_id
-        # serializer may be initialized with an object and not a brain
-        if base_hasattr(obj, 'getObject'):
-            obj = obj.getObject()
         if obj.portal_type == "organization":
+            from plonemeeting.restapi.serializer.organization import org_full_id
+            # serializer may be initialized with an object and not a brain
+            if base_hasattr(obj, 'getObject'):
+                obj = obj.getObject()
             result['full_id'] = org_full_id(obj)
         return result
 
