@@ -2,7 +2,6 @@
 from AccessControl import Unauthorized
 from BeautifulSoup import BeautifulSoup
 from HTMLParser import HTMLParser
-from imio.helpers.content import uuidToObject
 from lxml.html.clean import Cleaner
 from plone import api
 from plone.restapi.deserializer import boolean_value
@@ -168,11 +167,15 @@ def rest_uuid_to_object(uid, response, try_restricted=True, in_name_of=None, att
     """Return the object corresponding to given p_uid but manage cases when
        it was not found or is not available to current user."""
     obj = None
+    catalog = api.portal.get_tool('portal_catalog')
     if try_restricted:
-        obj = uuidToObject(uid)
+        brains = catalog({attr_name: uid})
+        obj = brains[0].getObject() if brains else None
     if obj is None:
         # try to get it unrestricted
-        obj = uuidToObject(uid, unrestricted=True)
+        brains = catalog.unrestrictedSearchResults({attr_name: uid})
+        obj = brains[0]._unrestrictedGetObject() if brains else None
+        # we could get an object unrestricted, it means it exists but is not accessible
         if obj:
             tool = api.portal.get_tool('portal_plonemeeting')
             cfg = tool.getMeetingConfig(obj)
@@ -185,6 +188,7 @@ def rest_uuid_to_object(uid, response, try_restricted=True, in_name_of=None, att
             response.setStatus(403)
             return dict(error=dict(type="Forbidden", message=msg))
         else:
+            # we could not get an object even unrestricted, it means it does not exist
             response.setStatus(404)
             return dict(error=dict(type="NotFound", message=UID_NOT_FOUND_ERROR % (attr_name, uid)))
     return obj

@@ -53,20 +53,6 @@ class testServiceGetUid(BaseTestCase):
         response = self.api_session.get(endpoint_url)
         self.assertEqual(response.status_code, 200, response.content)
 
-    def test_restapi_uid_not_required_if_external_id(self):
-        """
-        if 'externalIdentifier' or 'external_id' parameter is given, UID become optional
-        """
-        endpoint_url = "{0}/@get?external_id=EX123".format(self.portal_url)
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(self.item1_uid, response.json()["UID"])
-
-        endpoint_url = "{0}/@get?externalIdentifier=EX123".format(self.portal_url)
-        response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(self.item1_uid, response.json()["UID"])
-
     def test_restapi_get_uid_not_found(self):
         """When given UID does not exist"""
         endpoint_url = "{0}/@get?UID=unknown".format(self.portal_url)
@@ -91,6 +77,47 @@ class testServiceGetUid(BaseTestCase):
             {u"error": {
                 u'message': UID_NOT_ACCESSIBLE_ERROR % (
                     'UID', self.item2_uid, self.meetingConfig.getId(), "pmCreator1"),
+                u"type": u"Forbidden"}}
+        )
+
+    def test_restapi_uid_not_required_if_external_id(self):
+        """
+        if 'externalIdentifier' or 'external_id' parameter is given, UID become optional
+        """
+        endpoint_url = "{0}/@get?external_id=EX123".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(self.item1_uid, response.json()["UID"])
+
+        endpoint_url = "{0}/@get?externalIdentifier=EX123".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(self.item1_uid, response.json()["UID"])
+
+    def test_restapi_get_external_id_not_found(self):
+        """When given "external_id" does not exist"""
+        endpoint_url = "{0}/@get?externalIdentifier=unknown".format(self.portal_url)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            response.json(),
+            {u'error': {
+                u'message': UID_NOT_FOUND_ERROR % ('externalIdentifier', 'unknown'),
+                u'type': u'NotFound'}}
+        )
+
+    def test_restapi_get_external_id_not_accessible(self):
+        """When given "external_id" is not accessible"""
+        endpoint_url = "{0}/@get?externalIdentifier=EX123".format(self.portal_url)
+        # pmCreator2 can not access item with proposingGroup 'developers'
+        self.api_session.auth = ("pmCreator2", DEFAULT_USER_PASSWORD)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json(),
+            {u"error": {
+                u'message': UID_NOT_ACCESSIBLE_ERROR % (
+                    'externalIdentifier', 'EX123', self.meetingConfig.getId(), "pmCreator2"),
                 u"type": u"Forbidden"}}
         )
 

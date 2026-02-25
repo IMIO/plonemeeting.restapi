@@ -7,8 +7,10 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.13 (unreleased)
 -----------------
 
-- Nothing changed yet.
-
+- Adapted `utils.rest_uuid_to_object` to no more rely on
+  `imio.helpers.content.uuidToObject` as we can query on `externalIdentifier`
+  implement our own search.
+  [gbastien]
 
 2.12 (2026-02-18)
 -----------------
