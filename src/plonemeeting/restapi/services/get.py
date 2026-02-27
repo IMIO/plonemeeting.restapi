@@ -84,6 +84,7 @@ class UidSearchGet(BaseSearchGet):
                     self.external_id,
                     self.request.response,
                     try_restricted=False,
+                    config_id=self.config_id,
                     in_name_of=self.in_name_of,
                     attr_name="externalIdentifier")
         return res

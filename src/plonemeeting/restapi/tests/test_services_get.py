@@ -6,9 +6,10 @@ from plonemeeting.restapi.services.get import UID_WRONG_TYPE_ERROR
 from plonemeeting.restapi.tests.base import BaseTestCase
 from plonemeeting.restapi.utils import IN_NAME_OF_CONFIG_ID_UNAUTHORIZED
 from plonemeeting.restapi.utils import IN_NAME_OF_UNAUTHORIZED
-from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_ERROR
-from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR
-from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
+from plonemeeting.restapi.utils import NOT_ACCESSIBLE_ERROR
+from plonemeeting.restapi.utils import NOT_ACCESSIBLE_IN_NAME_OF_ERROR
+from plonemeeting.restapi.utils import NOT_FOUND_ERROR
+from plonemeeting.restapi.utils import NOT_FOUND_IN_CFG_ERROR
 from Products.PloneMeeting.config import NO_TRIGGER_WF_TRANSITION_UNTIL
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 
@@ -57,11 +58,11 @@ class testServiceGetUid(BaseTestCase):
         """When given UID does not exist"""
         endpoint_url = "{0}/@get?UID=unknown".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 404, response.content)
         self.assertEqual(
             response.json(),
             {u'error': {
-                u'message': UID_NOT_FOUND_ERROR % ('UID', 'unknown'),
+                u'message': NOT_FOUND_ERROR % ('UID', 'unknown'),
                 u'type': u'NotFound'}}
         )
 
@@ -71,11 +72,11 @@ class testServiceGetUid(BaseTestCase):
         # pmCreator1 can not access item with proposingGroup 'vendors'
         self.api_session.auth = ("pmCreator1", DEFAULT_USER_PASSWORD)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 403, response.content)
         self.assertEqual(
             response.json(),
             {u"error": {
-                u'message': UID_NOT_ACCESSIBLE_ERROR % (
+                u'message': NOT_ACCESSIBLE_ERROR % (
                     'UID', self.item2_uid, self.meetingConfig.getId(), "pmCreator1"),
                 u"type": u"Forbidden"}}
         )
@@ -98,27 +99,38 @@ class testServiceGetUid(BaseTestCase):
         """When given "external_id" does not exist"""
         endpoint_url = "{0}/@get?externalIdentifier=unknown".format(self.portal_url)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 404, response.content)
         self.assertEqual(
             response.json(),
             {u'error': {
-                u'message': UID_NOT_FOUND_ERROR % ('externalIdentifier', 'unknown'),
+                u'message': NOT_FOUND_ERROR % ('externalIdentifier', 'unknown'),
                 u'type': u'NotFound'}}
         )
 
     def test_restapi_get_external_id_not_accessible(self):
         """When given "external_id" is not accessible"""
-        endpoint_url = "{0}/@get?externalIdentifier=EX123".format(self.portal_url)
+        cfg_id = self.meetingConfig.getId()
+        cfg2_id = self.meetingConfig2.getId()
+        endpoint_url = "{0}/@get?externalIdentifier=EX123&config_id={1}".format(self.portal_url, cfg_id)
         # pmCreator2 can not access item with proposingGroup 'developers'
         self.api_session.auth = ("pmCreator2", DEFAULT_USER_PASSWORD)
         response = self.api_session.get(endpoint_url)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 403, response.content)
         self.assertEqual(
             response.json(),
             {u"error": {
-                u'message': UID_NOT_ACCESSIBLE_ERROR % (
-                    'externalIdentifier', 'EX123', self.meetingConfig.getId(), "pmCreator2"),
-                u"type": u"Forbidden"}}
+                u'message': NOT_ACCESSIBLE_ERROR % (
+                    'externalIdentifier', 'EX123', cfg_id, "pmCreator2"),
+                u"type": u"Forbidden"}})
+        # config_id is taken into account, so we have a NotFound in cfg2
+        endpoint_url = endpoint_url.replace(cfg_id, cfg2_id)
+        response = self.api_session.get(endpoint_url)
+        self.assertEqual(response.status_code, 404, response.content)
+        self.assertEqual(
+            response.json(),
+            {u'error': {
+                u'message': NOT_FOUND_IN_CFG_ERROR % ('externalIdentifier', 'EX123', cfg2_id),
+                u'type': u'NotFound'}}
         )
 
     def _check_get_uid_endpoint(self, obj, endpoint_name="@get", query=""):
@@ -228,7 +240,7 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(
             response.json(),
             {u"error": {
-                u"message": UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
+                u"message": NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
                     'UID', self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager"),
                 u"type": u"Forbidden",
             }},
@@ -252,7 +264,7 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual(
             response.json(),
             {u"error": {
-                u"message": UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
+                u"message": NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
                     'UID', self.item2_uid, self.meetingConfig.getId(), "pmCreator1", "pmManager2"),
                 u"type": u"Forbidden",
             }},

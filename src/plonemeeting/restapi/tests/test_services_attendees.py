@@ -7,8 +7,8 @@ from plonemeeting.restapi.services.attendees import URL_ATTENDEE_UID_REQUIRED_ER
 from plonemeeting.restapi.services.attendees import URL_UID_REQUIRED_ERROR
 from plonemeeting.restapi.services.attendees import WRONG_ATTENDEE_TYPE
 from plonemeeting.restapi.tests.base import BaseTestCase
-from plonemeeting.restapi.utils import UID_NOT_ACCESSIBLE_ERROR
-from plonemeeting.restapi.utils import UID_NOT_FOUND_ERROR
+from plonemeeting.restapi.utils import NOT_ACCESSIBLE_ERROR
+from plonemeeting.restapi.utils import NOT_FOUND_ERROR
 from Products.CMFCore.permissions import View
 from Products.PloneMeeting.browser.itemattendee import WRONG_POSITION_TYPE
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
@@ -125,7 +125,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(
             response.json(),
             {u"error": {
-                u'message': UID_NOT_ACCESSIBLE_ERROR % (
+                u'message': NOT_ACCESSIBLE_ERROR % (
                     'UID', self.item0_uid, self.meetingConfig.getId(), "pmCreator2"),
                 u"type": u"Forbidden"}}
         )
@@ -198,10 +198,9 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(
             response.json(),
             {u"error":
-                {u'message': UID_NOT_FOUND_ERROR % ('UID', self.meeting_uid + "0"),
+                {u'message': NOT_FOUND_ERROR % ('UID', self.meeting_uid + "0"),
                  u'type': u'NotFound'}
-                }
-            )
+             })
         endpoint_url = "{0}/@attendee/{1}/{2}0".format(
             self.portal_url, self.meeting_uid, self.hp1_uid)
         response = self.api_session.get(endpoint_url)
@@ -209,7 +208,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(
             response.json(),
             {u"error":
-                {u'message': UID_NOT_FOUND_ERROR % ('UID', self.hp1_uid + "0"),
+                {u'message': NOT_FOUND_ERROR % ('UID', self.hp1_uid + "0"),
                  u'type': u'NotFound'}})
         # PATCH
         endpoint_url = "{0}/@attendee/{1}0/{2}".format(
@@ -219,7 +218,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(
             response.json(),
             {u"error":
-                {u'message': UID_NOT_FOUND_ERROR % ('UID', self.meeting_uid + "0"),
+                {u'message': NOT_FOUND_ERROR % ('UID', self.meeting_uid + "0"),
                  u'type': u'NotFound'}})
         endpoint_url = "{0}/@attendee/{1}/{2}0".format(
             self.portal_url, self.meeting_uid, self.hp1_uid)
@@ -228,7 +227,7 @@ class testServiceAttendees(BaseTestCase):
         self.assertEqual(
             response.json(),
             {u"error":
-                {u'message': UID_NOT_FOUND_ERROR % ('UID', self.hp1_uid + "0"),
+                {u'message': NOT_FOUND_ERROR % ('UID', self.hp1_uid + "0"),
                  u'type': u'NotFound'}})
 
     def test_restapi_get_attendee_endpoint(self):

@@ -40,9 +40,7 @@ class BaseSerializeMeetingToJson(object):
 
     def _include_custom(self, obj, result):
         """Include "date" by default."""
-        if self.fullobjects or \
-           "date" in self.metadata_fields or \
-           self.get_param('include_base_data', True):
+        if "date" not in result:
             field = get_dx_field(obj, "date")
             # serialize the field
             serializer = queryMultiAdapter(

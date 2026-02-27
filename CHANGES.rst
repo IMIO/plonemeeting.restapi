@@ -9,7 +9,9 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 - Adapted `utils.rest_uuid_to_object` to no more rely on
   `imio.helpers.content.uuidToObject` as we can query on `externalIdentifier`
-  implement our own search.
+  implement our own search. Added parameter `config_id=None` when querying
+  `externalIdentifier` as several elements with same `externalIdentifier`
+  can exist, we can check if exist in a given `config_id`.
   [gbastien]
 
 2.12 (2026-02-18)

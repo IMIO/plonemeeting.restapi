@@ -24,11 +24,12 @@ IN_NAME_OF_CONFIG_ID_UNAUTHORIZED = 'User "%s" must be Manager/MeetingManager fo
     'config "%s" to use "in_name_of=%s" option!'
 IN_NAME_OF_UNAUTHORIZED = 'User "%s" must be Manager/MeetingManager to use "in_name_of=%s" option!'
 IN_NAME_OF_USER_NOT_FOUND = 'The in_name_of user "%s" was not found!'
-UID_NOT_ACCESSIBLE_ERROR = 'Element with %s "%s" was found in config "%s" but ' \
+NOT_ACCESSIBLE_ERROR = 'Element with %s "%s" was found in config "%s" but ' \
     'user "%s" can not access it!'
-UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR = 'Element with %s "%s" was found in config ' \
+NOT_ACCESSIBLE_IN_NAME_OF_ERROR = 'Element with %s "%s" was found in config ' \
     '"%s" but user "%s" can not access it (using "in_name_of" original power user "%s")!'
-UID_NOT_FOUND_ERROR = 'No element found with %s "%s"!'
+NOT_FOUND_ERROR = 'No element found with %s "%s"!'
+NOT_FOUND_IN_CFG_ERROR = 'No element found with %s "%s" in config "%s"!'
 
 
 def check_in_name_of(cfg_id, data):
@@ -163,34 +164,40 @@ def use_obj_serializer(form, prefix=''):
         form.get(prefix + "additional_values", []))
 
 
-def rest_uuid_to_object(uid, response, try_restricted=True, in_name_of=None, attr_name="UID"):
+def rest_uuid_to_object(uid, response, try_restricted=True, config_id=None, in_name_of=None, attr_name="UID"):
     """Return the object corresponding to given p_uid but manage cases when
        it was not found or is not available to current user."""
     obj = None
     catalog = api.portal.get_tool('portal_catalog')
+    query = {attr_name: uid}
+    if config_id:
+        query['getConfigId'] = config_id
     if try_restricted:
-        brains = catalog({attr_name: uid})
+        brains = catalog(**query)
         obj = brains[0].getObject() if brains else None
     if obj is None:
         # try to get it unrestricted
-        brains = catalog.unrestrictedSearchResults({attr_name: uid})
+        brains = catalog.unrestrictedSearchResults(**query)
         obj = brains[0]._unrestrictedGetObject() if brains else None
         # we could get an object unrestricted, it means it exists but is not accessible
         if obj:
             tool = api.portal.get_tool('portal_plonemeeting')
             cfg = tool.getMeetingConfig(obj)
             if in_name_of:
-                msg = UID_NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
+                msg = NOT_ACCESSIBLE_IN_NAME_OF_ERROR % (
                     attr_name, uid, cfg.getId(), in_name_of, api.user.get_current().getId())
             else:
-                msg = UID_NOT_ACCESSIBLE_ERROR % (
+                msg = NOT_ACCESSIBLE_ERROR % (
                     attr_name, uid, cfg.getId(), in_name_of or api.user.get_current().getId())
             response.setStatus(403)
             return dict(error=dict(type="Forbidden", message=msg))
         else:
             # we could not get an object even unrestricted, it means it does not exist
             response.setStatus(404)
-            return dict(error=dict(type="NotFound", message=UID_NOT_FOUND_ERROR % (attr_name, uid)))
+            if config_id is None:
+                return dict(error=dict(type="NotFound", message=NOT_FOUND_ERROR % (attr_name, uid)))
+            else:
+                return dict(error=dict(type="NotFound", message=NOT_FOUND_IN_CFG_ERROR % (attr_name, uid, config_id)))
     return obj
 
 
