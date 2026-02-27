@@ -577,7 +577,7 @@ class testServiceSearch(BaseTestCase):
         self.create('organization', folder=self.developers, id='suborg1', title="Suborg1")
         self.changeUser("pmManager")
         endpoint_url = (
-            "{0}/@search?portal_type=organization".format(self.portal_url)
+            "{0}/@search?portal_type=organization&sort_on=created".format(self.portal_url)
         )
         transaction.commit()
         response = self.api_session.get(endpoint_url)
