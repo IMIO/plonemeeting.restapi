@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.13 (unreleased)
+2.13 (2026-03-13)
 -----------------
 
 - Adapted `utils.rest_uuid_to_object` to no more rely on
