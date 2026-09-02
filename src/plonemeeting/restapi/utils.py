@@ -12,6 +12,7 @@ from Products.CMFCore.permissions import ManagePortal
 from Products.CMFCore.utils import _checkPermission
 from Products.CMFPlone.utils import safe_unicode
 from Products.PloneMeeting.config import MEETINGMANAGERS_GROUP_SUFFIX
+from Products.PloneMeeting.utils import anonymize_raw_text
 from Products.PloneMeeting.utils import convert2xhtml
 from zExceptions import BadRequest
 from zope.component import queryMultiAdapter
@@ -219,3 +220,21 @@ def build_catalog_query(serializer, extra_include_name=None):
         if value is not None:
             query[index] = value
     return query
+
+
+def anonymize_title(title):
+    res = {}
+    form = getRequest().form
+    kw = {k.replace('anonymize_raw_text_', ''): v for k, v in form.items()
+          if k.startswith('anonymize_raw_text_')}
+    new_title = anonymize_raw_text(title, **kw)
+    # if title was anonymized, add the anonymized XHTML version as well to the result
+    if new_title != title:
+        res['title'] = new_title
+        # by default 'new_text' is empty for the html version
+        kw = {'new_text': ''}
+        kw.update(
+            {k.replace('anonymize_raw_text_html_', ''): v for k, v in form.items()
+             if k.startswith('anonymize_raw_text_html_')})
+        res['title_html'] = anonymize_raw_text(title, as_html=True, **kw)
+    return res

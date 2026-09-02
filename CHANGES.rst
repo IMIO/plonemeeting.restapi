@@ -7,8 +7,8 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.14 (unreleased)
 -----------------
 
-- Nothing changed yet.
-
+- Anonymize item's title by default.
+  [gbastien]
 
 2.13 (2026-03-13)
 -----------------
