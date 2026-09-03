@@ -16,12 +16,12 @@ from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWO
 import transaction
 
 
-class testServiceGetUid(BaseTestCase):
+class TestServiceGetUid(BaseTestCase):
     """@get endpoint, let's get element based on UID."""
 
     def setUp(self):
         """ """
-        super(testServiceGetUid, self).setUp()
+        super(TestServiceGetUid, self).setUp()
         # especially necessary for branch 4.1.x where proposingGroup/category
         # was mixed and MeetingItem.getCategory would return the proposingGroup or the category
         self._enableField('category')
@@ -30,9 +30,13 @@ class testServiceGetUid(BaseTestCase):
             "MeetingItem",
             proposingGroup=self.developers_uid,
             externalIdentifier="EX123",
+            title="My title not confidential"
         )
         self.item1_uid = self.item1.UID()
-        self.item2 = self.create("MeetingItem", proposingGroup=self.vendors_uid)
+        self.item2 = self.create(
+            "MeetingItem",
+            proposingGroup=self.vendors_uid,
+            title="My title [[confidential]]")
         self.item2_uid = self.item2.UID()
         self.meeting = self.create("Meeting", date=datetime(2021, 9, 23, 10, 0))
         self.meeting_uid = self.meeting.UID()
@@ -369,10 +373,10 @@ class testServiceGetUid(BaseTestCase):
         self._removeConfigObjectsFor(cfg)
         cfg.setItemManualSentToOtherMCStates(('itemcreated', ))
         cfg2 = self.meetingConfig2
-        cfg2Id = cfg2.getId()
+        cfg2_id = cfg2.getId()
         # make sure items sendable to cfg2
         cfg.setMeetingConfigsToCloneTo(
-            ({'meeting_config': cfg2Id,
+            ({'meeting_config': cfg2_id,
               'trigger_workflow_transitions_until': NO_TRIGGER_WF_TRANSITION_UNTIL}, ))
         # setup, create item, delay it, send it to cfg2
         # auto linked items
@@ -385,8 +389,8 @@ class testServiceGetUid(BaseTestCase):
         self.do(item, 'delay')
         new_item = item.get_successors()[0]
         new_item_uid = new_item.UID()
-        new_item.setOtherMeetingConfigsClonableTo((cfg2Id, ))
-        cfg2_item = new_item.cloneToOtherMeetingConfig(cfg2Id)
+        new_item.setOtherMeetingConfigsClonableTo((cfg2_id, ))
+        cfg2_item = new_item.cloneToOtherMeetingConfig(cfg2_id)
         cfg2_item_uid = cfg2_item.UID()
         # set manually linked items
         item2 = self.create('MeetingItem', decision=self.decisionText)
@@ -543,11 +547,67 @@ class testServiceGetUid(BaseTestCase):
         self.assertEqual("plonemeeting-assembly", json["extra_include_config"]["id"])
         self.assertEqual("PloneMeeting assembly", json["extra_include_config"]["title"])
 
+    def test_restapi_item_title_anonymized(self):
+        """By default item's title is anonymized"""
+        # not confidential, catalog brain
+        endpoint_url = "{0}/@get?UID={1}".format(
+            self.portal_url, self.item1_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertFalse("title_html" in json)
+        self.assertEqual(json["title"], self.item1.Title())
+        # not confidential, object
+        endpoint_url = "{0}/@get?UID={1}&fullobjects".format(
+            self.portal_url, self.item1_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertFalse("title_html" in json)
+        self.assertEqual(json["title"], self.item1.Title())
+        # confidential, catalog brain
+        self.api_session.auth = ("pmCreator2", DEFAULT_USER_PASSWORD)
+        endpoint_url = "{0}/@get?UID={1}".format(
+            self.portal_url, self.item2_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json["title"], u'My title [[DGPR]]')
+        self.assertEqual(
+            json["title_html"],
+            u'<p>My title <span class="pm-anonymize"></span></p>')
+        # confidential, object
+        endpoint_url = "{0}/@get?UID={1}&fullobjects".format(
+            self.portal_url, self.item2_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json["title"], u'My title [[DGPR]]')
+        self.assertEqual(
+            json["title_html"],
+            u'<p>My title <span class="pm-anonymize"></span></p>')
+        # passing specific parameters, parameters starting with anonymize_raw_text_
+        # will be used for the raw title returned in 'title' and parameters
+        # starting with anonymize_raw_text_html_ will be used for the
+        # html title returned in 'title_html'
+        endpoint_url = "{0}/@get?UID={1}&fullobjects&anonymize_raw_text_new_text=" \
+            "New text parameter&anonymize_raw_text_html_xhtml_anonymize_value_format=" \
+            "<span class=\"pm-anonymize\">{{0}}</span>&anonymize_raw_text_html_new_text=" \
+            "New XHTML text".format(
+                self.portal_url, self.item2_uid
+        )
+        response = self.api_session.get(endpoint_url)
+        json = response.json()
+        self.assertEqual(json["title"], u'My title New text parameter')
+        self.assertEqual(
+            json["title_html"],
+            u'<p>My title <span class="pm-anonymize">New XHTML text</span></p>')
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
 
     suite = TestSuite()
     # add a prefix to avoid every PM tests to be executed
-    suite.addTest(makeSuite(testServiceGetUid, prefix="test_restapi_"))
+    suite.addTest(makeSuite(TestServiceGetUid, prefix="test_restapi_"))
     return suite

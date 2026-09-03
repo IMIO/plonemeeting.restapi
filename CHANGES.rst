@@ -7,7 +7,8 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.14 (unreleased)
 -----------------
 
-- Anonymize item's title by default.
+- Item's title is returned anonymized by default, if aonymized, an extra
+  `title_html` value is returned and will contain the XHTML anonymized version.
   [gbastien]
 
 2.13 (2026-03-13)
