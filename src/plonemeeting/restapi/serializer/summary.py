@@ -5,6 +5,7 @@ from imio.restapi.serializer.base import DefaultJSONSummarySerializer
 from OFS.interfaces import IItem
 from plone.restapi.interfaces import ISerializeToJsonSummary
 from plonemeeting.restapi.serializer.base import ContentSerializeToJson
+from plonemeeting.restapi.utils import anonymize_title
 from Products.ZCatalog.interfaces import ICatalogBrain
 from zope.component import adapter
 from zope.interface import implementer
@@ -47,6 +48,8 @@ class PMBrainJSONSummarySerializer(DefaultJSONSummarySerializer, ContentSerializ
             if base_hasattr(obj, 'getObject'):
                 obj = obj.getObject()
             result['full_id'] = org_full_id(obj)
+        if "title" in result and obj.meta_type == "MeetingItem":
+            result.update(anonymize_title(result["title"]))
         return result
 
     def __call__(self):

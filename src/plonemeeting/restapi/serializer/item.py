@@ -9,6 +9,7 @@ from plonemeeting.restapi.serializer.base import serialize_attendees
 from plonemeeting.restapi.serializer.base import serialize_extra_include_annexes
 from plonemeeting.restapi.serializer.base import serialize_pod_templates
 from plonemeeting.restapi.serializer.summary import PMBrainJSONSummarySerializer
+from plonemeeting.restapi.utils import anonymize_title
 from plonemeeting.restapi.utils import build_catalog_query
 from Products.PloneMeeting.interfaces import IMeetingItem
 from Products.PloneMeeting.utils import get_internal_number
@@ -194,6 +195,14 @@ class SerializeToJson(BaseSerializeItemToJson, BaseATSerializeFolderToJson):
             result["internal_number"] = get_internal_number(obj)
         if self.fullobjects or "formatted_itemNumber" in self.metadata_fields:
             result["formatted_itemNumber"] = obj.getItemNumber(for_display=True)
+        return result
+
+
+    def _after__call__(self, obj, result):
+        """Manage anonymized title."""
+        result = super(SerializeToJson, self)._after__call__(obj, result)
+        if "title" in result:
+            result.update(anonymize_title(result["title"]))
         return result
 
 
