@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.14 (unreleased)
+2.14 (2026-09-03)
 -----------------
 
 - Item's title is returned anonymized by default, if aonymized, an extra
