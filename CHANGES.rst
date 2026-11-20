@@ -7,7 +7,11 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 2.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixed randomly failing tests: in `BaseTestCase.setUp`, call `gc.collect()`
+  to release requests kept alive by reference cycles by previous tests
+  (requests that ended with an exception), otherwise their skin data cleanup
+  could happen in the middle of a next request, then set up skin data again.
+  [gbastien]
 
 
 2.14 (2026-09-03)

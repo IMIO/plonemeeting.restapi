@@ -7,6 +7,7 @@ from Products.PloneMeeting import tests as pm_tests
 from Products.PloneMeeting.tests.PloneMeetingTestCase import DEFAULT_USER_PASSWORD
 from Products.PloneMeeting.tests.PloneMeetingTestCase import PloneMeetingTestCase
 
+import gc
 import os
 import transaction
 
@@ -18,6 +19,15 @@ class BaseTestCase(PloneMeetingTestCase):
 
     def setUp(self):
         """ """
+        # release requests kept alive by reference cycles (requests that ended
+        # with an exception) by previous tests now, this way their cleanup
+        # (skin data, ...) is not done randomly in the middle of a request
+        gc.collect()
+        # a released request may have removed the skin data of current thread
+        # set up by the test layer, set it up again like plone.app.testing does
+        portal = self.layer['portal']
+        portal.clearCurrentSkin()
+        portal.setupCurrentSkin(portal.REQUEST)
         super(BaseTestCase, self).setUp()
         self.portal_url = self.portal.absolute_url()
 
