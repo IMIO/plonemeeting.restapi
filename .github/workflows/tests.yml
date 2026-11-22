@@ -1,0 +1,31 @@
+name: Test package
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    branches:
+      - master
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    uses: IMIO/gha-workflows/.github/workflows/package-test-legacy.yml@v1
+    secrets:
+      gh_token: ${{ secrets.TOKEN_GITHUB_RO }}
+      mattermost_webhook_url: ${{ secrets.DELIB_MATTERMOST_WEBHOOK_URL }}
+    with:
+      requirements_file: requirements-tests.txt
+      runner_label: gha-runners-delib-py2
+      soffice: true
+      test_command: OO_SERVER=localhost OO_PORT=2002 bin/test
