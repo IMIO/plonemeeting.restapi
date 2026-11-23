@@ -12,6 +12,10 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
   (requests that ended with an exception), otherwise their skin data cleanup
   could happen in the middle of a next request, then set up skin data again.
   [gbastien]
+- Added GitHub Actions workflow to run tests, based on the
+  `Products.MeetingCommunes` one (reusable `package-test-legacy` workflow).
+  Use `Products.PloneMeeting` `master` branch in `buildout.cfg`.
+  [gbastien]
 
 
 2.14 (2026-09-03)
