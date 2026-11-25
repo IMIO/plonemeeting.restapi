@@ -12,6 +12,13 @@ Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
   (requests that ended with an exception), otherwise their skin data cleanup
   could happen in the middle of a next request, then set up skin data again.
   [gbastien]
+- Added tests showing that content anonymized for some power observers
+  (`MeetingConfig.cssTransforms`) is only found by users that may see it when
+  searching thru the `@search` endpoint (items and meetings, `config_id`,
+  `in_name_of`, globs, terms beginning with `_`).
+  Requires `Products.PloneMeeting` with anonymized searchable text.
+  See #DLIBBDC-4243.
+  [gbastien]
 - Added GitHub Actions workflow to run tests, based on the
   `Products.MeetingCommunes` one (reusable `package-test-legacy` workflow).
   Use `Products.PloneMeeting` `master` branch in `buildout.cfg`.

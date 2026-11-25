@@ -863,6 +863,165 @@ class testServiceSearch(BaseTestCase):
         # RichTextField
         self.assertEqual(resp_json["items"][1]["observations"]["data"], anonymized_text)
 
+    def _search_uids(self, user_id, searchable_text, **params):
+        """Search thru the @search endpoint as p_user_id and return found UIDs."""
+        self.api_session.auth = (user_id, DEFAULT_USER_PASSWORD)
+        params["SearchableText"] = searchable_text
+        response = self.api_session.get(
+            "{0}/@search".format(self.portal_url), params=params)
+        self.assertEqual(response.status_code, 200, response.content)
+        return [found[u"UID"] for found in response.json()[u"items"]]
+
+    def test_restapi_search_anonymized_content(self):
+        """Content anonymized for some power observers (MeetingConfig.cssTransforms)
+           is only found by users that may see it when searching thru the REST API,
+           see Products.PloneMeeting test_pm_CssTransformsSearchableText."""
+        cfg = self.meetingConfig
+        cfg_id = cfg.getId()
+        self._setPowerObserverStates(states=("itemcreated", ))
+        self._setPowerObserverStates(observer_type="restrictedpowerobservers",
+                                     states=("itemcreated", ))
+        self._setPowerObserverStates(field_name="meeting_states", states=("created", ))
+        self._setPowerObserverStates(observer_type="restrictedpowerobservers",
+                                     field_name="meeting_states", states=("created", ))
+        cfg.setCssTransforms(
+            ({"action": "replace",
+              "css_class": "pm-anonymize",
+              "replace_new_content": "Data were hidden",
+              "replace_new_css_class": "pm-anonymized",
+              "powerobservers": ["restrictedpowerobservers"]}, ))
+        self.changeUser("pmManager")
+        item = self.create("MeetingItem")
+        item.setDecision(
+            "<p>Visible<span class=\"pm-anonymize\">Johnsecret Jean-Pierre</span>after</p>")
+        item.reindexObject()
+        item_uid = item.UID()
+        meeting = self.create("Meeting")
+        meeting.observations = richtextval(
+            u"<p>Visible<span class=\"pm-anonymize\">Meetingsecret</span>after</p>")
+        meeting.reindexObject(idxs=["SearchableText"])
+        meeting_uid = meeting.UID()
+        transaction.commit()
+
+        # users that may see anonymized content find it
+        for user_id in ("pmManager", "powerobserver1"):
+            for searchable_text in ("Johnsecret",
+                                    "johnsec*",
+                                    "Pierre",
+                                    "\"Jean-Pierre\"",
+                                    "Visible Johnsecret",
+                                    "Visible after"):
+                self.assertEqual(
+                    self._search_uids(user_id, searchable_text, config_id=cfg_id),
+                    [item_uid], (user_id, searchable_text))
+            self.assertEqual(
+                self._search_uids(user_id, "Visible -Johnsecret", config_id=cfg_id), [])
+            self.assertEqual(
+                self._search_uids(user_id, "Meetingsecret", config_id=cfg_id, type="meeting"),
+                [meeting_uid])
+            # global query, without config_id
+            self.assertEqual(self._search_uids(user_id, "Johnsecret"), [item_uid])
+
+        # restricted power observers do not find anonymized content
+        self.assertEqual(
+            self._search_uids("restrictedpowerobserver1", "Visible", config_id=cfg_id),
+            [item_uid])
+        self.assertEqual(
+            self._search_uids("restrictedpowerobserver1", "Visible -Johnsecret", config_id=cfg_id),
+            [item_uid])
+        self.assertEqual(
+            self._search_uids("restrictedpowerobserver1", "Visible",
+                              config_id=cfg_id, type="meeting"),
+            [meeting_uid])
+        for searchable_text in ("Johnsecret",
+                                "johnsec*",
+                                "Pierre",
+                                "\"Jean-Pierre\"",
+                                "Visible Johnsecret",
+                                # globs never match anonymized words
+                                "anon*",
+                                "j*"):
+            self.assertEqual(
+                self._search_uids("restrictedpowerobserver1", searchable_text, config_id=cfg_id),
+                [], searchable_text)
+        self.assertEqual(
+            self._search_uids("restrictedpowerobserver1", "Meetingsecret",
+                              config_id=cfg_id, type="meeting"),
+            [])
+        # global query, without config_id
+        self.assertEqual(self._search_uids("restrictedpowerobserver1", "Johnsecret"), [])
+
+        # a query containing a term beginning with "_" returns nothing for anybody
+        for user_id in ("pmManager", "powerobserver1", "restrictedpowerobserver1"):
+            for searchable_text in ("__anonymized_text_prefix_johnsecret",
+                                    "__anonymized_text_prefix_john*",
+                                    "_*",
+                                    u"\uff3f\uff3fanonymized_text_prefix_johnsecret",
+                                    "Visible -__anonymized_text_prefix_johnsecret"):
+                self.assertEqual(
+                    self._search_uids(user_id, searchable_text, config_id=cfg_id),
+                    [], (user_id, searchable_text))
+
+        # in_name_of, the search is done as the given user
+        self.assertEqual(
+            self._search_uids("pmManager", "Johnsecret",
+                              config_id=cfg_id, in_name_of="powerobserver1"),
+            [item_uid])
+        self.assertEqual(
+            self._search_uids("pmManager", "Johnsecret",
+                              config_id=cfg_id, in_name_of="restrictedpowerobserver1"),
+            [])
+        self.assertEqual(
+            self._search_uids("pmManager", "Visible",
+                              config_id=cfg_id, in_name_of="restrictedpowerobserver1"),
+            [item_uid])
+
+    def test_restapi_search_anonymized_content_by_config(self):
+        """When the query is restricted to a MeetingConfig (config_id), only this
+           MeetingConfig is taken into account, a restricted power observer that
+           may not see anonymized content of cfg may see anonymized content of cfg2."""
+        cfg = self.meetingConfig
+        cfg2 = self.meetingConfig2
+        cfg2_id = cfg2.getId()
+        css_transforms = {"action": "replace",
+                          "css_class": "pm-anonymize",
+                          "replace_new_content": "Data were hidden",
+                          "replace_new_css_class": "pm-anonymized"}
+        cfg.setCssTransforms(
+            (dict(css_transforms, powerobservers=["restrictedpowerobservers"]), ))
+        cfg2.setCssTransforms(
+            (dict(css_transforms, powerobservers=["powerobservers"]), ))
+        self._setPowerObserverStates(
+            cfg=cfg2, observer_type="restrictedpowerobservers", states=("itemcreated", ))
+        self._addPrincipalToGroup(
+            "restrictedpowerobserver1", "{0}_restrictedpowerobservers".format(cfg2_id))
+        self.changeUser("pmManager")
+        self.setMeetingConfig(cfg2_id)
+        item = self.create("MeetingItem")
+        item.setDecision("<p>Visible <span class=\"pm-anonymize\">Cfgsecret</span></p>")
+        item.reindexObject()
+        item_uid = item.UID()
+        transaction.commit()
+        # query restricted to cfg2, anonymized content of cfg2 is found
+        self.assertEqual(
+            self._search_uids("restrictedpowerobserver1", "Cfgsecret", config_id=cfg2_id),
+            [item_uid])
+        self.assertEqual(
+            self._search_uids("restrictedpowerobserver1", "cfgsec*", config_id=cfg2_id),
+            [item_uid])
+        # global query, anonymized content of cfg2 is not found
+        self.assertEqual(self._search_uids("restrictedpowerobserver1", "Cfgsecret"), [])
+        # query on items of every MeetingConfigs (in_name_of without config_id)
+        self.assertEqual(
+            self._search_uids("pmManager", "Cfgsecret",
+                              type="item", in_name_of="restrictedpowerobserver1"),
+            [])
+        # visible content is found in every cases
+        self.assertEqual(
+            self._search_uids("restrictedpowerobserver1", "Visible", config_id=cfg2_id),
+            [item_uid])
+        self.assertEqual(self._search_uids("restrictedpowerobserver1", "Visible"), [item_uid])
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
