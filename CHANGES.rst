@@ -4,7 +4,7 @@ Changelog
 Version 1.x is for PloneMeeting 4.1.x, version 2.x is for PloneMeeting 4.2.x+
 
 
-2.15 (unreleased)
+2.15 (2026-11-26)
 -----------------
 
 - Fixed randomly failing tests: in `BaseTestCase.setUp`, call `gc.collect()`
